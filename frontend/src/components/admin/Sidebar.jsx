@@ -222,7 +222,7 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       {/* Navigation Menu */}
       <div className="flex-1 overflow-y-auto sidebar-scrollbar">
         <nav className={`space-y-2 ${collapsed ? 'p-3' : 'p-4'}`}>
-          {menuItems.map((item) => {
+          {Array.isArray(menuItems) && menuItems.map((item) => {
             const Icon = item.icon
             const isActive = isActivePage(item)
             

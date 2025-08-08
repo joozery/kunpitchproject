@@ -385,7 +385,7 @@ const PropertyManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProperties.map((property) => (
+                  {Array.isArray(filteredProperties) && filteredProperties.map((property) => (
                     <TableRow key={property.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -447,7 +447,7 @@ const PropertyManagement = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
+            {Array.isArray(filteredProperties) && filteredProperties.map((property) => (
               <Card key={property.id} className="overflow-hidden">
                 <div className="relative">
                   <img
