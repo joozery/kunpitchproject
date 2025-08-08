@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
+import { propertyAPI, uploadAPI } from '../../lib/api'
 import { 
   Upload, 
   X, 
@@ -28,6 +29,7 @@ const PropertyForm = ({ onBack, onSave }) => {
     type: 'residential', // residential, commercial, land
     status: 'available', // available, sold, rented
     price: '',
+    rentPrice: '',
     area: '',
     bedrooms: '',
     bathrooms: '',
@@ -48,6 +50,7 @@ const PropertyForm = ({ onBack, onSave }) => {
   const [images, setImages] = useState([])
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const propertyTypes = [
     { value: 'residential', label: 'ที่อยู่อาศัย', icon: Home },
@@ -92,24 +95,31 @@ const PropertyForm = ({ onBack, onSave }) => {
     }))
   }
 
-  const handleCoverImageUpload = (event) => {
+  const handleCoverImageUpload = async (event) => {
     const file = event.target.files[0]
     if (file) {
-      const newCoverImage = {
-        id: Date.now(),
-        file,
-        preview: URL.createObjectURL(file),
-        uploading: true
-      }
-      
-      setCoverImage(newCoverImage)
-      setUploading(true)
-
-      // Simulate upload process
-      setTimeout(() => {
-        setCoverImage(prev => ({ ...prev, uploading: false }))
+      try {
+        setUploading(true)
+        
+        // Upload to Cloudinary via our API
+        const result = await uploadAPI.uploadSingle(file)
+        
+        const newCoverImage = {
+          id: Date.now(),
+          file,
+          preview: result.data.url,
+          url: result.data.url,
+          publicId: result.data.public_id,
+          uploading: false
+        }
+        
+        setCoverImage(newCoverImage)
+      } catch (error) {
+        console.error('Cover image upload failed:', error)
+        alert('ไม่สามารถอัปโหลดรูปภาพหน้าปกได้: ' + error.message)
+      } finally {
         setUploading(false)
-      }, 1500)
+      }
     }
   }
 
@@ -120,7 +130,7 @@ const PropertyForm = ({ onBack, onSave }) => {
     }
   }
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const files = Array.from(event.target.files)
     
     if (images.length + files.length > 10) {
@@ -128,21 +138,28 @@ const PropertyForm = ({ onBack, onSave }) => {
       return
     }
 
-    const newImages = Array.isArray(files) ? files.map(file => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
-      uploading: true
-    })) : []
+    try {
+      setUploading(true)
+      
+      // Upload multiple images to Cloudinary via our API
+      const result = await uploadAPI.uploadMultiple(files)
+      
+      const newImages = result.data.map((uploadResult, index) => ({
+        id: Date.now() + index,
+        file: files[index],
+        preview: uploadResult.url,
+        url: uploadResult.url,
+        publicId: uploadResult.public_id,
+        uploading: false
+      }))
 
-    setImages(prev => [...prev, ...newImages])
-    setUploading(true)
-
-    // Simulate upload process
-    setTimeout(() => {
-      setImages(prev => Array.isArray(prev) ? prev.map(img => ({ ...img, uploading: false })) : [])
+      setImages(prev => [...prev, ...newImages])
+    } catch (error) {
+      console.error('Images upload failed:', error)
+      alert('ไม่สามารถอัปโหลดรูปภาพได้: ' + error.message)
+    } finally {
       setUploading(false)
-    }, 2000)
+    }
   }
 
   const removeImage = (imageId) => {
@@ -169,30 +186,56 @@ const PropertyForm = ({ onBack, onSave }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    const propertyData = {
-      ...formData,
-      coverImage: coverImage ? {
-        id: coverImage.id,
-        name: coverImage.file.name,
-        url: coverImage.preview
-      } : null,
-      images: Array.isArray(images) ? images.map(img => ({
-        id: img.id,
-        name: img.file.name,
-        url: img.preview
-      })) : [],
-      createdAt: new Date().toISOString(),
-      id: Date.now().toString()
-    }
+    try {
+      setIsSubmitting(true)
+      
+      // Prepare property data for API
+      const propertyData = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        status: formData.status,
+        price: parseFloat(formData.price),
+        rentPrice: formData.rentPrice ? parseFloat(formData.rentPrice) : 0,
+        area: formData.area ? parseFloat(formData.area) : null,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
+        parking: formData.parking ? parseInt(formData.parking) : 0,
+        address: formData.address,
+        district: formData.district,
+        province: formData.province,
+        postalCode: formData.postalCode,
+        location: `${formData.district}, ${formData.province}`,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactEmail: formData.contactEmail,
+        notes: formData.notes,
+        features: JSON.stringify(formData.features),
+        amenities: JSON.stringify(formData.amenities)
+      }
 
-    onSave(propertyData)
+      // Create property via API
+      const result = await propertyAPI.create(propertyData)
+      
+      if (result.success) {
+        alert('บันทึก Property สำเร็จ!')
+        onSave(result.data)
+      } else {
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + result.message)
+      }
+    } catch (error) {
+      console.error('Submit failed:', error)
+      alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -292,6 +335,18 @@ const PropertyForm = ({ onBack, onSave }) => {
               {errors.price && (
                 <p className="text-red-500 text-sm mt-1 font-prompt">{errors.price}</p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                ราคาเช่า (บาท/เดือน)
+              </label>
+              <Input
+                value={formData.rentPrice}
+                onChange={(e) => handleInputChange('rentPrice', e.target.value)}
+                placeholder="กรอกราคาเช่า"
+                type="number"
+              />
             </div>
 
             <div>
@@ -624,10 +679,10 @@ const PropertyForm = ({ onBack, onSave }) => {
           <Button
             type="submit"
             className="px-6 bg-blue-600 hover:bg-blue-700"
-            disabled={uploading}
+            disabled={uploading || isSubmitting}
           >
             <Save className="h-4 w-4 mr-2" />
-            {uploading ? 'กำลังอัพโหลด...' : 'บันทึก Property'}
+            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึก Property'}
           </Button>
         </div>
       </form>
