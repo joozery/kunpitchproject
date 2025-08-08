@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Input } from '../ui/input'
+import { Button } from '../ui/button'
 import { Search, Bell, User } from 'lucide-react'
 
 const Header = () => {
