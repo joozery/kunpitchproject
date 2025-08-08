@@ -128,19 +128,19 @@ const PropertyForm = ({ onBack, onSave }) => {
       return
     }
 
-    const newImages = files.map(file => ({
+    const newImages = Array.isArray(files) ? files.map(file => ({
       id: Date.now() + Math.random(),
       file,
       preview: URL.createObjectURL(file),
       uploading: true
-    }))
+    })) : []
 
     setImages(prev => [...prev, ...newImages])
     setUploading(true)
 
     // Simulate upload process
     setTimeout(() => {
-      setImages(prev => prev.map(img => ({ ...img, uploading: false })))
+      setImages(prev => Array.isArray(prev) ? prev.map(img => ({ ...img, uploading: false })) : [])
       setUploading(false)
     }, 2000)
   }
@@ -183,11 +183,11 @@ const PropertyForm = ({ onBack, onSave }) => {
         name: coverImage.file.name,
         url: coverImage.preview
       } : null,
-      images: images.map(img => ({
+      images: Array.isArray(images) ? images.map(img => ({
         id: img.id,
         name: img.file.name,
         url: img.preview
-      })),
+      })) : [],
       createdAt: new Date().toISOString(),
       id: Date.now().toString()
     }
@@ -253,7 +253,7 @@ const PropertyForm = ({ onBack, onSave }) => {
                 onChange={(e) => handleInputChange('type', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {propertyTypes.map(type => (
+                {Array.isArray(propertyTypes) && propertyTypes.map(type => (
                   <option key={type.value} value={type.value}>
                     {type.label}
                   </option>
@@ -270,7 +270,7 @@ const PropertyForm = ({ onBack, onSave }) => {
                 onChange={(e) => handleInputChange('status', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {propertyStatus.map(status => (
+                {Array.isArray(propertyStatus) && propertyStatus.map(status => (
                   <option key={status.value} value={status.value}>
                     {status.label}
                   </option>
@@ -478,7 +478,7 @@ const PropertyForm = ({ onBack, onSave }) => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {commonFeatures.map(feature => (
+                            {Array.isArray(commonFeatures) && commonFeatures.map(feature => (
               <label key={feature} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -520,7 +520,7 @@ const PropertyForm = ({ onBack, onSave }) => {
 
             {images.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {images.map(image => (
+                {Array.isArray(images) && images.map(image => (
                   <div key={image.id} className="relative group">
                     <img
                       src={image.preview}

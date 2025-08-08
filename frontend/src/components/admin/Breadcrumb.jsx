@@ -8,7 +8,7 @@ const Breadcrumb = ({ className = '' }) => {
   const navigate = useNavigate()
   const location = useLocation()
   
-  const breadcrumbItems = getBreadcrumb(location.pathname)
+  const breadcrumbItems = getBreadcrumb(location.pathname) || ['หน้าหลัก']
   
   const handleBreadcrumbClick = (index) => {
     if (index === 0) {
@@ -40,7 +40,7 @@ const Breadcrumb = ({ className = '' }) => {
       </motion.button>
       
       {/* Breadcrumb Items */}
-      {breadcrumbItems.map((item, index) => (
+      {Array.isArray(breadcrumbItems) && breadcrumbItems.map((item, index) => (
         <React.Fragment key={index}>
           <motion.div
             initial={{ opacity: 0, x: -10 }}

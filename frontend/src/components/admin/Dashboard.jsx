@@ -206,7 +206,7 @@ const Dashboard = () => {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         variants={containerVariants}
       >
-        {kpiCards.map((card, index) => {
+        {Array.isArray(kpiCards) && kpiCards.map((card, index) => {
           const Icon = card.icon
           return (
             <motion.div
@@ -291,7 +291,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {propertyTypes.map((item, index) => {
+                {Array.isArray(propertyTypes) && propertyTypes.map((item, index) => {
                   const Icon = item.icon
                   return (
                     <motion.div 
@@ -350,7 +350,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentProperties.map((property, index) => (
+                {Array.isArray(recentProperties) && recentProperties.map((property, index) => (
                   <motion.div 
                     key={property.id} 
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-200"
