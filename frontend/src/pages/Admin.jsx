@@ -30,7 +30,7 @@ const Admin = () => {
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         
         {/* Admin routes */}
-        {adminRoutes.map((route) => (
+        {adminRoutes.filter(route => route.component || route.redirect).map((route) => (
           <Route
             key={route.path}
             path={route.path.replace('/admin', '')}
