@@ -1,7 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import AdminLayout from '@/components/admin/AdminLayout'
-import { adminRoutes } from '@/routes/adminRoutes.jsx'
+import AdminLayout from '../components/admin/AdminLayout'
+import { adminRoutes } from '../routes/adminRoutes.jsx'
 
 const Admin = () => {
   const location = useLocation()

@@ -1,8 +1,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
-import { getBreadcrumb, getRouteByPath } from '@/routes/adminRoutes.jsx'
+import { getBreadcrumb, getRouteByPath } from '../../routes/adminRoutes.jsx'
 
 const Breadcrumb = ({ className = '' }) => {
   const navigate = useNavigate()

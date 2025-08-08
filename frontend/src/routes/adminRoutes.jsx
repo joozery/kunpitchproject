@@ -1,6 +1,6 @@
 import React from 'react'
-import Dashboard from '@/components/admin/Dashboard'
-import PropertyManagement from '@/components/admin/PropertyManagement'
+import Dashboard from '../components/admin/Dashboard'
+import PropertyManagement from '../components/admin/PropertyManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
