@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// API Configuration
+// API Configuration - Use production API
 const API_BASE_URL = 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
 
 // Create axios instance

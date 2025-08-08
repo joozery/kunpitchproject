@@ -12,16 +12,16 @@ const FeaturedPropertiesSection = () => {
     const fetchProperties = async () => {
       try {
         const result = await propertyAPI.getAll()
-        if (result && result.success) {
+        if (result && result.success && result.data) {
           // Get first 6 properties for featured section
-          setProperties(result.data ? result.data.slice(0, 6) : [])
+          setProperties(result.data.slice(0, 6))
         } else {
           // Fallback data if API fails
           setProperties([
             {
               id: 1,
               title: 'บ้านเดี่ยว 3 ห้องนอน',
-              location: 'สุขุมวิท, กรุงเทพฯ',
+              address: 'สุขุมวิท, กรุงเทพฯ',
               price: 8500000,
               rent_price: 0,
               bedrooms: 3,
@@ -32,7 +32,7 @@ const FeaturedPropertiesSection = () => {
             {
               id: 2,
               title: 'คอนโด 2 ห้องนอน',
-              location: 'สีลม, กรุงเทพฯ',
+              address: 'สีลม, กรุงเทพฯ',
               price: 3500000,
               rent_price: 25000,
               bedrooms: 2,
@@ -43,7 +43,7 @@ const FeaturedPropertiesSection = () => {
             {
               id: 3,
               title: 'ที่ดินเปล่า 100 ตร.ว.',
-              location: 'บางนา, กรุงเทพฯ',
+              address: 'บางนา, กรุงเทพฯ',
               price: 15000000,
               rent_price: 0,
               bedrooms: 0,
@@ -60,7 +60,7 @@ const FeaturedPropertiesSection = () => {
           {
             id: 1,
             title: 'บ้านเดี่ยว 3 ห้องนอน',
-            location: 'สุขุมวิท, กรุงเทพฯ',
+            address: 'สุขุมวิท, กรุงเทพฯ',
             price: 8500000,
             rent_price: 0,
             bedrooms: 3,
@@ -71,7 +71,7 @@ const FeaturedPropertiesSection = () => {
           {
             id: 2,
             title: 'คอนโด 2 ห้องนอน',
-            location: 'สีลม, กรุงเทพฯ',
+            address: 'สีลม, กรุงเทพฯ',
             price: 3500000,
             rent_price: 25000,
             bedrooms: 2,
@@ -82,7 +82,7 @@ const FeaturedPropertiesSection = () => {
           {
             id: 3,
             title: 'ที่ดินเปล่า 100 ตร.ว.',
-            location: 'บางนา, กรุงเทพฯ',
+            address: 'บางนา, กรุงเทพฯ',
             price: 15000000,
             rent_price: 0,
             bedrooms: 0,
@@ -153,7 +153,7 @@ const FeaturedPropertiesSection = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-3 font-prompt">{property.title}</h3>
                   <div className="flex items-center text-gray-600 mb-4 font-prompt">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span>{property.location || property.address}</span>
+                    <span>{property.address}</span>
                   </div>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-6 text-sm text-gray-500">
