@@ -59,7 +59,13 @@ export const propertyAPI = {
   create: (propertyData) => api.post('/properties', propertyData),
   
   // Update property
-  update: (id, propertyData) => api.put(`/properties/${id}`, propertyData),
+  update: (id, propertyData) => {
+    return api.put(`/properties/${id}`, propertyData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
   
   // Delete property
   delete: (id) => api.delete(`/properties/${id}`),

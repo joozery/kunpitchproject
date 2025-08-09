@@ -47,6 +47,8 @@ const PropertyManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all')
   const [viewMode, setViewMode] = useState('table')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingProperty, setEditingProperty] = useState(null)
 
   // Fetch properties from API
   const fetchProperties = async () => {
@@ -119,11 +121,54 @@ const PropertyManagement = () => {
     }
   }
 
+  const handleEditProperty = async (property) => {
+    try {
+      // Fetch the complete property data including images
+      const result = await propertyAPI.getById(property.id)
+      
+      if (result.success) {
+        setEditingProperty(result.data)
+        setShowEditForm(true)
+      } else {
+        alert('ไม่สามารถดึงข้อมูล Property ได้: ' + result.message)
+      }
+    } catch (error) {
+      console.error('Failed to fetch property details:', error)
+      alert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message)
+    }
+  }
+
+  const handleUpdateProperty = async (propertyData) => {
+    try {
+      // The property is already updated in PropertyForm
+      // Just refresh the list
+      await fetchProperties()
+      setShowEditForm(false)
+      setEditingProperty(null)
+    } catch (error) {
+      console.error('Failed to refresh properties:', error)
+    }
+  }
+
   if (showAddForm) {
     return (
       <PropertyForm 
         onBack={() => setShowAddForm(false)}
         onSave={handleAddProperty}
+      />
+    )
+  }
+
+  if (showEditForm && editingProperty) {
+    return (
+      <PropertyForm 
+        property={editingProperty}
+        onBack={() => {
+          setShowEditForm(false)
+          setEditingProperty(null)
+        }}
+        onSave={handleUpdateProperty}
+        isEditing={true}
       />
     )
   }
@@ -370,7 +415,11 @@ const PropertyManagement = () => {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditProperty(property)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -460,7 +509,11 @@ const PropertyManagement = () => {
                         <span>{property.views || 0}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditProperty(property)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 

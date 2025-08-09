@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -22,28 +22,28 @@ import {
   Star
 } from 'lucide-react'
 
-const PropertyForm = ({ onBack, onSave }) => {
+const PropertyForm = ({ property = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    type: 'residential', // residential, commercial, land
-    status: 'available', // available, sold, rented
-    price: '',
-    rentPrice: '',
-    area: '',
-    bedrooms: '',
-    bathrooms: '',
-    parking: '',
-    address: '',
-    district: '',
-    province: '',
-    postalCode: '',
-    features: [],
-    amenities: [],
-    contactName: '',
-    contactPhone: '',
-    contactEmail: '',
-    notes: ''
+    title: property?.title || '',
+    description: property?.description || '',
+    type: property?.type || 'residential',
+    status: property?.status || 'available',
+    price: property?.price?.toString() || '',
+    rentPrice: property?.rent_price?.toString() || '',
+    area: property?.area?.toString() || '',
+    bedrooms: property?.bedrooms?.toString() || '',
+    bathrooms: property?.bathrooms?.toString() || '',
+    parking: property?.parking?.toString() || '',
+    address: property?.address || '',
+    district: property?.district || '',
+    province: property?.province || '',
+    postalCode: property?.postal_code || '',
+    features: property?.features ? (typeof property.features === 'string' ? JSON.parse(property.features) : property.features) : [],
+    amenities: property?.amenities ? (typeof property.amenities === 'string' ? JSON.parse(property.amenities) : property.amenities) : [],
+    contactName: property?.contact_name || '',
+    contactPhone: property?.contact_phone || '',
+    contactEmail: property?.contact_email || '',
+    notes: property?.notes || ''
   })
 
   const [coverImage, setCoverImage] = useState(null)
@@ -51,6 +51,37 @@ const PropertyForm = ({ onBack, onSave }) => {
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Load existing images when editing
+  useEffect(() => {
+    if (isEditing && property && property.images && property.images.length > 0) {
+      // Find cover image (first image or one marked as cover)
+      const coverImageUrl = property.images[0]
+      if (coverImageUrl) {
+        setCoverImage({
+          id: 'existing-cover',
+          url: coverImageUrl,
+          preview: coverImageUrl,
+          publicId: null, // Will be handled by backend
+          uploading: false,
+          isExisting: true
+        })
+      }
+
+      // Load additional images (skip first one as it's the cover)
+      if (property.images.length > 1) {
+        const additionalImages = property.images.slice(1).map((imageUrl, index) => ({
+          id: `existing-${index}`,
+          url: imageUrl,
+          preview: imageUrl,
+          publicId: null, // Will be handled by backend
+          uploading: false,
+          isExisting: true
+        }))
+        setImages(additionalImages)
+      }
+    }
+  }, [isEditing, property])
 
   const propertyTypes = [
     { value: 'residential', label: 'ที่อยู่อาศัย', icon: Home },
@@ -98,22 +129,46 @@ const PropertyForm = ({ onBack, onSave }) => {
   const handleCoverImageUpload = async (event) => {
     const file = event.target.files[0]
     if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 10MB')
+        return
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+        return
+      }
+
       try {
         setUploading(true)
         
         // Upload to Cloudinary via our API
         const result = await uploadAPI.uploadSingle(file)
         
-        const newCoverImage = {
-          id: Date.now(),
-          file,
-          preview: result.data.url,
-          url: result.data.url,
-          publicId: result.data.public_id,
-          uploading: false
+        if (result.success) {
+          const newCoverImage = {
+            id: Date.now(),
+            file,
+            preview: result.data.url,
+            url: result.data.url,
+            publicId: result.data.public_id,
+            uploading: false
+          }
+          
+          setCoverImage(newCoverImage)
+          
+          // Clear cover image error if it exists
+          if (errors.coverImage) {
+            setErrors(prev => ({
+              ...prev,
+              coverImage: ''
+            }))
+          }
+        } else {
+          throw new Error(result.message || 'Upload failed')
         }
-        
-        setCoverImage(newCoverImage)
       } catch (error) {
         console.error('Cover image upload failed:', error)
         alert('ไม่สามารถอัปโหลดรูปภาพหน้าปกได้: ' + error.message)
@@ -138,22 +193,39 @@ const PropertyForm = ({ onBack, onSave }) => {
       return
     }
 
+    // Validate each file
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 10MB: ' + file.name)
+        return
+      }
+
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น: ' + file.name)
+        return
+      }
+    }
+
     try {
       setUploading(true)
       
       // Upload multiple images to Cloudinary via our API
       const result = await uploadAPI.uploadMultiple(files)
       
-      const newImages = result.data.map((uploadResult, index) => ({
-        id: Date.now() + index,
-        file: files[index],
-        preview: uploadResult.url,
-        url: uploadResult.url,
-        publicId: uploadResult.public_id,
-        uploading: false
-      }))
+      if (result.success) {
+        const newImages = result.data.map((uploadResult, index) => ({
+          id: Date.now() + index,
+          file: files[index],
+          preview: uploadResult.url,
+          url: uploadResult.url,
+          publicId: uploadResult.public_id,
+          uploading: false
+        }))
 
-      setImages(prev => [...prev, ...newImages])
+        setImages(prev => [...prev, ...newImages])
+      } else {
+        throw new Error(result.message || 'Upload failed')
+      }
     } catch (error) {
       console.error('Images upload failed:', error)
       alert('ไม่สามารถอัปโหลดรูปภาพได้: ' + error.message)
@@ -218,14 +290,21 @@ const PropertyForm = ({ onBack, onSave }) => {
         contactEmail: formData.contactEmail,
         notes: formData.notes,
         features: JSON.stringify(formData.features),
-        amenities: JSON.stringify(formData.amenities)
+        amenities: JSON.stringify(formData.amenities),
+        // Add uploaded images data
+        coverImageUrl: coverImage ? coverImage.url : null,
+        coverImagePublicId: coverImage && !coverImage.isExisting ? coverImage.publicId : null,
+        imageUrls: images.map(img => img.url),
+        imagePublicIds: images.map(img => !img.isExisting ? img.publicId : null).filter(Boolean)
       }
 
-      // Create property via API
-      const result = await propertyAPI.create(propertyData)
+      // Create or update property via API
+      const result = isEditing 
+        ? await propertyAPI.update(property.id, propertyData)
+        : await propertyAPI.create(propertyData)
       
       if (result.success) {
-        alert('บันทึก Property สำเร็จ!')
+        alert(isEditing ? 'แก้ไข Property สำเร็จ!' : 'บันทึก Property สำเร็จ!')
         onSave(result.data)
       } else {
         alert('เกิดข้อผิดพลาดในการบันทึก: ' + result.message)
@@ -257,8 +336,12 @@ const PropertyForm = ({ onBack, onSave }) => {
             <span>กลับ</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-prompt">เพิ่ม Property ใหม่</h1>
-            <p className="text-gray-600 mt-1 font-prompt">กรอกข้อมูล Property เพื่อเพิ่มเข้าระบบ</p>
+            <h1 className="text-3xl font-bold text-gray-900 font-prompt">
+              {isEditing ? 'แก้ไข Property' : 'เพิ่ม Property ใหม่'}
+            </h1>
+            <p className="text-gray-600 mt-1 font-prompt">
+              {isEditing ? 'แก้ไขข้อมูล Property' : 'กรอกข้อมูล Property เพื่อเพิ่มเข้าระบบ'}
+            </p>
           </div>
         </div>
       </div>
@@ -682,7 +765,7 @@ const PropertyForm = ({ onBack, onSave }) => {
             disabled={uploading || isSubmitting}
           >
             <Save className="h-4 w-4 mr-2" />
-            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึก Property'}
+            {isSubmitting ? 'กำลังบันทึก...' : (isEditing ? 'บันทึกการแก้ไข' : 'บันทึก Property')}
           </Button>
         </div>
       </form>
