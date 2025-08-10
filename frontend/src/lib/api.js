@@ -128,6 +128,62 @@ export const condoAPI = {
   getStats: () => api.get('/condos/stats/overview'),
 };
 
+// House API
+export const houseAPI = {
+  // Get all houses
+  getAll: (params = {}) => api.get('/houses', { params }),
+  
+  // Get house by ID
+  getById: (id) => api.get(`/houses/${id}`),
+  
+  // Create new house
+  create: (houseData) => api.post('/houses', houseData),
+  
+  // Update house
+  update: (id, houseData) => {
+    return api.put(`/houses/${id}`, houseData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+  
+  // Delete house
+  delete: (id) => api.delete(`/houses/${id}`),
+  
+  // Toggle featured status
+  toggleFeatured: (id) => api.patch(`/houses/${id}/featured`),
+  
+  // Get all facilities
+  getFacilities: () => api.get('/houses/facilities/all'),
+  
+  // Get statistics
+  getStats: () => api.get('/houses/stats/overview'),
+};
+
+// Land API
+export const landAPI = {
+  // Get all lands
+  getAll: (params = {}) => api.get('/lands', { params }),
+
+  // Get land by ID
+  getById: (id) => api.get(`/lands/${id}`),
+
+  // Create new land
+  create: (landData) => api.post('/lands', landData),
+
+  // Update land
+  update: (id, landData) => {
+    return api.put(`/lands/${id}`, landData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+
+  // Delete land
+  delete: (id) => api.delete(`/lands/${id}`),
+};
 // Upload API
 export const uploadAPI = {
   // Upload single image
@@ -166,6 +222,8 @@ export const healthCheck = () => api.get('/health');
 export default {
   propertyAPI,
   condoAPI,
+  houseAPI,
+  landAPI,
   uploadAPI,
   healthCheck,
 }; 

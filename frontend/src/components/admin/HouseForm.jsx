@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
-import { condoAPI, uploadAPI } from '../../lib/api'
 import {
   ArrowLeft,
   Building,
@@ -12,9 +10,7 @@ import {
   Search,
   Star,
   Camera,
-  Image,
   Upload,
-  Plus,
   X,
   DollarSign,
   Calendar,
@@ -23,42 +19,45 @@ import {
   Bed
 } from 'lucide-react'
 import { FacilityIcons } from '../icons/FacilityIcons'
+import { houseAPI, uploadAPI } from '../../lib/api'
 
-const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
+const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
     // ข้อมูลพื้นฐาน
-    title: condo?.title || '', // ชื่อโครงการ
-    projectCode: condo?.projectCode || '', // รหัสโครงการ (อัตโนมัติ)
-    status: condo?.status || 'sale', // สถานะ: ขาย/เช่า
-    price: condo?.price?.toString() || '', // ราคา (บาท)
-    rentPrice: condo?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
+    title: initialData?.title || '', // ชื่อประกาศ/โครงการ
+    projectCode: initialData?.projectCode || '', // รหัสโครงการ (อัตโนมัติ)
+    status: initialData?.status || 'sale', // สถานะ: ขาย/เช่า
+    price: initialData?.price?.toString() || '', // ราคา (บาท)
+    rentPrice: initialData?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
     
     // โลเคชั่น
-    location: condo?.location || '', // สถานที่
-    googleMapUrl: condo?.googleMapUrl || '', // Google Map URL
-    nearbyTransport: condo?.nearbyTransport || '', // BTS/MRT/APL/SRT
+    location: initialData?.location || '', // สถานที่
+    googleMapUrl: initialData?.googleMapUrl || '', // Google Map URL
+    nearbyTransport: initialData?.nearbyTransport || '', // BTS/MRT/APL/SRT
     
-    // ประเภท
-    listingType: condo?.listingType || 'sale', // ขาย/เช่า
+    // ประเภททรัพย์
+    propertyType: initialData?.propertyType || 'house', // house | townhouse | apartment
     
     // รายละเอียด
-    description: condo?.description || '',
+    description: initialData?.description || '',
     
     // ข้อมูลอสังหาริมทรัพย์
-    area: condo?.area?.toString() || '', // พื้นที่ (ตารางเมตร)
-    bedrooms: condo?.bedrooms?.toString() || '', // ห้องนอน
-    bathrooms: condo?.bathrooms?.toString() || '', // ห้องน้ำ
-    floor: condo?.floor || '', // ชั้นที่ (text สำหรับ duplex เช่น 17-18)
-    pricePerSqm: condo?.pricePerSqm?.toString() || '', // ราคาต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    area: initialData?.area?.toString() || '', // พื้นที่ (ตารางเมตร)
+    bedrooms: initialData?.bedrooms?.toString() || '', // ห้องนอน
+    bathrooms: initialData?.bathrooms?.toString() || '', // ห้องน้ำ
+    floor: initialData?.floor || '', // ชั้นที่
+    pricePerSqm: initialData?.pricePerSqm?.toString() || '', // ราคาต่อ ตร.ม. (คำนวณอัตโนมัติ)
     
     // SEO
-    seoTags: condo?.seoTags || '',
+    seoTags: initialData?.seoTags || '',
+    // Tag: บ้านมือ 1 (First-hand)
+    isNewHouse: Boolean(initialData?.isNewHouse) || false,
     
-    // Project Facilities
-    facilities: condo?.facilities || [],
+    // Facilities
+    facilities: initialData?.facilities || [],
     
     // Timestamps
-    createdAt: condo?.createdAt || new Date().toISOString(),
+    createdAt: initialData?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   })
 
@@ -71,88 +70,84 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const [availableFacilities, setAvailableFacilities] = useState([])
   const [uploadProgress, setUploadProgress] = useState(0)
 
-  const listingTypes = [
-    { value: 'sale', label: 'ขาย', icon: DollarSign },
-    { value: 'rent', label: 'เช่า', icon: Calendar },
-    { value: 'both', label: 'ขาย/เช่า', icon: Building }
+  const propertyTypes = [
+    { value: 'house', label: 'บ้านเดี่ยว' },
+    { value: 'townhouse', label: 'ทาวน์เฮาส์' },
+    { value: 'apartment', label: 'อพาร์ตเมนต์' }
   ]
 
-  // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
+  // Prefill when editing (API data mapping)
   useEffect(() => {
-    if (isEditing && condo) {
-      const mappedFacilities = Array.isArray(condo.facilities)
-        ? condo.facilities.map(f => (typeof f === 'string' ? f : f.id)).filter(Boolean)
+    if (isEditing && initialData) {
+      const mappedFacilities = Array.isArray(initialData.facilities)
+        ? initialData.facilities.map(f => (typeof f === 'string' ? f : f.id)).filter(Boolean)
         : []
 
       setFormData(prev => ({
         ...prev,
-        title: condo.title || '',
-        projectCode: condo.project_code || '',
-        status: condo.status || 'sale',
-        price: condo.price !== undefined && condo.price !== null ? String(condo.price) : '',
-        rentPrice: condo.rent_price !== undefined && condo.rent_price !== null ? String(condo.rent_price) : '',
-        location: condo.location || '',
-        googleMapUrl: condo.google_map_url || '',
-        nearbyTransport: condo.nearby_transport || '',
-        listingType: condo.listing_type || 'sale',
-        description: condo.description || '',
-        area: condo.area !== undefined && condo.area !== null ? String(condo.area) : '',
-        bedrooms: condo.bedrooms !== undefined && condo.bedrooms !== null ? String(condo.bedrooms) : '',
-        bathrooms: condo.bathrooms !== undefined && condo.bathrooms !== null ? String(condo.bathrooms) : '',
-        floor: condo.floor || '',
-        pricePerSqm: condo.price_per_sqm !== undefined && condo.price_per_sqm !== null ? String(condo.price_per_sqm) : '',
-        seoTags: condo.seo_tags || '',
+        title: initialData.title || '',
+        projectCode: initialData.project_code || prev.projectCode,
+        status: initialData.status || 'sale',
+        price: initialData.price !== undefined && initialData.price !== null ? String(initialData.price) : '',
+        rentPrice: initialData.rent_price !== undefined && initialData.rent_price !== null ? String(initialData.rent_price) : '',
+        location: initialData.location || '',
+        googleMapUrl: initialData.google_map_url || '',
+        nearbyTransport: initialData.nearby_transport || '',
+        propertyType: initialData.property_type || 'house',
+        description: initialData.description || '',
+        area: initialData.area !== undefined && initialData.area !== null ? String(initialData.area) : '',
+        bedrooms: initialData.bedrooms !== undefined && initialData.bedrooms !== null ? String(initialData.bedrooms) : '',
+        bathrooms: initialData.bathrooms !== undefined && initialData.bathrooms !== null ? String(initialData.bathrooms) : '',
+        floor: initialData.floor || '',
+        pricePerSqm: initialData.price_per_sqm !== undefined && initialData.price_per_sqm !== null ? String(initialData.price_per_sqm) : '',
+        seoTags: initialData.seo_tags || '',
+        isNewHouse: Boolean(initialData.is_new_house) || false,
         facilities: mappedFacilities,
-        createdAt: condo.created_at || prev.createdAt,
-        updatedAt: condo.updated_at || new Date().toISOString()
+        createdAt: initialData.created_at || prev.createdAt,
+        updatedAt: initialData.updated_at || new Date().toISOString()
       }))
 
-      // Set cover image
-      const coverUrl = condo.cover_image || null
+      // จัดการรูปภาพจาก API response
+      const coverUrl = initialData.cover_image || null
       if (coverUrl) {
         setCoverImage({
           id: `cover-${Date.now()}`,
-          preview: coverUrl,
           url: coverUrl,
-          public_id: condo.cover_public_id || undefined,
+          preview: coverUrl, // backward compatibility with old rendering
           uploading: false
         })
       } else {
         setCoverImage(null)
       }
 
-      // Set gallery images (exclude cover if duplicated)
-      const urls = Array.isArray(condo.images) ? condo.images : []
+      const urls = Array.isArray(initialData.images) ? initialData.images : []
       const filtered = coverUrl ? urls.filter(u => u !== coverUrl) : urls
       const mappedImages = filtered.map((url, idx) => ({
         id: `img-${Date.now()}-${idx}`,
-        preview: url,
         url,
-        public_id: undefined,
+        preview: url, // backward compatibility with old rendering
         uploading: false
       }))
       setImages(mappedImages)
     }
-  }, [isEditing, condo])
+  }, [isEditing, initialData])
 
-  // Fetch facilities from API
+  // Fetch facilities from API (exactly like CondoForm)
   useEffect(() => {
     const fetchFacilities = async () => {
       try {
         setFacilitiesLoading(true)
-        const response = await condoAPI.getFacilities()
+        const response = await houseAPI.getFacilities()
         if (response.success) {
           setAvailableFacilities(response.data.all || [])
         }
       } catch (error) {
         console.error('Error fetching facilities:', error)
-        // Fallback to default facilities if API fails
         setAvailableFacilities([])
       } finally {
         setFacilitiesLoading(false)
       }
     }
-
     fetchFacilities()
   }, [])
 
@@ -218,7 +213,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const projectFacilities = availableFacilities.map(facility => ({
     id: facility.id,
     label: facility.label,
-    icon: FacilityIcons[facility.icon] || FacilityIcons.Star, // Fallback icon
+    icon: FacilityIcons[facility.icon] || FacilityIcons.Wifi,
     category: facility.category
   }))
 
@@ -279,29 +274,28 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     try {
       setUploading(true)
       
-      // Upload to Cloudinary first
-      const formData = new FormData()
-      formData.append('image', file)
+      // อัพโหลดไป Cloudinary ผ่าน API
+      const result = await uploadAPI.uploadSingle(file)
+      const uploaded = result?.data || result // interceptor returns response.data; guard for shape
+      const imageUrl = uploaded.url
+      const publicId = uploaded.public_id
       
-      const response = await uploadAPI.uploadSingle(file)
-      
-      if (response.success) {
-        const imageData = {
-          id: Date.now().toString(),
-          preview: response.data.url,
-          url: response.data.url,
-          public_id: response.data.public_id,
-          uploading: false
-        }
-
-        if (isCover) {
-          setCoverImage(imageData)
-        } else {
-          setImages(prev => [...prev, imageData])
-        }
-      } else {
-        throw new Error(response.message || 'Failed to upload image')
+      const imageData = {
+        id: Date.now().toString(),
+        url: imageUrl,
+        preview: imageUrl, // backward compatibility with old rendering
+        public_id: publicId,
+        uploading: false,
+        file
       }
+
+      if (isCover) {
+        setCoverImage(imageData)
+      } else {
+        setImages(prev => [...prev, imageData])
+      }
+      
+      console.log('อัพโหลดรูปภาพสำเร็จ:', uploaded)
     } catch (error) {
       console.error('Error uploading image:', error)
       alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
@@ -310,11 +304,30 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     }
   }
 
-  const handleRemoveImage = (imageId, isCover = false) => {
-    if (isCover) {
-      setCoverImage(null)
-    } else {
-      setImages(prev => prev.filter(img => img.id !== imageId))
+  const handleRemoveImage = async (imageId, isCover = false) => {
+    try {
+      let imageToRemove = null;
+      
+      if (isCover) {
+        imageToRemove = coverImage;
+        setCoverImage(null);
+      } else {
+        imageToRemove = images.find(img => img.id === imageId);
+        setImages(prev => prev.filter(img => img.id !== imageId));
+      }
+      
+      // ลบรูปจาก Cloudinary ถ้ามี public_id
+      if (imageToRemove && imageToRemove.public_id) {
+        try {
+          await uploadAPI.delete(imageToRemove.public_id);
+          console.log('ลบรูปจาก Cloudinary สำเร็จ:', imageToRemove.public_id);
+        } catch (error) {
+          console.error('ไม่สามารถลบรูปจาก Cloudinary:', error);
+          // ไม่ต้องแสดง error ให้ user เพราะรูปหายจาก UI แล้ว
+        }
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
     }
   }
 
@@ -343,10 +356,9 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
 
     try {
       setLoading(true)
-      setUploading(true)
       
-      // Transform form data to API format
-      const condoData = {
+      // แปลงข้อมูลให้ตรงกับ backend API
+      const houseData = {
         title: formData.title,
         status: formData.status,
         price: parseFloat(formData.price) || 0,
@@ -354,7 +366,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         location: formData.location,
         google_map_url: formData.googleMapUrl,
         nearby_transport: formData.nearbyTransport,
-        listing_type: formData.listingType,
+        listing_type: formData.status, // ใช้ status เป็น listing_type
+        property_type: formData.propertyType,
         description: formData.description,
         area: parseFloat(formData.area),
         bedrooms: parseInt(formData.bedrooms),
@@ -362,50 +375,41 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         floor: formData.floor,
         price_per_sqm: parseFloat(formData.pricePerSqm) || 0,
         seo_tags: formData.seoTags,
+        is_new_house: Boolean(formData.isNewHouse),
         facilities: formData.facilities,
-        images: images.map(img => ({
-          url: img.url,
-          public_id: img.public_id
+        images: images.map(img => ({ 
+          url: img.url, 
+          public_id: img.public_id || null 
         })),
         cover_image: coverImage?.url || null
       }
 
-      console.log('ข้อมูลที่จะส่งไปยัง backend:', condoData)
-      console.log('ราคาต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
+      console.log('ส่งข้อมูลไป API:', houseData)
 
-      let response
-      
-      if (isEditing && condo?.id) {
-        // Update existing condo
-        response = await condoAPI.update(condo.id, condoData)
+      if (isEditing) {
+        // แก้ไขบ้าน
+        const result = await houseAPI.update(initialData.id, houseData)
+        console.log('แก้ไขบ้านสำเร็จ:', result)
+        alert('แก้ไขประกาศบ้านสำเร็จ!')
       } else {
-        // Create new condo
-        response = await condoAPI.create(condoData)
+        // สร้างบ้านใหม่
+        const result = await houseAPI.create(houseData)
+        console.log('สร้างบ้านสำเร็จ:', result)
+        alert('เพิ่มประกาศบ้านสำเร็จ!')
       }
 
-      if (response.success) {
-        console.log('Condo saved successfully:', response)
-        
-        // Show success message
-        alert(isEditing ? 'แก้ไขข้อมูลคอนโดสำเร็จ!' : 'เพิ่มคอนโดใหม่สำเร็จ!')
-        
-        if (onSave) {
-          onSave(response.data)
-        }
-        
-        // Go back to list
-        if (onBack) {
-          onBack()
-        }
-      } else {
-        throw new Error(response.message || 'Failed to save condo')
+      if (onSave) {
+        onSave(houseData)
+      }
+
+      if (onBack) {
+        onBack()
       }
     } catch (error) {
-      console.error('Error saving condo:', error)
+      console.error('Error saving house:', error)
       alert(`เกิดข้อผิดพลาด: ${error.message}`)
     } finally {
       setLoading(false)
-      setUploading(false)
     }
   }
 
@@ -424,10 +428,10 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 font-prompt">
-              {isEditing ? 'แก้ไขข้อมูลคอนโด' : 'เพิ่มคอนโดใหม่'}
+              {isEditing ? 'แก้ไขประกาศบ้าน' : 'เพิ่มบ้านเดี่ยว/ทาวน์เฮาส์/อพาร์ตเมนต์'}
             </h1>
             <p className="text-gray-600 font-prompt mt-1">
-              กรอกข้อมูลคอนโดให้ครบถ้วน
+              กรอกข้อมูลอสังหาให้ครบถ้วน
             </p>
           </div>
         </div>
@@ -447,12 +451,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ชื่อโครงการ */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ชื่อโครงการ *
+                ชื่อประกาศ/โครงการ *
               </label>
               <Input
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="เช่น คอนโด ลุมพินี วิลล์ รามคำแหง"
+                placeholder="เช่น บ้านเดี่ยว โครงการ ABC, ทาวน์เฮาส์ทำเลดี, อพาร์ตเมนต์ใกล้ BTS"
                 className={errors.title ? 'border-red-500' : ''}
               />
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
@@ -502,20 +506,18 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
             </div>
 
-            {/* ประเภท */}
+            {/* ประเภททรัพย์ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ประเภท
+                ประเภททรัพย์
               </label>
               <select
-                value={formData.listingType}
-                onChange={(e) => handleInputChange('listingType', e.target.value)}
+                value={formData.propertyType}
+                onChange={(e) => handleInputChange('propertyType', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {listingTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
+                {propertyTypes.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </select>
             </div>
@@ -629,13 +631,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </h2>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-              รายละเอียด
-            </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                รายละเอียด
+              </label>
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="อธิบายรายละเอียดของคอนโด เช่น สภาพห้อง การตกแต่ง สิ่งอำนวยความสะดวก..."
+                placeholder="อธิบายรายละเอียด เช่น สภาพบ้าน การตกแต่ง ทำเล สิ่งอำนวยความสะดวก..."
               rows={5}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -713,23 +715,22 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               {errors.bathrooms && <p className="text-red-500 text-sm mt-1">{errors.bathrooms}</p>}
             </div>
 
-            {/* จำนวนชั้นคอนโด */}
+            {/* จำนวนชั้น */}
             <div className="md:col-span-2 lg:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                จำนวนชั้นคอนโดต้องเป็น ชั้นที่ *
+                จำนวนชั้น *
               </label>
               <div className="relative">
                 <Input
                   value={formData.floor}
                   onChange={(e) => handleInputChange('floor', e.target.value)}
-                  placeholder="เช่น 15 หรือ 17-18 (สำหรับ duplex)"
+                  placeholder="เช่น 2"
                   className={errors.floor ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <Building className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mt-1">สำหรับห้อง duplex ให้ใส่เป็น 17-18 (ชั้นเชื่อม)</p>
               {errors.floor && <p className="text-red-500 text-sm mt-1">{errors.floor}</p>}
             </div>
 
@@ -829,6 +830,27 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </div>
         </Card>
 
+        {/* แท็กเพิ่มเติม */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <FileText className="h-6 w-6 mr-3 text-blue-600" />
+            แท็กเพิ่มเติม
+          </h2>
+          <div>
+            {/* Tag: บ้านมือ 1 (First-hand) */}
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.isNewHouse}
+                onChange={(e) => handleInputChange('isNewHouse', e.target.checked)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-sm text-gray-700 font-prompt">บ้านมือ 1 (First-hand)</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1">เลือกเมื่อเป็นบ้านใหม่ไม่เคยอยู่อาศัย</p>
+          </div>
+        </Card>
+
         {/* Project Facilities */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
@@ -922,7 +944,6 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               </div>
             </div>
           )}
-
         </Card>
 
         {/* รูปภาพ */}
@@ -942,7 +963,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               {coverImage ? (
                 <div className="relative">
                   <img
-                    src={coverImage.preview}
+                    src={coverImage.url || coverImage.preview}
                     alt="Cover"
                     className="w-full h-64 object-cover rounded-lg shadow-md"
                   />
@@ -955,7 +976,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   </button>
                 </div>
               ) : (
-                <label className="cursor-pointer block text-center hover:bg-gray-50 rounded-lg p-4 transition-colors">
+                 <label className="cursor-pointer block text-center hover:bg-gray-50 rounded-lg p-4 transition-colors">
                   <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <span className="text-gray-600 font-prompt font-medium">คลิกเพื่อเลือกรูปภาพหน้าปก</span>
                   <p className="text-sm text-gray-500 mt-2">รองรับไฟล์ JPG, PNG, WebP</p>
@@ -1020,7 +1041,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 {images.map((image, index) => (
                   <div key={image.id} className="relative group">
                     <img
-                      src={image.preview}
+                      src={image.url || image.preview}
                       alt={`Image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
                     />
@@ -1121,4 +1142,4 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   )
 }
 
-export default CondoForm
+export default HouseForm

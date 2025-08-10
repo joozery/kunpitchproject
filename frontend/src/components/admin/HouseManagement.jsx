@@ -33,115 +33,110 @@ import {
   Heart,
   Maximize
 } from 'lucide-react'
+import HouseForm from './HouseForm'
+import { houseAPI } from '../../lib/api'
 
 const HouseManagement = () => {
   const [houses, setHouses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingHouse, setEditingHouse] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [viewMode, setViewMode] = useState('table')
+  const [updatingStatusId, setUpdatingStatusId] = useState(null)
 
-  // Mock data for houses
+  // Load houses from API
   useEffect(() => {
-    const mockHouses = [
-      {
-        id: 1,
-        title: 'บ้านเดี่ยว 3 ชั้น หมู่บ้านเซรีน่า',
-        location: 'รามคำแหง, กรุงเทพฯ',
-        price: 8500000,
-        rentPrice: 45000,
-        bedrooms: 4,
-        bathrooms: 3,
-        parkingSpaces: 2,
-        landSize: 120,
-        usableArea: 280,
-        status: 'available',
-        type: 'detached_house',
-        yearBuilt: 2019,
-        features: ['สวน', 'ครัวแยก', 'ระเบียง', 'ห้องแม่บ้าน'],
-        images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-15'
-      },
-      {
-        id: 2,
-        title: 'ทาวน์เฮาส์ 2 ชั้น โครงการ The Connect',
-        location: 'ลาดพร้าว, กรุงเทพฯ',
-        price: 4200000,
-        rentPrice: 25000,
-        bedrooms: 3,
-        bathrooms: 2,
-        parkingSpaces: 1,
-        landSize: 40,
-        usableArea: 150,
-        status: 'available',
-        type: 'townhouse',
-        yearBuilt: 2021,
-        features: ['ครัวบิ้วอิน', 'แอร์ทุกห้อง', 'รปภ.24ชม.'],
-        images: ['https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-12'
-      },
-      {
-        id: 3,
-        title: 'อพาร์ตเม้นท์ 1 ห้องนอน ย่านธุรกิจ',
-        location: 'สีลม, กรุงเทพฯ',
-        price: 2800000,
-        rentPrice: 18000,
-        bedrooms: 1,
-        bathrooms: 1,
-        parkingSpaces: 1,
-        landSize: 0,
-        usableArea: 45,
-        status: 'sold',
-        type: 'apartment',
-        yearBuilt: 2020,
-        features: ['ฟิตเนส', 'สระว่ายน้ำ', 'ลิฟต์', 'รปภ.24ชม.'],
-        images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-10'
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const res = await houseAPI.getAll()
+        if (res.success) {
+          setHouses(res.data || [])
+        } else {
+          setHouses([])
+        }
+      } catch (e) {
+        console.error('Failed to load houses:', e)
+        setHouses([])
+      } finally {
+        setLoading(false)
       }
-    ]
-
-    setTimeout(() => {
-      setHouses(mockHouses)
-      setLoading(false)
-    }, 1000)
+    }
+    fetchData()
   }, [])
+
+  const handleAddClick = () => setShowAddForm(true)
+  const handleEditClick = (house) => { setEditingHouse(house); setShowEditForm(true) }
+  const refreshList = async () => {
+    try {
+      setLoading(true)
+      const res = await houseAPI.getAll()
+      if (res.success) {
+        setHouses(res.data || [])
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }
+  const handleSaved = async () => {
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingHouse(null)
+    await refreshList()
+  }
+
+  const handleStatusChange = async (house, newStatus) => {
+    if (!newStatus || newStatus === house.status) return
+    try {
+      setUpdatingStatusId(house.id)
+      await houseAPI.update(house.id, { status: newStatus })
+      setHouses(prev => prev.map(h => h.id === house.id ? { ...h, status: newStatus } : h))
+    } catch (err) {
+      console.error('Update status failed:', err)
+      alert('อัปเดตสถานะไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'))
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
 
   const getStatusColor = (status) => {
     const colors = {
-      'available': 'bg-green-100 text-green-800',
-      'sold': 'bg-red-100 text-red-800',
-      'rented': 'bg-blue-100 text-blue-800',
-      'pending': 'bg-yellow-100 text-yellow-800'
+      'sale': 'bg-green-100 text-green-800',
+      'rent': 'bg-blue-100 text-blue-800',
+      'both': 'bg-purple-100 text-purple-800'
     }
     return colors[status] || 'bg-gray-100 text-gray-800'
   }
 
   const getStatusText = (status) => {
     const statusText = {
-      'available': 'ว่าง',
-      'sold': 'ขายแล้ว',
-      'rented': 'เช่าแล้ว',
-      'pending': 'รอดำเนินการ'
+      'sale': 'ขาย',
+      'rent': 'เช่า',
+      'both': 'ขาย/เช่า'
     }
     return statusText[status] || status
   }
 
   const getTypeText = (type) => {
     const typeText = {
-      'detached_house': 'บ้านเดี่ยว',
-      'semi_detached': 'บ้านแฝด',
+      'house': 'บ้านเดี่ยว',
       'townhouse': 'ทาวน์เฮาส์',
-      'apartment': 'อพาร์ตเม้นท์'
+      'apartment': 'อพาร์ตเมนต์'
     }
     return typeText[type] || type
   }
 
   const filteredHouses = houses.filter(house => {
-    const matchesSearch = house.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         house.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (house.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (house.location || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'all' || house.status === filterStatus
-    const matchesType = filterType === 'all' || house.type === filterType
+    const matchesType = filterType === 'all' || house.property_type === filterType
     return matchesSearch && matchesStatus && matchesType
   })
 
@@ -156,6 +151,26 @@ const HouseManagement = () => {
     )
   }
 
+  if (showAddForm) {
+    return (
+      <HouseForm
+        onBack={() => setShowAddForm(false)}
+        onSave={handleSaved}
+      />
+    )
+  }
+
+  if (showEditForm && editingHouse) {
+    return (
+      <HouseForm
+        initialData={editingHouse}
+        isEditing
+        onBack={() => { setShowEditForm(false); setEditingHouse(null) }}
+        onSave={handleSaved}
+      />
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -166,10 +181,10 @@ const HouseManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเม้นท์</h1>
-          <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลบ้านเดี่ยว ทาวน์เฮาส์ และอพาร์ตเม้นท์ในระบบ</p>
+          <h1 className="text-3xl font-bold text-gray-900 font-prompt">บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเมนต์</h1>
+          <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลบ้านเดี่ยว ทาวน์เฮาส์ และอพาร์ตเมนต์ในระบบ</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddClick}>
           <Plus className="h-4 w-4 mr-2" />
           เพิ่มบ้าน
         </Button>
@@ -198,9 +213,9 @@ const HouseManagement = () => {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">ว่าง</p>
+                <p className="text-sm font-medium text-gray-600 font-prompt">สำหรับขาย</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {houses.filter(h => h.status === 'available').length}
+                  {houses.filter(h => h.status === 'sale' || h.status === 'both').length}
                 </p>
               </div>
             </div>
@@ -214,9 +229,9 @@ const HouseManagement = () => {
                 <Calendar className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">ขายแล้ว</p>
+                <p className="text-sm font-medium text-gray-600 font-prompt">สำหรับเช่า</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {houses.filter(h => h.status === 'sold').length}
+                  {houses.filter(h => h.status === 'rent' || h.status === 'both').length}
                 </p>
               </div>
             </div>
@@ -232,7 +247,7 @@ const HouseManagement = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600 font-prompt">มูลค่ารวม</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  ฿{(houses.reduce((sum, h) => sum + h.price, 0) / 1000000).toFixed(1)}M
+                  ฿{(houses.reduce((sum, h) => sum + Number(h.price || 0), 0) / 1000000).toFixed(1)}M
                 </p>
               </div>
             </div>
@@ -263,10 +278,9 @@ const HouseManagement = () => {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">สถานะทั้งหมด</option>
-                <option value="available">ว่าง</option>
-                <option value="sold">ขายแล้ว</option>
-                <option value="rented">เช่าแล้ว</option>
-                <option value="pending">รอดำเนินการ</option>
+                <option value="sale">ขาย</option>
+                <option value="rent">เช่า</option>
+                <option value="both">ขาย/เช่า</option>
               </select>
               
               <select
@@ -275,10 +289,9 @@ const HouseManagement = () => {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">ประเภททั้งหมด</option>
-                <option value="detached_house">บ้านเดี่ยว</option>
-                <option value="semi_detached">บ้านแฝด</option>
+                <option value="house">บ้านเดี่ยว</option>
                 <option value="townhouse">ทาวน์เฮาส์</option>
-                <option value="apartment">อพาร์ตเม้นท์</option>
+                <option value="apartment">อพาร์ตเมนต์</option>
               </select>
               
               <div className="flex border border-gray-300 rounded-md">
@@ -323,7 +336,7 @@ const HouseManagement = () => {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <img
-                            src={house.images[0]}
+                            src={house.cover_image || (house.images && house.images[0])}
                             alt={house.title}
                             className="w-12 h-12 object-cover rounded-lg"
                           />
@@ -335,28 +348,40 @@ const HouseManagement = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-prompt">{getTypeText(house.type)}</TableCell>
+                      <TableCell className="font-prompt">{getTypeText(house.property_type)}</TableCell>
                       <TableCell className="font-prompt">{house.location}</TableCell>
                       <TableCell className="font-prompt">
                         <div>
-                          <p className="font-medium text-gray-900">฿{house.price.toLocaleString()}</p>
-                          {house.rentPrice > 0 && (
-                            <p className="text-sm text-gray-500">฿{house.rentPrice.toLocaleString()}/เดือน</p>
+                          <p className="font-medium text-gray-900">฿{Number(house.price || 0).toLocaleString('th-TH')}</p>
+                          {Number(house.rent_price || 0) > 0 && (
+                            <p className="text-sm text-gray-500">฿{Number(house.rent_price).toLocaleString('th-TH')}/เดือน</p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(house.status)}`}>
-                          {getStatusText(house.status)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(house.status)}`}>
+                            {getStatusText(house.status)}
+                          </span>
+                          <select
+                            value={house.status}
+                            disabled={updatingStatusId === house.id}
+                            onChange={(e) => handleStatusChange(house, e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                          >
+                            <option value="sale">ขาย</option>
+                            <option value="rent">เช่า</option>
+                            <option value="both">ขาย/เช่า</option>
+                          </select>
+                        </div>
                       </TableCell>
-                      <TableCell className="font-prompt">{house.usableArea} ตร.ม.</TableCell>
+                      <TableCell className="font-prompt">{Number(house.area || 0)} ตร.ม.</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -376,14 +401,24 @@ const HouseManagement = () => {
               <Card key={house.id} className="overflow-hidden">
                 <div className="relative">
                   <img
-                    src={house.images[0]}
+                    src={house.cover_image || (house.images && house.images[0])}
                     alt={house.title}
                     className="w-full h-48 object-cover"
                   />
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 left-2 flex items-center gap-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(house.status)}`}>
                       {getStatusText(house.status)}
                     </span>
+                    <select
+                      value={house.status}
+                      disabled={updatingStatusId === house.id}
+                      onChange={(e) => handleStatusChange(house, e.target.value)}
+                      className="px-2 py-1 border border-gray-200 rounded text-xs bg-white/90"
+                    >
+                      <option value="sale">ขาย</option>
+                      <option value="rent">เช่า</option>
+                      <option value="both">ขาย/เช่า</option>
+                    </select>
                   </div>
                   <div className="absolute top-2 right-2 flex space-x-1">
                     <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
@@ -412,29 +447,29 @@ const HouseManagement = () => {
                         <span>{house.bathrooms}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Car className="h-4 w-4" />
-                        <span>{house.parkingSpaces}</span>
+                        <MapPin className="h-4 w-4" />
+                        <span>{Number(house.area || 0)} ตร.ม.</span>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-gray-900 font-prompt">฿{house.price.toLocaleString()}</p>
-                        {house.rentPrice > 0 && (
-                          <p className="text-sm text-gray-500 font-prompt">฿{house.rentPrice.toLocaleString()}/เดือน</p>
+                        <p className="font-semibold text-gray-900 font-prompt">฿{Number(house.price || 0).toLocaleString('th-TH')}</p>
+                        {Number(house.rent_price || 0) > 0 && (
+                          <p className="text-sm text-gray-500 font-prompt">฿{Number(house.rent_price).toLocaleString('th-TH')}/เดือน</p>
                         )}
                       </div>
                       <div className="text-sm text-gray-500 font-prompt">
-                        {getTypeText(house.type)}
+                        {getTypeText(house.property_type)}
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-sm text-gray-500 font-prompt">
-                        {house.usableArea} ตร.ม. • {house.yearBuilt}
+                        {Number(house.area || 0)} ตร.ม.
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">

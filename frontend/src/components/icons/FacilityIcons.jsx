@@ -332,6 +332,328 @@ export const CoKitchenIcon = ({ className = "w-6 h-6", ...props }) => (
   </svg>
 );
 
+// Escalator
+export const EscalatorIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M3 7h18M3 17h18"/>
+    <path d="M7 7l4 4 4-4"/>
+    <path d="M7 17l4-4 4 4"/>
+  </svg>
+);
+
+// Bicycle Parking
+export const BikeParkingIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <circle cx="7" cy="17" r="2"/>
+    <circle cx="17" cy="17" r="2"/>
+    <path d="M5 17h4l1.5-4.5M19 17h-4l-1.5-4.5"/>
+    <path d="M9.5 12.5L12 7l2.5 5.5"/>
+  </svg>
+);
+
+// CCTV
+export const CCTVIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+    <path d="M12 6v6l4 2"/>
+  </svg>
+);
+
+// Fire Alarm
+export const FireAlarmIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 8v4M12 16h.01"/>
+  </svg>
+);
+
+// Spa
+export const SpaIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 8v4M12 16h.01"/>
+  </svg>
+);
+
+// Tennis Court
+export const TennisIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+    <path d="M12 2v20M2 12h20"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
+// Basketball Court
+export const BasketballIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+    <path d="M12 2v20M2 12h20"/>
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M9 9h6M9 15h6"/>
+  </svg>
+);
+
+// Badminton Court
+export const BadmintonIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+    <path d="M12 2v20M2 12h20"/>
+    <path d="M8 8h8M8 16h8"/>
+  </svg>
+);
+
+// Table Tennis
+export const TableTennisIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+    <path d="M12 2v20M2 12h20"/>
+    <circle cx="12" cy="12" r="2"/>
+  </svg>
+);
+
+// Yoga Studio
+export const YogaIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 8v4M12 16h.01"/>
+  </svg>
+);
+
+// Business Center
+export const BusinessCenterIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+  </svg>
+);
+
+// Conference Room
+export const ConferenceRoomIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Bar
+export const BarIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 8v4M12 16h.01"/>
+  </svg>
+);
+
+// BBQ Area
+export const BBQIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Game Room
+export const GameRoomIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Karaoke Room
+export const KaraokeIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Music Room
+export const MusicRoomIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Art Room
+export const ArtRoomIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Bank Branch
+export const BankIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// ATM
+export const ATMIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Post Office
+export const PostOfficeIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Pharmacy
+export const PharmacyIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Medical Clinic
+export const ClinicIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Beauty Salon
+export const SalonIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Dry Cleaning
+export const DryCleaningIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Rooftop Garden
+export const RooftopIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    <path d="M12 8v4M12 16h.01"/>
+  </svg>
+);
+
+// Private Balcony
+export const BalconyIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Terrace
+export const TerraceIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Storage Room
+export const StorageIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Maid Service
+export const MaidIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Valet Parking
+export const ValetIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
+// Concierge Service
+export const ConciergeIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+    <path d="M8 7h8M8 11h8M8 15h6"/>
+    <path d="M12 7v10"/>
+    <path d="M8 7v10"/>
+    <path d="M16 7v10"/>
+  </svg>
+);
+
 // Export all icons as an object for easy access
 export const FacilityIcons = {
   PassengerLift: PassengerLiftIcon,
@@ -367,5 +689,37 @@ export const FacilityIcons = {
   Library: LibraryIcon,
   Laundry: LaundryIcon,
   Garden: GardenIcon,
-  Wifi: WifiIcon
+  Wifi: WifiIcon,
+  Escalator: EscalatorIcon,
+  BikeParking: BikeParkingIcon,
+  CCTV: CCTVIcon,
+  FireAlarm: FireAlarmIcon,
+  Spa: SpaIcon,
+  Tennis: TennisIcon,
+  Basketball: BasketballIcon,
+  Badminton: BadmintonIcon,
+  TableTennis: TableTennisIcon,
+  Yoga: YogaIcon,
+  BusinessCenter: BusinessCenterIcon,
+  ConferenceRoom: ConferenceRoomIcon,
+  Bar: BarIcon,
+  BBQ: BBQIcon,
+  GameRoom: GameRoomIcon,
+  Karaoke: KaraokeIcon,
+  MusicRoom: MusicRoomIcon,
+  ArtRoom: ArtRoomIcon,
+  Bank: BankIcon,
+  ATM: ATMIcon,
+  PostOffice: PostOfficeIcon,
+  Pharmacy: PharmacyIcon,
+  Clinic: ClinicIcon,
+  Salon: SalonIcon,
+  DryCleaning: DryCleaningIcon,
+  Rooftop: RooftopIcon,
+  Balcony: BalconyIcon,
+  Terrace: TerraceIcon,
+  Storage: StorageIcon,
+  Maid: MaidIcon,
+  Valet: ValetIcon,
+  Concierge: ConciergeIcon
 }; 

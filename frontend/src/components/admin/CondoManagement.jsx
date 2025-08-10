@@ -34,6 +34,8 @@ import {
   Heart
 } from 'lucide-react'
 import CondoForm from './CondoForm'
+import { condoAPI } from '../../lib/api'
+import Swal from 'sweetalert2'
 
 const CondoManagement = () => {
   const [condos, setCondos] = useState([])
@@ -44,93 +46,115 @@ const CondoManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
   const [editingCondo, setEditingCondo] = useState(null)
+  const [stats, setStats] = useState({
+    total_condos: 0,
+    for_sale: 0,
+    for_rent: 0,
+    both_status: 0,
+    avg_price: 0,
+    avg_rent_price: 0,
+    avg_area: 0,
+    total_views: 0,
+  })
+  const [updatingStatusId, setUpdatingStatusId] = useState(null)
 
-  // Mock data for condos
+  // Fetch condos from API
   useEffect(() => {
-    const mockCondos = [
-      {
-        id: 1,
-        title: 'คอนโด ลุมพินี วิลล์ รามคำแหง',
-        location: 'รามคำแหง, กรุงเทพฯ',
-        price: 3500000,
-        rentPrice: 25000,
-        bedrooms: 2,
-        bathrooms: 2,
-        parkingSpaces: 1,
-        floor: 15,
-        totalFloors: 30,
-        size: 65,
-        status: 'available',
-        type: 'sale',
-        yearBuilt: 2020,
-        facilities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ลิฟต์', 'รปภ.24ชม.'],
-        images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-15'
-      },
-      {
-        id: 2,
-        title: 'คอนโด ไอดีโอ โมบิ สุขุมวิท',
-        location: 'สุขุมวิท, กรุงเทพฯ',
-        price: 4200000,
-        rentPrice: 32000,
-        bedrooms: 1,
-        bathrooms: 1,
-        parkingSpaces: 1,
-        floor: 22,
-        totalFloors: 35,
-        size: 45,
-        status: 'available',
-        type: 'sale',
-        yearBuilt: 2021,
-        facilities: ['สระว่ายน้ำ', 'ฟิตเนส', 'Co-working', 'รปภ.24ชม.'],
-        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-12'
-      },
-      {
-        id: 3,
-        title: 'คอนโด เดอะ เบส พาร์ค เวสต์',
-        location: 'สุขุมวิท 77, กรุงเทพฯ',
-        price: 2800000,
-        rentPrice: 22000,
-        bedrooms: 1,
-        bathrooms: 1,
-        parkingSpaces: 0,
-        floor: 8,
-        totalFloors: 25,
-        size: 35,
-        status: 'sold',
-        type: 'sale',
-        yearBuilt: 2019,
-        facilities: ['สระว่ายน้ำ', 'ฟิตเนส', 'รปภ.24ชม.'],
-        images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-10'
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch condos
+        const condosResponse = await condoAPI.getAll()
+        if (condosResponse.success) {
+          setCondos(condosResponse.data || [])
+        } else {
+          console.error('Failed to fetch condos:', condosResponse.message)
+          setCondos([])
+        }
+        
+        // Fetch statistics
+        const statsResponse = await condoAPI.getStats()
+        if (statsResponse.success) {
+          const d = statsResponse.data || {}
+          setStats({
+            total_condos: d.total_condos || 0,
+            for_sale: d.for_sale || 0,
+            for_rent: d.for_rent || 0,
+            both_status: d.both_status || 0,
+            avg_price: d.avg_price || 0,
+            avg_rent_price: d.avg_rent_price || 0,
+            avg_area: d.avg_area || 0,
+            total_views: d.total_views || 0,
+          })
+        } else {
+          console.error('Failed to fetch stats:', statsResponse.message)
+        }
+        
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        setCondos([])
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setCondos(mockCondos)
-      setLoading(false)
-    }, 1000)
+    fetchData()
   }, [])
 
   const getStatusColor = (status) => {
     const colors = {
-      'available': 'bg-green-100 text-green-800',
-      'sold': 'bg-red-100 text-red-800',
-      'rented': 'bg-blue-100 text-blue-800',
-      'pending': 'bg-yellow-100 text-yellow-800'
+      'sale': 'bg-green-100 text-green-800',
+      'rent': 'bg-blue-100 text-blue-800',
+      'both': 'bg-purple-100 text-purple-800'
     }
     return colors[status] || 'bg-gray-100 text-gray-800'
   }
 
   const getStatusText = (status) => {
     const statusText = {
-      'available': 'ว่าง',
-      'sold': 'ขายแล้ว',
-      'rented': 'เช่าแล้ว',
-      'pending': 'รอดำเนินการ'
+      'sale': 'ขาย',
+      'rent': 'เช่า',
+      'both': 'ขาย/เช่า'
     }
     return statusText[status] || status
+  }
+
+  const refreshStats = async () => {
+    try {
+      const statsResponse = await condoAPI.getStats()
+      if (statsResponse.success) {
+        const d = statsResponse.data || {}
+        setStats({
+          total_condos: d.total_condos || 0,
+          for_sale: d.for_sale || 0,
+          for_rent: d.for_rent || 0,
+          both_status: d.both_status || 0,
+          avg_price: d.avg_price || 0,
+          avg_rent_price: d.avg_rent_price || 0,
+          avg_area: d.avg_area || 0,
+          total_views: d.total_views || 0,
+        })
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const handleStatusChange = async (condo, newStatus) => {
+    if (!newStatus || newStatus === condo.status) return
+    try {
+      setUpdatingStatusId(condo.id)
+      await condoAPI.update(condo.id, { status: newStatus })
+      setCondos(prev => prev.map(c => c.id === condo.id ? { ...c, status: newStatus } : c))
+      await refreshStats()
+      await Swal.fire('อัปเดตสถานะสำเร็จ', '', 'success')
+    } catch (err) {
+      console.error('Update status failed:', err)
+      await Swal.fire('อัปเดตไม่สำเร็จ', err.message || 'เกิดข้อผิดพลาด', 'error')
+    } finally {
+      setUpdatingStatusId(null)
+    }
   }
 
   const filteredCondos = condos.filter(condo => {
@@ -150,20 +174,87 @@ const CondoManagement = () => {
   }
 
   const handleSaveCondo = (condoData) => {
-    // Refresh data or update state
-    if (showAddForm) {
-      setCondos(prev => [...prev, { ...condoData, id: Date.now() }])
-      setShowAddForm(false)
-    } else if (showEditForm) {
-      setCondos(prev => prev.map(c => c.id === editingCondo.id ? { ...condoData, id: editingCondo.id } : c))
-      setShowEditForm(false)
-      setEditingCondo(null)
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingCondo(null)
+    
+    // Refresh the data after saving
+    const refreshData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch condos
+        const condosResponse = await condoAPI.getAll()
+        if (condosResponse.success) {
+          setCondos(condosResponse.data || [])
+        }
+        
+        // Fetch statistics
+        const statsResponse = await condoAPI.getStats()
+        if (statsResponse.success) {
+          const d = statsResponse.data || {}
+          setStats({
+            total_condos: d.total_condos || 0,
+            for_sale: d.for_sale || 0,
+            for_rent: d.for_rent || 0,
+            both_status: d.both_status || 0,
+            avg_price: d.avg_price || 0,
+            avg_rent_price: d.avg_rent_price || 0,
+            avg_area: d.avg_area || 0,
+            total_views: d.total_views || 0,
+          })
+        }
+        
+      } catch (error) {
+        console.error('Error refreshing data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
+    
+    refreshData()
   }
 
-  const handleDeleteCondo = (condoId) => {
-    if (window.confirm('คุณต้องการลบคอนโดนี้หรือไม่?')) {
-      setCondos(prev => prev.filter(c => c.id !== condoId))
+  const handleDeleteCondo = async (condoId) => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการลบ?',
+      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนได้',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก'
+    })
+
+    if (result.isConfirmed) {
+      try {
+        setLoading(true)
+        await condoAPI.delete(condoId)
+        await Swal.fire('ลบสำเร็จ', '', 'success')
+        // Refresh after delete
+        const condosResponse = await condoAPI.getAll()
+        if (condosResponse.success) {
+          setCondos(condosResponse.data || [])
+        }
+        const statsResponse = await condoAPI.getStats()
+        if (statsResponse.success) {
+          const d = statsResponse.data || {}
+          setStats({
+            total_condos: d.total_condos || 0,
+            for_sale: d.for_sale || 0,
+            for_rent: d.for_rent || 0,
+            both_status: d.both_status || 0,
+            avg_price: d.avg_price || 0,
+            avg_rent_price: d.avg_rent_price || 0,
+            avg_area: d.avg_area || 0,
+            total_views: d.total_views || 0,
+          })
+        }
+      } catch (err) {
+        console.error('Error deleting condo:', err)
+        await Swal.fire('ลบไม่สำเร็จ', err.message || 'เกิดข้อผิดพลาด', 'error')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -214,78 +305,83 @@ const CondoManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 font-prompt">จัดการคอนโด</h1>
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลคอนโดมิเนียมทั้งหมดในระบบ</p>
         </div>
-        <Button 
-          onClick={handleAddCondo}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          เพิ่มคอนโด
-        </Button>
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={handleAddCondo}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            + เพิ่มคอนโด
+          </Button>
+          
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="font-prompt"
+          >
+            <Loader2 className="h-4 w-4 mr-2" />
+            รีเฟรช
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Building className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">คอนโดทั้งหมด</p>
-                <p className="text-2xl font-bold text-gray-900 font-prompt">{condos.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            {/* คอนโดทั้งหมด */}
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-blue-700">
+                  คอนโดทั้งหมด
+                </CardTitle>
+                <Building className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-800">{stats.total_condos || 0}</div>
+                <p className="text-xs text-blue-600">รายการทั้งหมด</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <HomeIcon className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">ว่าง</p>
-                <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {condos.filter(c => c.status === 'available').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            {/* ว่าง */}
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-700">
+                   สำหรับขาย
+                 </CardTitle>
+                <HomeIcon className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-800">{stats.for_sale || 0}</div>
+                <p className="text-xs text-green-600">พร้อมขาย/เช่า</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">ขายแล้ว</p>
-                <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {condos.filter(c => c.status === 'sold').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            {/* ขายแล้ว */}
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-orange-700">
+                   สำหรับเช่า
+                 </CardTitle>
+                <Users className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-800">{stats.for_rent || 0}</div>
+                <p className="text-xs text-orange-600">รายการที่ขายแล้ว</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">มูลค่ารวม</p>
-                <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  ฿{(condos.reduce((sum, c) => sum + c.price, 0) / 1000000).toFixed(1)}M
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            {/* มูลค่ารวม */}
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-purple-700">
+                   ขาย/เช่า
+                 </CardTitle>
+                <TrendingUp className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-800">{stats.both_status || 0}</div>
+                <p className="text-xs text-purple-600">มูลค่ารวมทั้งหมด</p>
+              </CardContent>
+            </Card>
       </div>
 
       {/* Filters and Search */}
@@ -359,7 +455,7 @@ const CondoManagement = () => {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <img
-                            src={condo.images[0]}
+                            src={condo.cover_image || (condo.images && condo.images[0])}
                             alt={condo.title}
                             className="w-12 h-12 object-cover rounded-lg"
                           />
@@ -374,19 +470,31 @@ const CondoManagement = () => {
                       <TableCell className="font-prompt">{condo.location}</TableCell>
                       <TableCell className="font-prompt">
                         <div>
-                          <p className="font-medium text-gray-900">฿{condo.price.toLocaleString()}</p>
-                          {condo.rentPrice > 0 && (
-                            <p className="text-sm text-gray-500">฿{condo.rentPrice.toLocaleString()}/เดือน</p>
+                          <p className="font-medium text-gray-900">฿{Number(condo.price || 0).toLocaleString('th-TH')}</p>
+                          {Number(condo.rent_price || 0) > 0 && (
+                            <p className="text-sm text-gray-500">฿{Number(condo.rent_price).toLocaleString('th-TH')}/เดือน</p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(condo.status)}`}>
-                          {getStatusText(condo.status)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(condo.status)}`}>
+                            {getStatusText(condo.status)}
+                          </span>
+                          <select
+                            value={condo.status}
+                            disabled={updatingStatusId === condo.id}
+                            onChange={(e) => handleStatusChange(condo, e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                          >
+                            <option value="sale">ขาย</option>
+                            <option value="rent">เช่า</option>
+                            <option value="both">ขาย/เช่า</option>
+                          </select>
+                        </div>
                       </TableCell>
-                      <TableCell className="font-prompt">{condo.floor}/{condo.totalFloors}</TableCell>
-                      <TableCell className="font-prompt">{condo.size} ตร.ม.</TableCell>
+                      <TableCell className="font-prompt">{condo.floor || '-'}</TableCell>
+                      <TableCell className="font-prompt">{Number(condo.area || 0)} ตร.ม.</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button variant="ghost" size="sm">
@@ -420,14 +528,24 @@ const CondoManagement = () => {
               <Card key={condo.id} className="overflow-hidden">
                 <div className="relative">
                   <img
-                    src={condo.images[0]}
+                    src={condo.cover_image || (condo.images && condo.images[0])}
                     alt={condo.title}
                     className="w-full h-48 object-cover"
                   />
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 left-2 flex items-center gap-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(condo.status)}`}>
                       {getStatusText(condo.status)}
                     </span>
+                    <select
+                      value={condo.status}
+                      disabled={updatingStatusId === condo.id}
+                      onChange={(e) => handleStatusChange(condo, e.target.value)}
+                      className="px-2 py-1 border border-gray-200 rounded text-xs bg-white/90"
+                    >
+                      <option value="sale">ขาย</option>
+                      <option value="rent">เช่า</option>
+                      <option value="both">ขาย/เช่า</option>
+                    </select>
                   </div>
                   <div className="absolute top-2 right-2 flex space-x-1">
                     <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
@@ -456,26 +574,26 @@ const CondoManagement = () => {
                         <span>{condo.bathrooms}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Car className="h-4 w-4" />
-                        <span>{condo.parkingSpaces}</span>
+                        <MapPin className="h-4 w-4" />
+                        <span>{Number(condo.area || 0)} ตร.ม.</span>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-gray-900 font-prompt">฿{condo.price.toLocaleString()}</p>
-                        {condo.rentPrice > 0 && (
-                          <p className="text-sm text-gray-500 font-prompt">฿{condo.rentPrice.toLocaleString()}/เดือน</p>
+                        <p className="font-semibold text-gray-900 font-prompt">฿{Number(condo.price || 0).toLocaleString('th-TH')}</p>
+                        {Number(condo.rent_price || 0) > 0 && (
+                          <p className="text-sm text-gray-500 font-prompt">฿{Number(condo.rent_price).toLocaleString('th-TH')}/เดือน</p>
                         )}
                       </div>
                       <div className="text-sm text-gray-500 font-prompt">
-                        ชั้น {condo.floor}/{condo.totalFloors}
+                        ชั้น {condo.floor || '-'}
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-sm text-gray-500 font-prompt">
-                        {condo.size} ตร.ม. • {condo.yearBuilt}
+                        {Number(condo.area || 0)} ตร.ม.
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button 

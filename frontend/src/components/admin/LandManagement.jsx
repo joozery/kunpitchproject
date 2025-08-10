@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { Card, CardContent } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { 
@@ -15,13 +15,11 @@ import {
   TreePine, 
   Plus, 
   Search, 
-  Filter, 
   Edit, 
   Trash2, 
   Eye, 
   MapPin,
   Calendar,
-  DollarSign,
   Users,
   TrendingUp,
   Grid,
@@ -31,9 +29,42 @@ import {
   Heart,
   Maximize,
   Mountain,
-  Droplets,
-  Zap
+  Home,
+  Globe
 } from 'lucide-react'
+import LandForm from './LandForm'
+import { landAPI } from '../../lib/api'
+
+// Helpers for land sizes
+const toRaiNganWah = (land) => {
+  const rai = Number(land.rai || 0)
+  const ngan = Number(land.ngan || 0)
+  const wah = Number(land.wah || 0)
+  const squareWa = Number(land.square_wa || 0)
+  if (rai || ngan || wah) return { rai, ngan, wah }
+  if (squareWa) {
+    const r = Math.floor(squareWa / 400)
+    const afterR = squareWa - r * 400
+    const n = Math.floor(afterR / 100)
+    const w = Math.round(afterR - n * 100)
+    return { rai: r, ngan: n, wah: w }
+  }
+  const sqm = Number(land.area || 0)
+  const r2 = Math.floor(sqm / 1600)
+  const remAfterRai = sqm - r2 * 1600
+  const n2 = Math.floor(remAfterRai / 400)
+  const w2 = Math.round(remAfterRai / 4 - n2 * 25) // 1 ngan=100wah=400sqm, 1 wah=4sqm
+  return { rai: r2, ngan: n2, wah: Math.max(0, w2) }
+}
+
+const totalSquareWa = (land) => {
+  const rai = Number(land.rai || 0)
+  const ngan = Number(land.ngan || 0)
+  const wah = Number(land.wah || 0)
+  const squareWa = Number(land.square_wa || 0)
+  if (squareWa) return squareWa
+  return rai * 400 + ngan * 100 + wah
+}
 
 const LandManagement = () => {
   const [lands, setLands] = useState([])
@@ -41,85 +72,79 @@ const LandManagement = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterType, setFilterType] = useState('all')
+  const [filterOwnership, setFilterOwnership] = useState('all')
   const [viewMode, setViewMode] = useState('table')
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingLand, setEditingLand] = useState(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState(null)
 
-  // Mock data for lands
-  useEffect(() => {
-    const mockLands = [
-      {
-        id: 1,
-        title: 'ที่ดินเปล่า 5 ไร่ ติดถนนใหญ่',
-        location: 'นครปฐม',
-        price: 15000000,
-        rentPrice: 0,
-        landSize: 8000,
-        rai: 5,
-        ngan: 0,
-        wah: 0,
-        status: 'available',
-        type: 'empty_land',
-        yearListed: 2024,
-        features: ['ติดถนนใหญ่', 'ไฟฟ้าผ่าน', 'น้ำประปา', 'โฉนดที่ดิน'],
-        zoning: 'residential',
-        utilities: {
-          electricity: true,
-          water: true,
-          internet: false,
-          gas: false
-        },
-        images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-15'
-      },
-      {
-        id: 2,
-        title: 'ที่ดินสวนผลไม้ 3 ไร่',
-        location: 'ราชบุรี',
-        price: 8500000,
-        rentPrice: 15000,
-        landSize: 4800,
-        rai: 3,
-        ngan: 0,
-        wah: 0,
-        status: 'available',
-        type: 'orchard',
-        yearListed: 2024,
-        features: ['สวนมะม่วง', 'บ้านสวน', 'บ่อน้ำ', 'โฉนดที่ดิน'],
-        zoning: 'agricultural',
-        utilities: {
-          electricity: true,
-          water: true,
-          internet: false,
-          gas: false
-        },
-        images: ['https://images.unsplash.com/photo-1574263867128-bec3bf2b0b6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-12'
+  // Load lands from API
+  const fetchLands = async () => {
+    try {
+      setLoading(true)
+      const res = await landAPI.getAll()
+      console.log('Land API Response:', res) // Debug log
+      if (res.success) {
+        const landsData = res.data || []
+        console.log('Lands data:', landsData) // Debug log
+        // Debug: ตรวจสอบรูปภาพของแต่ละที่ดิน
+        landsData.forEach((land, index) => {
+          console.log(`Land ${index + 1} (${land.title}):`, {
+            id: land.id,
+            images: land.images,
+            cover_image: land.cover_image,
+            hasImages: land.images && land.images.length > 0,
+            firstImage: land.images && land.images[0]
+          })
+        })
+        setLands(landsData)
+      } else {
+        setLands([])
       }
-    ]
-
-    setTimeout(() => {
-      setLands(mockLands)
+    } catch (e) {
+      console.error('Failed to load lands:', e)
+      setLands([])
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }
+
+  useEffect(() => {
+    fetchLands()
   }, [])
+
+  const handleAddClick = () => setShowAddForm(true)
+  const handleEditClick = (land) => { setEditingLand(land); setShowEditForm(true) }
+  const handleSaved = async () => {
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingLand(null)
+    await fetchLands()
+  }
 
   const getStatusColor = (status) => {
     const colors = {
-      'available': 'bg-green-100 text-green-800',
-      'sold': 'bg-red-100 text-red-800',
-      'rented': 'bg-blue-100 text-blue-800',
-      'pending': 'bg-yellow-100 text-yellow-800'
+      sale: 'bg-green-100 text-green-800',
+      rent: 'bg-blue-100 text-blue-800',
+      both: 'bg-purple-100 text-purple-800',
     }
     return colors[status] || 'bg-gray-100 text-gray-800'
   }
 
-  const getStatusText = (status) => {
-    const statusText = {
-      'available': 'ว่าง',
-      'sold': 'ขายแล้ว',
-      'rented': 'เช่าแล้ว',
-      'pending': 'รอดำเนินการ'
+  const getStatusText = (status) => ({ sale: 'ขาย', rent: 'เช่า', both: 'ขาย/เช่า' }[status] || status)
+
+  const handleStatusChange = async (landItem, newStatus) => {
+    try {
+      setUpdatingStatusId(landItem.id)
+      await landAPI.update(landItem.id, { status: newStatus })
+      setLands(prev => prev.map(l => (l.id === landItem.id ? { ...l, status: newStatus } : l)))
+    } catch (e) {
+      console.error('Failed to update status:', e)
+      alert('อัปเดตสถานะไม่สำเร็จ')
+    } finally {
+      setUpdatingStatusId(null)
     }
-    return statusText[status] || status
   }
 
   const getTypeText = (type) => {
@@ -134,12 +159,35 @@ const LandManagement = () => {
   }
 
   const filteredLands = lands.filter(land => {
-    const matchesSearch = land.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         land.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || land.status === filterStatus
-    const matchesType = filterType === 'all' || land.type === filterType
-    return matchesSearch && matchesStatus && matchesType
+    const matchesSearch = (land.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (land.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (land.district || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (land.province || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = filterStatus === 'all' || (land.status || '').toLowerCase() === filterStatus
+    const matchesType = filterType === 'all' // land ไม่ได้ใช้ type ตอนนี้
+    const matchesOwnership = filterOwnership === 'all' || land.land_ownership === filterOwnership
+    return matchesSearch && matchesStatus && matchesType && matchesOwnership
   })
+
+  if (showAddForm) {
+    return (
+      <LandForm
+        onBack={() => setShowAddForm(false)}
+        onSave={handleSaved}
+      />
+    )
+  }
+
+  if (showEditForm && editingLand) {
+    return (
+      <LandForm
+        land={editingLand}
+        isEditing
+        onBack={() => { setShowEditForm(false); setEditingLand(null) }}
+        onSave={handleSaved}
+      />
+    )
+  }
 
   if (loading) {
     return (
@@ -165,14 +213,14 @@ const LandManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 font-prompt">จัดการที่ดิน</h1>
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลที่ดินเปล่า ไร่นา สวนทั้งหมดในระบบ</p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700">
+        <Button className="bg-green-600 hover:bg-green-700" onClick={handleAddClick}>
           <Plus className="h-4 w-4 mr-2" />
           เพิ่มที่ดิน
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
@@ -194,9 +242,9 @@ const LandManagement = () => {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">ว่าง</p>
+                <p className="text-sm font-medium text-gray-600 font-prompt">สถานะเป็นขาย</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {lands.filter(l => l.status === 'available').length}
+                  {lands.filter(l => (l.status || '').toLowerCase() === 'sale').length}
                 </p>
               </div>
             </div>
@@ -206,18 +254,20 @@ const LandManagement = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-yellow-100 p-3 rounded-lg">
-                <Maximize className="h-6 w-6 text-yellow-600" />
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Calendar className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 font-prompt">พื้นที่รวม</p>
+                <p className="text-sm font-medium text-gray-600 font-prompt">สถานะเป็นเช่า</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  {lands.reduce((sum, l) => sum + l.rai, 0)} ไร่
+                  {lands.filter(l => (l.status || '').toLowerCase() === 'rent').length}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+
 
         <Card>
           <CardContent className="p-6">
@@ -228,12 +278,52 @@ const LandManagement = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600 font-prompt">มูลค่ารวม</p>
                 <p className="text-2xl font-bold text-gray-900 font-prompt">
-                  ฿{(lands.reduce((sum, l) => sum + l.price, 0) / 1000000).toFixed(1)}M
+                  ฿{(lands.reduce((sum, l) => sum + Number(l.price || 0), 0) / 1000000).toFixed(1)}M
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Home className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 font-prompt">คนสัญชาติไทย</p>
+                <p className="text-2xl font-bold text-gray-900 font-prompt">
+                  {lands.filter(l => l.land_ownership === 'thai').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-red-100 p-3 rounded-lg">
+                <Globe className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 font-prompt">คนต่างชาติ</p>
+                <p className="text-2xl font-bold text-gray-900 font-prompt">
+                  {lands.filter(l => l.land_ownership === 'foreign').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+
+
+
+
+
       </div>
 
       {/* Filters and Search */}
@@ -259,10 +349,9 @@ const LandManagement = () => {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">สถานะทั้งหมด</option>
-                <option value="available">ว่าง</option>
-                <option value="sold">ขายแล้ว</option>
-                <option value="rented">เช่าแล้ว</option>
-                <option value="pending">รอดำเนินการ</option>
+                <option value="sale">ขาย</option>
+                <option value="rent">เช่า</option>
+                <option value="both">ขาย/เช่า</option>
               </select>
               
               <select
@@ -276,6 +365,16 @@ const LandManagement = () => {
                 <option value="farm">ที่ดินเกษตร</option>
                 <option value="commercial">ที่ดินพาณิชย์</option>
                 <option value="industrial">ที่ดินอุตสาหกรรม</option>
+              </select>
+
+              <select
+                value={filterOwnership}
+                onChange={(e) => setFilterOwnership(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="all">กรรมสิทธิ์ทั้งหมด</option>
+                <option value="thai">คนสัญชาติไทย</option>
+                <option value="foreign">คนต่างชาติ</option>
               </select>
               
               <div className="flex border border-gray-300 rounded-md">
@@ -297,6 +396,8 @@ const LandManagement = () => {
         </CardContent>
       </Card>
 
+
+
       {/* Land List */}
       <AnimatePresence mode="wait">
         {viewMode === 'table' ? (
@@ -306,11 +407,14 @@ const LandManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-prompt">ที่ดิน</TableHead>
-                    <TableHead className="font-prompt">ประเภท</TableHead>
+                    <TableHead className="font-prompt">กรรมสิทธิ์</TableHead>
+                    <TableHead className="font-prompt">ราคาต่อ ตร.วา</TableHead>
                     <TableHead className="font-prompt">ที่อยู่</TableHead>
                     <TableHead className="font-prompt">ราคา</TableHead>
                     <TableHead className="font-prompt">สถานะ</TableHead>
                     <TableHead className="font-prompt">ขนาด</TableHead>
+                    <TableHead className="font-prompt">วิว</TableHead>
+                    <TableHead className="font-prompt">เลขที่ยูนิต</TableHead>
                     <TableHead className="font-prompt">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -320,40 +424,97 @@ const LandManagement = () => {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <img
-                            src={land.images[0]}
+                            src={(() => {
+                              // ตรวจสอบรูปภาพตามลำดับ: cover_image -> images[0] -> fallback
+                              if (land.cover_image) return land.cover_image;
+                              if (land.images && land.images.length > 0 && land.images[0]) return land.images[0];
+                              return 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=60';
+                            })()}
                             alt={land.title}
                             className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              console.log(`Image failed to load for land ${land.id}:`, e.target.src);
+                              e.target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=60';
+                            }}
+                            onLoad={() => {
+                              console.log(`Image loaded successfully for land ${land.id}`);
+                            }}
                           />
                           <div>
                             <p className="font-medium text-gray-900 font-prompt">{land.title}</p>
                             <p className="text-sm text-gray-500 font-prompt">
-                              {land.rai} ไร่ {land.ngan} งาน {land.wah} ตร.ว.
+                              {toRaiNganWah(land).rai} ไร่ {toRaiNganWah(land).ngan} งาน {toRaiNganWah(land).wah} ตร.ว.
                             </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-prompt">{getTypeText(land.type)}</TableCell>
-                      <TableCell className="font-prompt">{land.location}</TableCell>
                       <TableCell className="font-prompt">
-                        <div>
-                          <p className="font-medium text-gray-900">฿{land.price.toLocaleString()}</p>
-                          {land.rentPrice > 0 && (
-                            <p className="text-sm text-gray-500">฿{land.rentPrice.toLocaleString()}/เดือน</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          land.land_ownership === 'thai' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {land.land_ownership === 'thai' ? 'คนสัญชาติไทย' : 'คนต่างชาติ'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-prompt">
+                        <div className="text-sm">
+                          <p className="font-medium text-gray-900">฿{Number(land.price_per_sq_wa || 0).toLocaleString('th-TH')}</p>
+                          <p className="text-xs text-gray-500">ต่อ ตร.ว.</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-prompt">
+                        <div className="text-sm">
+                          <p className="font-medium text-gray-900">{land.district || land.location}</p>
+                          <p className="text-xs text-gray-500">{land.province}</p>
+                          {land.postal_code && <p className="text-xs text-gray-400">{land.postal_code}</p>}
+                          {land.google_map_url && (
+                            <a 
+                              href={land.google_map_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              ดูแผนที่
+                            </a>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(land.status)}`}>
-                          {getStatusText(land.status)}
-                        </span>
+                      <TableCell className="font-prompt">
+                          <div>
+                            <p className="font-medium text-gray-900">฿{Number(land.price || 0).toLocaleString('th-TH')}</p>
+                            {Number(land.rent_price || 0) > 0 && (
+                              <p className="text-sm text-gray-500">฿{Number(land.rent_price).toLocaleString('th-TH')}/เดือน</p>
+                            )}
+                          </div>
                       </TableCell>
-                      <TableCell className="font-prompt">{land.landSize.toLocaleString()} ตร.ม.</TableCell>
+                       <TableCell>
+                         <select
+                           className="px-2 py-1 text-xs rounded-md border"
+                           value={(land.status || 'sale')}
+                           disabled={updatingStatusId === land.id}
+                           onChange={(e) => handleStatusChange(land, e.target.value)}
+                         >
+                           <option value="sale">ขาย</option>
+                           <option value="rent">เช่า</option>
+                           <option value="both">ขาย/เช่า</option>
+                         </select>
+                       </TableCell>
+                       <TableCell className="font-prompt">{totalSquareWa(land) || 0} ตร.ว.</TableCell>
+                       <TableCell className="font-prompt">
+                         <span className="text-sm text-gray-600">
+                           {land.view || '-'}
+                         </span>
+                       </TableCell>
+                       <TableCell className="font-prompt">
+                         <span className="text-sm text-gray-600">
+                           {land.unit_number || '-'}
+                         </span>
+                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(land)}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -373,9 +534,21 @@ const LandManagement = () => {
               <Card key={land.id} className="overflow-hidden">
                 <div className="relative">
                   <img
-                    src={land.images[0]}
+                    src={(() => {
+                      // ตรวจสอบรูปภาพตามลำดับ: cover_image -> images[0] -> fallback
+                      if (land.cover_image) return land.cover_image;
+                      if (land.images && land.images.length > 0 && land.images[0]) return land.images[0];
+                      return 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=60';
+                    })()}
                     alt={land.title}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      console.log(`Grid image failed to load for land ${land.id}:`, e.target.src);
+                      e.target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=60';
+                    }}
+                    onLoad={() => {
+                      console.log(`Grid image loaded successfully for land ${land.id}`);
+                    }}
                   />
                   <div className="absolute top-2 left-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(land.status)}`}>
@@ -396,35 +569,74 @@ const LandManagement = () => {
                   <div className="space-y-3">
                     <div>
                       <h3 className="font-semibold text-gray-900 font-prompt">{land.title}</h3>
-                      <p className="text-sm text-gray-500 font-prompt">{land.location}</p>
+                      <div className="text-sm text-gray-500 font-prompt">
+                        <p>{land.district || land.location}</p>
+                        <p>{land.province}</p>
+                        {land.postal_code && <p>{land.postal_code}</p>}
+                      </div>
                     </div>
                     
                     <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
                       <div className="flex items-center space-x-1">
                         <Maximize className="h-4 w-4" />
-                        <span>{land.rai} ไร่</span>
+                        <span>{toRaiNganWah(land).rai} ไร่</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Mountain className="h-4 w-4" />
-                        <span>{getTypeText(land.type)}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          land.land_ownership === 'thai' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {land.land_ownership === 'thai' ? 'คนสัญชาติไทย' : 'คนต่างชาติ'}
+                        </span>
                       </div>
                     </div>
                     
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">฿{Number(land.price_per_sq_wa || 0).toLocaleString('th-TH')}</span>
+                        <span className="text-xs">ต่อ ตร.ว.</span>
+                      </div>
+                      {land.view && (
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs">วิว: {land.view}</span>
+                        </div>
+                      )}
+                      {land.unit_number && (
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs">เลขที่: {land.unit_number}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {land.nearby_transport && (
+                      <div className="text-xs text-gray-500 font-prompt">
+                        <span className="font-medium">การเดินทางใกล้เคียง:</span> {land.nearby_transport}
+                      </div>
+                    )}
+                    
+                    {land.seo_tags && (
+                      <div className="text-xs text-gray-400 font-prompt">
+                        <span className="font-medium">Tags:</span> {land.seo_tags}
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-gray-900 font-prompt">฿{land.price.toLocaleString()}</p>
-                        {land.rentPrice > 0 && (
-                          <p className="text-sm text-gray-500 font-prompt">฿{land.rentPrice.toLocaleString()}/เดือน</p>
+                        <p className="font-semibold text-gray-900 font-prompt">฿{Number(land.price || 0).toLocaleString('th-TH')}</p>
+                        {Number(land.rent_price || 0) > 0 && (
+                          <p className="text-sm text-gray-500 font-prompt">฿{Number(land.rent_price).toLocaleString('th-TH')}/เดือน</p>
                         )}
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-sm text-gray-500 font-prompt">
-                        {land.landSize.toLocaleString()} ตร.ม.
+                        <div className="flex items-center space-x-2">
+                          <span>{toRaiNganWah(land).rai} ไร่ {toRaiNganWah(land).ngan} งาน {toRaiNganWah(land).wah} ตร.ว.</span>
+                          <span className="text-xs text-gray-400">({totalSquareWa(land) || 0} ตร.ว.)</span>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(land)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">
