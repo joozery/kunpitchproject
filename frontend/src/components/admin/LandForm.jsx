@@ -212,13 +212,36 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
       return
     }
 
-    const preview = URL.createObjectURL(file)
-    setCoverImage({
-      id: Date.now().toString(),
-      preview: preview,
-      file: file,
-      isExisting: false,
-    })
+    try {
+      // Upload to Cloudinary first
+      const { uploadAPI } = await import('../../lib/api')
+      const response = await uploadAPI.uploadSingle(file)
+      
+      if (response.success) {
+        const imageData = {
+          id: Date.now().toString(),
+          preview: response.data.url,
+          url: response.data.url,
+          public_id: response.data.public_id,
+          uploading: false
+        }
+        setCoverImage(imageData)
+      } else {
+        throw new Error(response.message || 'Failed to upload image')
+      }
+    } catch (error) {
+      console.error('Error uploading cover image:', error)
+      alert(`อัปโหลดรูปภาพหน้าปกไม่สำเร็จ: ${error.message}`)
+      
+      // Fallback to local preview only
+      const preview = URL.createObjectURL(file)
+      setCoverImage({
+        id: Date.now().toString(),
+        preview: preview,
+        file: file,
+        isExisting: false,
+      })
+    }
   }
 
   // Handle multiple images upload (local preview only)
@@ -240,13 +263,36 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
       }
     }
     
-    const newImages = files.map((file, idx) => ({
-      id: `${Date.now()}-${idx}`,
-      preview: URL.createObjectURL(file),
-      file: file,
-      isExisting: false,
-    }))
-    setImages(prev => [...prev, ...newImages])
+    try {
+      // Upload to Cloudinary first
+      const { uploadAPI } = await import('../../lib/api')
+      const response = await uploadAPI.uploadMultiple(files)
+      
+      if (response.success) {
+        const newImages = response.data.map((imageData, idx) => ({
+          id: `${Date.now()}-${idx}`,
+          preview: imageData.url,
+          url: imageData.url,
+          public_id: imageData.public_id,
+          uploading: false,
+        }))
+        setImages(prev => [...prev, ...newImages])
+      } else {
+        throw new Error(response.message || 'Failed to upload images')
+      }
+    } catch (error) {
+      console.error('Error uploading multiple images:', error)
+      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
+      
+      // Fallback to local preview only
+      const newImages = files.map((file, idx) => ({
+        id: `${Date.now()}-${idx}`,
+        preview: URL.createObjectURL(file),
+        file: file,
+        isExisting: false,
+      }))
+      setImages(prev => [...prev, ...newImages])
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -269,68 +315,81 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
   // Handle multiple image uploads
   const handleMultipleImageUpload = async (files) => {
     try {
-      // setUploading(true) // Removed as per new_code
-      // setUploadProgress(0) // Removed as per new_code
+      // Upload to Cloudinary first
+      const { uploadAPI } = await import('../../lib/api')
+      const response = await uploadAPI.uploadMultiple(files)
       
-      const totalFiles = files.length
-      let uploadedCount = 0
-      
-      for (const file of files) {
-        try {
-          // await handleImageUpload(file, false) // Original handleImageUpload removed
-          const preview = URL.createObjectURL(file)
-          setImages(prev => [...prev, { id: `${Date.now()}-${uploadedCount}`, preview, file }])
-          uploadedCount++
-          // setUploadProgress((uploadedCount / totalFiles) * 100) // Removed as per new_code
-        } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error)
-          // Continue with other files
-        }
+      if (response.success) {
+        const newImages = response.data.map((imageData, idx) => ({
+          id: `${Date.now()}-${idx}`,
+          preview: imageData.url,
+          url: imageData.url,
+          public_id: imageData.public_id,
+          uploading: false,
+        }))
+        setImages(prev => [...prev, ...newImages])
+      } else {
+        throw new Error(response.message || 'Failed to upload images')
       }
-      
-      // setUploadProgress(100) // Removed as per new_code
-      // setTimeout(() => setUploadProgress(0), 2000) // Hide progress after 2 seconds // Removed as per new_code
     } catch (error) {
       console.error('Error uploading multiple images:', error)
-    } finally {
-      // setUploading(false) // Removed as per new_code
+      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
+      
+      // Fallback to local preview only
+      const newImages = files.map((file, idx) => ({
+        id: `${Date.now()}-${idx}`,
+        preview: URL.createObjectURL(file),
+        file: file,
+        isExisting: false,
+      }))
+      setImages(prev => [...prev, ...newImages])
     }
   }
 
   const handleImageUpload = async (file, isCover = false) => {
     try {
-      // setUploading(true) // Removed as per new_code
+      // Upload to Cloudinary first
+      const { uploadAPI } = await import('../../lib/api')
+      const response = await uploadAPI.uploadSingle(file)
       
-      // Upload to Cloudinary first // Original upload logic removed
-      // const formData = new FormData() // Original formData logic removed
-      // formData.append('image', file) // Original formData logic removed
-      
-      // const response = await uploadAPI.uploadSingle(file) // Original uploadAPI logic removed
-      
-      // if (response.success) { // Original response logic removed
-      //   const imageData = { // Original imageData logic removed
-      //     id: Date.now().toString(), // Original imageData logic removed
-      //     preview: response.data.url, // Original imageData logic removed
-      //     url: response.data.url, // Original imageData logic removed
-      //     public_id: response.data.public_id, // Original imageData logic removed
-      //     uploading: false // Original imageData logic removed
-      //   }
+      if (response.success) {
+        const imageData = {
+          id: Date.now().toString(),
+          preview: response.data.url,
+          url: response.data.url,
+          public_id: response.data.public_id,
+          uploading: false
+        }
 
-      //   if (isCover) { // Original isCover logic removed
-      //     setCoverImage(imageData) // Original setCoverImage logic removed
-      //   } else { // Original isCover logic removed
-      //     setImages(prev => [...prev, imageData]) // Original setImages logic removed
-      //   }
-      // } else { // Original response logic removed
-      //   throw new Error(response.message || 'Failed to upload image') // Original response logic removed
-      // }
-      const preview = URL.createObjectURL(file)
-      setImages(prev => [...prev, { id: `${Date.now()}-${prev.length}`, preview, file }])
+        if (isCover) {
+          setCoverImage(imageData)
+        } else {
+          setImages(prev => [...prev, imageData])
+        }
+      } else {
+        throw new Error(response.message || 'Failed to upload image')
+      }
     } catch (error) {
       console.error('Error uploading image:', error)
       alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
-    } finally {
-      // setUploading(false) // Removed as per new_code
+      
+      // Fallback to local preview only
+      const preview = URL.createObjectURL(file)
+      if (isCover) {
+        setCoverImage({
+          id: Date.now().toString(),
+          preview: preview,
+          file: file,
+          isExisting: false,
+        })
+      } else {
+        setImages(prev => [...prev, { 
+          id: `${Date.now()}-${prev.length}`, 
+          preview, 
+          file,
+          isExisting: false,
+        }])
+      }
     }
   }
 
