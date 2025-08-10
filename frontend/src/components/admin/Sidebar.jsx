@@ -5,25 +5,15 @@ import {
   Home, 
   Building2,
   Users, 
-  FileText,
-  Calendar,
-  BarChart3,
   Settings,
-  MapPin,
-  DollarSign,
-  Image,
   HomeIcon,
-  Store,
-  Landmark,
-  CreditCard,
-  MessageSquare,
-  Bell,
-  Database,
-  Shield,
   HelpCircle,
   Info,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Building,
+  TreePine,
+  Briefcase
 } from 'lucide-react'
 
 const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
@@ -41,115 +31,39 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
     {
       id: 'properties',
       title: 'จัดการ Property',
-      description: 'จัดการข้อมูลอสังหาริมทรัพย์',
+      description: 'จัดการข้อมูลอสังหาริมทรัพย์ทั้งหมด',
       path: '/admin/properties',
       icon: Building2
     },
     {
-      id: 'residential',
-      title: 'ที่อยู่อาศัย',
-      description: 'จัดการบ้าน คอนโด ทาวน์เฮาส์',
-      path: '/admin/residential',
-      icon: HomeIcon
+      id: 'condos',
+      title: 'คอนโด',
+      description: 'จัดการคอนโดมิเนียม',
+      path: '/admin/condos',
+      icon: Building
     },
     {
-      id: 'commercial',
-      title: 'เชิงพาณิชย์',
-      description: 'จัดการสำนักงาน ร้านค้า โรงแรม',
-      path: '/admin/commercial',
-      icon: Store
+      id: 'houses',
+      title: 'บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเม้นท์',
+      description: 'จัดการบ้านเดี่ยว ทาวน์เฮาส์ อพาร์ตเม้นท์',
+      path: '/admin/houses',
+      icon: HomeIcon
     },
     {
       id: 'land',
       title: 'ที่ดิน',
       description: 'จัดการที่ดินเปล่า ไร่นา สวน',
       path: '/admin/land',
-      icon: Landmark
+      icon: TreePine
     },
     {
-      id: 'customers',
-      title: 'ลูกค้า',
-      description: 'จัดการข้อมูลลูกค้าและผู้ติดต่อ',
-      path: '/admin/customers',
-      icon: Users
+      id: 'commercial',
+      title: 'โฮมออฟฟิศ/ตึกแถว',
+      description: 'จัดการโฮมออฟฟิศ ตึกแถว พาณิชย์',
+      path: '/admin/commercial',
+      icon: Briefcase
     },
-    {
-      id: 'appointments',
-      title: 'นัดหมาย',
-      description: 'จัดการการนัดหมายดูบ้าน',
-      path: '/admin/appointments',
-      icon: Calendar
-    },
-    {
-      id: 'contracts',
-      title: 'สัญญา',
-      description: 'จัดการสัญญาเช่า-ขาย',
-      path: '/admin/contracts',
-      icon: FileText
-    },
-    {
-      id: 'payments',
-      title: 'การชำระเงิน',
-      description: 'จัดการการชำระเงินและใบแจ้งหนี้',
-      path: '/admin/payments',
-      icon: CreditCard
-    },
-    {
-      id: 'reports',
-      title: 'รายงาน',
-      description: 'รายงานยอดขายและสถิติ',
-      path: '/admin/reports',
-      icon: BarChart3
-    },
-    {
-      id: 'locations',
-      title: 'พื้นที่',
-      description: 'จัดการพื้นที่และโซน',
-      path: '/admin/locations',
-      icon: MapPin
-    },
-    {
-      id: 'pricing',
-      title: 'ราคา',
-      description: 'จัดการราคาและโปรโมชั่น',
-      path: '/admin/pricing',
-      icon: DollarSign
-    },
-    {
-      id: 'gallery',
-      title: 'แกลเลอรี่',
-      description: 'จัดการรูปภาพและวิดีโอ',
-      path: '/admin/gallery',
-      icon: Image
-    },
-    {
-      id: 'notifications',
-      title: 'การแจ้งเตือน',
-      description: 'จัดการการแจ้งเตือน',
-      path: '/admin/notifications',
-      icon: Bell
-    },
-    {
-      id: 'messages',
-      title: 'ข้อความ',
-      description: 'จัดการข้อความและแชท',
-      path: '/admin/messages',
-      icon: MessageSquare
-    },
-    {
-      id: 'database',
-      title: 'ฐานข้อมูล',
-      description: 'จัดการฐานข้อมูลและข้อมูล',
-      path: '/admin/database',
-      icon: Database
-    },
-    {
-      id: 'security',
-      title: 'ความปลอดภัย',
-      description: 'จัดการความปลอดภัยและสิทธิ์',
-      path: '/admin/security',
-      icon: Shield
-    },
+
     {
       id: 'settings',
       title: 'ตั้งค่า',

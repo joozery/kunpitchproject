@@ -7,13 +7,30 @@ import {
   Search, 
   Phone, 
   Mail,
-  Building2
+  ChevronDown
 } from 'lucide-react'
+import whaleLogo from '../assets/WHLE-03.png'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+  const [currentLanguage, setCurrentLanguage] = useState('TH')
+  const [currentCurrency, setCurrentCurrency] = useState('THB')
   const location = useLocation()
+
+  const languages = [
+    { code: 'TH', name: 'ไทย', flag: '🇹🇭', currency: 'THB' },
+    { code: 'EN', name: 'English', flag: '🇺🇸', currency: 'USD' },
+    { code: 'CN', name: '中文', flag: '🇨🇳', currency: 'CNY' },
+    { code: 'JP', name: '日本語', flag: '🇯🇵', currency: 'JPY' }
+  ]
+
+  const handleLanguageChange = (lang) => {
+    setCurrentLanguage(lang.code)
+    setCurrentCurrency(lang.currency)
+    setIsLanguageOpen(false)
+  }
 
   // Handle scroll effect
   useEffect(() => {
@@ -44,9 +61,7 @@ const Header = () => {
       transition={{ duration: 0.6 }}
     >
       {/* Top bar */}
-      <div className={`hidden md:block transition-all duration-300 ${
-        isScrolled ? 'bg-gray-100' : 'bg-blue-600'
-      }`}>
+      <div className="hidden md:block bg-blue-600">
         <div className="max-w-6xl mx-auto px-6 py-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
@@ -56,16 +71,54 @@ const Header = () => {
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <Mail className="h-4 w-4" />
-                <span>info@kunpitch.com</span>
+                <span>info@whalespace.com</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Link 
-                to="/admin" 
-                className="text-white hover:text-blue-200 transition-colors duration-300 font-prompt"
-              >
-                เข้าสู่ระบบ
-              </Link>
+              {/* Language & Currency Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                  className="flex items-center space-x-2 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-md px-3 py-1 cursor-pointer"
+                >
+                  <span className="text-lg">
+                    {languages.find(lang => lang.code === currentLanguage)?.flag}
+                  </span>
+                  <span className="text-white font-prompt text-sm font-medium">
+                    {currentLanguage} | {currentCurrency}
+                  </span>
+                  <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${
+                    isLanguageOpen ? 'rotate-180' : ''
+                  }`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isLanguageOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-lg border py-2 min-w-[160px] z-50"
+                  >
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang)}
+                        className={`w-full flex items-center space-x-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 ${
+                          currentLanguage === lang.code ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                        }`}
+                      >
+                        <span className="text-lg">{lang.flag}</span>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium">{lang.name}</div>
+                          <div className="text-xs text-gray-500">{lang.currency}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+              <span className="text-white font-prompt">WHALE SPACE INTERNATIONAL</span>
             </div>
           </div>
         </div>
@@ -79,12 +132,14 @@ const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
-              <div className="bg-blue-600 rounded-lg p-2">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
+              <img 
+                src={whaleLogo} 
+                alt="Whale Space Logo" 
+                className="h-12 w-12 object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold text-gray-900 font-prompt">Kunpitch</h1>
-                <p className="text-xs text-gray-500 font-prompt">Real Estate</p>
+                <h1 className="text-xl font-bold font-prompt uppercase bg-gradient-to-r from-blue-800 via-blue-600 to-blue-400 bg-clip-text text-transparent">WHALE SPACE</h1>
+                <p className="text-xs text-gray-500 font-prompt uppercase">INTERNATIONAL REAL ESTATE</p>
               </div>
             </Link>
 

@@ -100,22 +100,23 @@ const FeaturedPropertiesSection = () => {
   }, [])
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)'}}>
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 font-prompt"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 font-prompt"
+            style={{background: 'linear-gradient(135deg, #203d6b, #1d5e9d, #8bb4db)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}
           >
-            Property แนะนำ
+            ประกาศแนะนำ
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-gray-600 text-lg lg:text-xl font-prompt max-w-3xl mx-auto"
+            className="text-gray-700 text-lg lg:text-xl font-prompt max-w-3xl mx-auto"
           >
             Property ยอดนิยมที่ลูกค้าให้ความสนใจ พร้อมทำเลและราคาที่เหมาะสม
           </motion.p>
@@ -123,66 +124,98 @@ const FeaturedPropertiesSection = () => {
 
         {loading ? (
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2" style={{borderColor: '#1d5e9d'}}></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {properties.map((property, index) => (
               <motion.div
                 key={property.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100"
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                style={{border: '2px solid #e5e7eb'}}
               >
                 <div className="relative">
                   <img
                     src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
                     alt={property.title}
-                    className="w-full h-56 object-cover"
+                    className="w-full h-48 object-cover"
                   />
-                  <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    {property.type === 'residential' ? 'ที่อยู่อาศัย' : 
-                     property.type === 'commercial' ? 'เชิงพาณิชย์' : 'ที่ดิน'}
+                  {/* Top Left Tags */}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <div className="bg-white/90 backdrop-blur-sm text-gray-700 px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                      <HomeIcon className="h-3 w-3" />
+                      <span>ขาย</span>
+                    </div>
                   </div>
-                  <button className="absolute top-4 right-4 bg-white/80 hover:bg-white text-gray-700 p-2 rounded-full transition-all duration-300">
-                    <Heart className="h-5 w-5" />
-                  </button>
+                  
+                  {/* Top Right Icons */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button className="bg-white/90 backdrop-blur-sm text-gray-700 p-1.5 rounded transition-all duration-300 hover:bg-white">
+                      <Building2 className="h-3 w-3" />
+                    </button>
+                    <button className="bg-white/90 backdrop-blur-sm text-gray-700 p-1.5 rounded transition-all duration-300 hover:bg-white">
+                      <Heart className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  {/* Bottom Right Badge */}
+                  {property.type === 'residential' && (
+                    <div className="absolute bottom-3 right-3">
+                      <div className="text-white px-2 py-1 rounded text-xs font-medium" style={{background: 'linear-gradient(135deg, #1d5e9d, #8bb4db)'}}>
+                        ยืนยัน
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 font-prompt">{property.title}</h3>
-                  <div className="flex items-center text-gray-600 mb-4 font-prompt">
+                <div className="p-5">
+                  {/* Price - Top */}
+                  <div className="mb-3">
+                    <div className="text-lg font-bold" style={{color: '#1d5e9d'}}>
+                      ฿{(property.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    </div>
+                    {property.rent_price > 0 && (
+                      <div className="text-xs text-gray-500">฿{(property.rent_price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}/เดือน</div>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-base font-semibold text-gray-900 mb-2 font-prompt line-clamp-2">{property.title}</h3>
+                  
+                  {/* Location */}
+                  <div className="flex items-center text-gray-600 mb-4 font-prompt text-sm">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span>{property.address}</span>
+                    <span className="line-clamp-1">{property.address}</span>
                   </div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-6 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <HomeIcon className="h-4 w-4" />
-                        <span>{property.bedrooms || 0}</span>
+
+                  {/* Property Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <HomeIcon className="h-4 w-4" style={{color: '#1d5e9d'}} />
+                        <span className="font-medium">{property.bedrooms || 3}</span>
+                        <span>ห้องนอน</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Building2 className="h-4 w-4" />
-                        <span>{property.bathrooms || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Eye className="h-4 w-4" />
-                        <span>120</span>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4" style={{color: '#1d5e9d'}} />
+                        <span className="font-medium">{property.bathrooms || 2}</span>
+                        <span>ห้องน้ำ</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">฿{property.price?.toLocaleString()}</div>
-                      {property.rent_price > 0 && (
-                        <div className="text-sm text-gray-500">฿{property.rent_price?.toLocaleString()}/เดือน</div>
-                      )}
+                    
+                    {/* Area */}
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">พื้นที่: {property.area || '95.00'} ตร.ม.</span>
+                    </div>
+                    
+                    {/* Views */}
+                    <div className="flex items-center justify-end text-xs text-gray-500">
+                      <Eye className="h-3 w-3 mr-1" />
+                      <span>{Math.floor(Math.random() * 300) + 100}</span>
                     </div>
                   </div>
-                  <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-                    <span>ดูรายละเอียด</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
                 </div>
               </motion.div>
             ))}

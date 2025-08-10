@@ -1,6 +1,10 @@
 import React from 'react'
 import Dashboard from '../components/admin/Dashboard'
 import PropertyManagement from '../components/admin/PropertyManagement'
+import CondoManagement from '../components/admin/CondoManagement'
+import HouseManagement from '../components/admin/HouseManagement'
+import LandManagement from '../components/admin/LandManagement'
+import CommercialManagement from '../components/admin/CommercialManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
@@ -32,44 +36,24 @@ export const adminRoutes = [
     component: PropertyManagement
   },
   {
-    path: '/admin/residential',
-    name: 'residential',
-    title: 'ที่อยู่อาศัย',
-    description: 'จัดการบ้าน คอนโด ทาวน์เฮาส์',
+    path: '/admin/condos',
+    name: 'condos',
+    title: 'คอนโด',
+    description: 'จัดการคอนโดมิเนียม',
     category: 'property',
-    breadcrumb: ['จัดการ Property', 'ที่อยู่อาศัย'],
-    icon: 'HomeIcon',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ที่อยู่อาศัย</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการบ้าน คอนโด ทาวน์เฮาส์</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการที่อยู่อาศัย - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
+    breadcrumb: ['จัดการ Property', 'คอนโด'],
+    icon: 'Building',
+    component: CondoManagement
   },
   {
-    path: '/admin/commercial',
-    name: 'commercial',
-    title: 'เชิงพาณิชย์',
-    description: 'จัดการสำนักงาน ร้านค้า โรงแรม',
+    path: '/admin/houses',
+    name: 'houses',
+    title: 'บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเม้นท์',
+    description: 'จัดการบ้านเดี่ยว ทาวน์เฮาส์ อพาร์ตเม้นท์',
     category: 'property',
-    breadcrumb: ['จัดการ Property', 'เชิงพาณิชย์'],
-    icon: 'Store',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">เชิงพาณิชย์</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการสำนักงาน ร้านค้า โรงแรม</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการเชิงพาณิชย์ - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
+    breadcrumb: ['จัดการ Property', 'บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเม้นท์'],
+    icon: 'HomeIcon',
+    component: HouseManagement
   },
   {
     path: '/admin/land',
@@ -78,269 +62,20 @@ export const adminRoutes = [
     description: 'จัดการที่ดินเปล่า ไร่นา สวน',
     category: 'property',
     breadcrumb: ['จัดการ Property', 'ที่ดิน'],
-    icon: 'Landmark',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ที่ดิน</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการที่ดินเปล่า ไร่นา สวน</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการที่ดิน - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
+    icon: 'TreePine',
+    component: LandManagement
+  },
+  {
+    path: '/admin/commercial',
+    name: 'commercial',
+    title: 'โฮมออฟฟิศ/ตึกแถว',
+    description: 'จัดการโฮมออฟฟิศ ตึกแถว พาณิชย์',
+    category: 'property',
+    breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว'],
+    icon: 'Briefcase',
+    component: CommercialManagement
   },
   
-  // Customer Management Category
-  {
-    path: '/admin/customers',
-    name: 'customers',
-    title: 'ลูกค้า',
-    description: 'จัดการข้อมูลลูกค้าและผู้ติดต่อ',
-    category: 'customer',
-    breadcrumb: ['ลูกค้า', 'จัดการลูกค้า'],
-    icon: 'Users',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ลูกค้า</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการข้อมูลลูกค้าและผู้ติดต่อ</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการลูกค้า - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/appointments',
-    name: 'appointments',
-    title: 'นัดหมาย',
-    description: 'จัดการการนัดหมายดูบ้าน',
-    category: 'customer',
-    breadcrumb: ['ลูกค้า', 'นัดหมาย'],
-    icon: 'Calendar',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">นัดหมาย</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการการนัดหมายดูบ้าน</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการนัดหมาย - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  
-  // Business Management Category
-  {
-    path: '/admin/contracts',
-    name: 'contracts',
-    title: 'สัญญา',
-    description: 'จัดการสัญญาเช่า-ขาย',
-    category: 'business',
-    breadcrumb: ['ธุรกิจ', 'สัญญา'],
-    icon: 'FileText',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">สัญญา</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการสัญญาเช่า-ขาย</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการสัญญา - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/payments',
-    name: 'payments',
-    title: 'การชำระเงิน',
-    description: 'จัดการการชำระเงินและใบแจ้งหนี้',
-    category: 'business',
-    breadcrumb: ['ธุรกิจ', 'การชำระเงิน'],
-    icon: 'CreditCard',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">การชำระเงิน</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการการชำระเงินและใบแจ้งหนี้</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการการชำระเงิน - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/reports',
-    name: 'reports',
-    title: 'รายงาน',
-    description: 'รายงานยอดขายและสถิติ',
-    category: 'business',
-    breadcrumb: ['ธุรกิจ', 'รายงาน'],
-    icon: 'BarChart3',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">รายงาน</h1>
-          <p className="text-gray-600 mt-2 font-prompt">รายงานยอดขายและสถิติ</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้ารายงาน - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  
-  // Content Management Category
-  {
-    path: '/admin/locations',
-    name: 'locations',
-    title: 'พื้นที่',
-    description: 'จัดการพื้นที่และโซน',
-    category: 'content',
-    breadcrumb: ['เนื้อหา', 'พื้นที่'],
-    icon: 'MapPin',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">พื้นที่</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการพื้นที่และโซน</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการพื้นที่ - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/pricing',
-    name: 'pricing',
-    title: 'ราคา',
-    description: 'จัดการราคาและโปรโมชั่น',
-    category: 'content',
-    breadcrumb: ['เนื้อหา', 'ราคา'],
-    icon: 'DollarSign',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ราคา</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการราคาและโปรโมชั่น</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการราคา - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/gallery',
-    name: 'gallery',
-    title: 'แกลเลอรี่',
-    description: 'จัดการรูปภาพและวิดีโอ',
-    category: 'content',
-    breadcrumb: ['เนื้อหา', 'แกลเลอรี่'],
-    icon: 'Image',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">แกลเลอรี่</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการรูปภาพและวิดีโอ</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการแกลเลอรี่ - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  
-  // Communication Category
-  {
-    path: '/admin/notifications',
-    name: 'notifications',
-    title: 'การแจ้งเตือน',
-    description: 'จัดการการแจ้งเตือน',
-    category: 'communication',
-    breadcrumb: ['การสื่อสาร', 'การแจ้งเตือน'],
-    icon: 'Bell',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">การแจ้งเตือน</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการการแจ้งเตือน</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการการแจ้งเตือน - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/messages',
-    name: 'messages',
-    title: 'ข้อความ',
-    description: 'จัดการข้อความและแชท',
-    category: 'communication',
-    breadcrumb: ['การสื่อสาร', 'ข้อความ'],
-    icon: 'MessageSquare',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ข้อความ</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการข้อความและแชท</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการข้อความ - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  
-  // System Management Category
-  {
-    path: '/admin/database',
-    name: 'database',
-    title: 'ฐานข้อมูล',
-    description: 'จัดการฐานข้อมูลและข้อมูล',
-    category: 'system',
-    breadcrumb: ['ระบบ', 'ฐานข้อมูล'],
-    icon: 'Database',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ฐานข้อมูล</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการฐานข้อมูลและข้อมูล</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการฐานข้อมูล - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
-  {
-    path: '/admin/security',
-    name: 'security',
-    title: 'ความปลอดภัย',
-    description: 'จัดการความปลอดภัยและสิทธิ์',
-    category: 'system',
-    breadcrumb: ['ระบบ', 'ความปลอดภัย'],
-    icon: 'Shield',
-    component: () => (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-prompt">ความปลอดภัย</h1>
-          <p className="text-gray-600 mt-2 font-prompt">จัดการความปลอดภัยและสิทธิ์</p>
-        </div>
-        <div className="bg-white p-8 rounded-lg border shadow-lg">
-          <p className="text-gray-500 font-prompt">หน้าจัดการความปลอดภัย - กำลังพัฒนา</p>
-        </div>
-      </div>
-    )
-  },
   {
     path: '/admin/settings',
     name: 'settings',
@@ -416,26 +151,6 @@ export const routeCategories = {
     name: 'จัดการ Property',
     description: 'จัดการข้อมูลอสังหาริมทรัพย์',
     icon: 'Building2'
-  },
-  customer: {
-    name: 'ลูกค้า',
-    description: 'จัดการข้อมูลลูกค้าและนัดหมาย',
-    icon: 'Users'
-  },
-  business: {
-    name: 'ธุรกิจ',
-    description: 'สัญญา การชำระเงิน และรายงาน',
-    icon: 'FileText'
-  },
-  content: {
-    name: 'เนื้อหา',
-    description: 'จัดการเนื้อหาและสื่อ',
-    icon: 'Image'
-  },
-  communication: {
-    name: 'การสื่อสาร',
-    description: 'การแจ้งเตือนและข้อความ',
-    icon: 'MessageSquare'
   },
   system: {
     name: 'ระบบ',

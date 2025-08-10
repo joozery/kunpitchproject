@@ -386,4 +386,41 @@
   .stagger-children > *:nth-child(8) { animation-delay: 0.8s; }
   .stagger-children > *:nth-child(9) { animation-delay: 0.9s; }
   .stagger-children > *:nth-child(10) { animation-delay: 1s; }
+
+  /* Typewriter animation - ทีละตัวอักษร */
+  .typewriter {
+    overflow: hidden;
+    border-right: 3px solid rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    margin: 0 auto;
+    letter-spacing: 0.02em;
+    animation: typing 4s steps(42, end), blink-caret 0.8s step-end infinite;
+    animation-delay: 1.2s;
+    width: 0;
+    animation-fill-mode: forwards;
+    display: inline-block;
+  }
+
+  @keyframes typing {
+    from { 
+      width: 0;
+    }
+    to { 
+      width: 100%;
+    }
+  }
+
+  @keyframes blink-caret {
+    from, to { 
+      border-color: transparent;
+    }
+    50% { 
+      border-color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  /* Stop blinking after typing is done */
+  .typewriter.typing-done {
+    border-right: none;
+  }
 }

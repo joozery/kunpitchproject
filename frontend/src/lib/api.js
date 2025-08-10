@@ -72,6 +72,60 @@ export const propertyAPI = {
   
   // Search properties
   search: (params) => api.get('/properties/search', { params }),
+  
+  // Get all projects (condo projects)
+  getProjects: () => api.get('/projects'),
+  
+  // Get project by ID
+  getProjectById: (id) => api.get(`/projects/${id}`),
+  
+  // Create new project
+  createProject: (projectData) => api.post('/projects', projectData),
+  
+  // Update project
+  updateProject: (id, projectData) => {
+    return api.put(`/projects/${id}`, projectData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+  
+  // Delete project
+  deleteProject: (id) => api.delete(`/projects/${id}`),
+};
+
+// Condo API
+export const condoAPI = {
+  // Get all condos
+  getAll: (params = {}) => api.get('/condos', { params }),
+  
+  // Get condo by ID
+  getById: (id) => api.get(`/condos/${id}`),
+  
+  // Create new condo
+  create: (condoData) => api.post('/condos', condoData),
+  
+  // Update condo
+  update: (id, condoData) => {
+    return api.put(`/condos/${id}`, condoData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+  
+  // Delete condo
+  delete: (id) => api.delete(`/condos/${id}`),
+  
+  // Toggle featured status
+  toggleFeatured: (id) => api.patch(`/condos/${id}/featured`),
+  
+  // Get all facilities
+  getFacilities: () => api.get('/condos/facilities/all'),
+  
+  // Get statistics
+  getStats: () => api.get('/condos/stats/overview'),
 };
 
 // Upload API
@@ -111,6 +165,7 @@ export const healthCheck = () => api.get('/health');
 
 export default {
   propertyAPI,
+  condoAPI,
   uploadAPI,
   healthCheck,
 }; 
