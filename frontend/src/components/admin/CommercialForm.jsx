@@ -34,6 +34,25 @@ const generateProjectCode = () => {
   return `SH${year}${month}${random}` // SH = Shop House
 }
 
+// Mock data สำหรับ facilities (ไม่ต้องเชื่อมต่อ API)
+const mockFacilities = [
+  { id: 'parking', label: 'ที่จอดรถ', icon: Car, category: 'parking' },
+  { id: 'security', label: 'ระบบรักษาความปลอดภัย', icon: Users, category: 'security' },
+  { id: 'elevator', label: 'ลิฟต์', icon: Building, category: 'building' },
+  { id: 'air_conditioning', label: 'เครื่องปรับอากาศ', icon: Building, category: 'building' },
+  { id: 'internet', label: 'อินเทอร์เน็ต', icon: Building, category: 'technology' },
+  { id: 'water_supply', label: 'ระบบน้ำประปา', icon: Building, category: 'utility' },
+  { id: 'electricity', label: 'ระบบไฟฟ้า', icon: Building, category: 'utility' },
+  { id: 'drainage', label: 'ระบบระบายน้ำ', icon: Building, category: 'utility' },
+  { id: 'fire_safety', label: 'ระบบป้องกันอัคคีภัย', icon: Building, category: 'safety' },
+  { id: 'cctv', label: 'กล้องวงจรปิด', icon: Camera, category: 'security' },
+  { id: 'access_control', label: 'ระบบควบคุมการเข้าออก', icon: Users, category: 'security' },
+  { id: 'backup_power', label: 'ไฟฟ้าสำรอง', icon: Building, category: 'utility' },
+  { id: 'waste_management', label: 'ระบบจัดการขยะ', icon: Building, category: 'utility' },
+  { id: 'landscaping', label: 'ภูมิทัศน์', icon: Building, category: 'aesthetic' },
+  { id: 'maintenance', label: 'บริการซ่อมบำรุง', icon: Building, category: 'service' }
+]
+
 const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
     // ข้อมูลพื้นฐาน
@@ -104,8 +123,8 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const [facilitiesLoading, setFacilitiesLoading] = useState(true)
-  const [availableFacilities, setAvailableFacilities] = useState([])
+  const [facilitiesLoading, setFacilitiesLoading] = useState(false) // เปลี่ยนเป็น false เพราะใช้ mock data
+  const [availableFacilities, setAvailableFacilities] = useState(mockFacilities) // ใช้ mock data แทน
   const [uploadProgress, setUploadProgress] = useState(0)
 
   const listingTypes = [
@@ -124,19 +143,19 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
       setFormData(prev => ({
         ...prev,
         title: commercial.title || '',
-        projectCode: commercial.project_code || '',
+        projectCode: commercial.project_code || commercial.projectCode || '',
         status: commercial.status || 'sale',
         price: commercial.price !== undefined && commercial.price !== null ? String(commercial.price) : '',
         rentPrice: commercial.rent_price !== undefined && commercial.rent_price !== null ? String(commercial.rent_price) : '',
-        propertyType: commercial.property_type || 'shop_house',
-        buildingType: commercial.building_type || 'shop_house',
+        propertyType: commercial.property_type || commercial.propertyType || 'shop_house',
+        buildingType: commercial.building_type || commercial.buildingType || 'shop_house',
         location: commercial.location || '',
         district: commercial.district || '',
         province: commercial.province || '',
-        postalCode: commercial.postal_code || '',
-        googleMapUrl: commercial.google_map_url || '',
-        nearbyTransport: commercial.nearby_transport || '',
-        listingType: commercial.listing_type || 'sale',
+        postalCode: commercial.postal_code || commercial.postalCode || '',
+        googleMapUrl: commercial.google_map_url || commercial.googleMapUrl || '',
+        nearbyTransport: commercial.nearby_transport || commercial.nearbyTransport || '',
+        listingType: commercial.listing_type || commercial.listingType || 'sale',
         description: commercial.description || '',
         area: commercial.area !== undefined && commercial.area !== null ? String(commercial.area) : '',
         landArea: commercial.land_area !== undefined && commercial.land_area !== null ? String(commercial.land_area) : '',
@@ -150,20 +169,20 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
         zoning: commercial.zoning || '',
         buildingAge: commercial.building_age !== undefined && commercial.building_age !== null ? String(commercial.building_age) : '',
         pricePerSqm: commercial.price_per_sqm !== undefined && commercial.price_per_sqm !== null ? String(commercial.price_per_sqm) : '',
-        seoTags: commercial.seo_tags || '',
+        seoTags: commercial.seo_tags || commercial.seoTags || '',
         facilities: mappedFacilities,
-        createdAt: commercial.created_at || prev.createdAt,
-        updatedAt: commercial.updated_at || new Date().toISOString()
+        createdAt: commercial.created_at || commercial.createdAt || prev.createdAt,
+        updatedAt: commercial.updated_at || commercial.updatedAt || new Date().toISOString()
       }))
 
       // Set cover image
-      const coverUrl = commercial.cover_image || null
+      const coverUrl = commercial.cover_image || commercial.coverImage?.url || null
       if (coverUrl) {
         setCoverImage({
           id: `cover-${Date.now()}`,
           preview: coverUrl,
           url: coverUrl,
-          public_id: commercial.cover_public_id || undefined,
+          public_id: commercial.cover_public_id || commercial.coverImage?.public_id || undefined,
           uploading: false
         })
       } else {
@@ -183,27 +202,6 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
       setImages(mappedImages)
     }
   }, [isEditing, commercial])
-
-  // Fetch facilities from API
-  useEffect(() => {
-    const fetchFacilities = async () => {
-      try {
-        setFacilitiesLoading(true)
-        const response = await commercialAPI.getFacilities()
-        if (response.success) {
-          setAvailableFacilities(response.data.all || [])
-        }
-      } catch (error) {
-        console.error('Error fetching facilities:', error)
-        // Fallback to default facilities if API fails
-        setAvailableFacilities([])
-      } finally {
-        setFacilitiesLoading(false)
-      }
-    }
-
-    fetchFacilities()
-  }, [])
 
   // Generate auto project code (ตัวเลขอัตโนมัติ)
   useEffect(() => {
@@ -261,13 +259,11 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
     }
   }, [formData.price, formData.rentPrice, formData.area, formData.status])
 
-
-
   // Convert API facilities to component format
   const projectFacilities = availableFacilities.map(facility => ({
     id: facility.id,
     label: facility.label,
-    icon: FacilityIcons[facility.icon] || FacilityIcons.Star, // Fallback icon
+    icon: facility.icon || FacilityIcons.Star, // Fallback icon
     category: facility.category
   }))
 
@@ -284,8 +280,6 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
     }
   }
 
-
-
   const handleFacilityToggle = (facilityId) => {
     setFormData(prev => ({
       ...prev,
@@ -295,7 +289,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
     }))
   }
 
-  // Handle multiple image uploads
+  // Handle multiple image uploads (local simulation)
   const handleMultipleImageUpload = async (files) => {
     try {
       setUploading(true)
@@ -324,33 +318,32 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
     }
   }
 
+  // Local image upload simulation (ไม่ต้องเชื่อมต่อ API)
   const handleImageUpload = async (file, isCover = false) => {
     try {
       setUploading(true)
       
-      // Upload to Cloudinary first
-      const formData = new FormData()
-      formData.append('image', file)
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      const response = await uploadAPI.uploadSingle(file)
+      // Create local URL for preview
+      const imageUrl = URL.createObjectURL(file)
       
-      if (response.success) {
-        const imageData = {
-          id: Date.now().toString(),
-          preview: response.data.url,
-          url: response.data.url,
-          public_id: response.data.public_id,
-          uploading: false
-        }
-
-        if (isCover) {
-          setCoverImage(imageData)
-        } else {
-          setImages(prev => [...prev, imageData])
-        }
-      } else {
-        throw new Error(response.message || 'Failed to upload image')
+      const imageData = {
+        id: Date.now().toString(),
+        preview: imageUrl,
+        url: imageUrl,
+        public_id: `local_${Date.now()}`,
+        uploading: false
       }
+
+      if (isCover) {
+        setCoverImage(imageData)
+      } else {
+        setImages(prev => [...prev, imageData])
+      }
+      
+      console.log('อัปโหลดรูปภาพสำเร็จ (จำลอง):', file.name)
     } catch (error) {
       console.error('Error uploading image:', error)
       alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
@@ -1613,4 +1606,231 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
   )
 }
 
+// Export CommercialForm component
+export { CommercialForm }
+
 export default CommercialForm
+
+// Demo Page Component สำหรับทดสอบ CommercialForm โดยไม่ต้องเชื่อมต่อ parent component
+export const CommercialFormDemo = () => {
+  const [commercials, setCommercials] = useState([])
+  const [currentView, setCurrentView] = useState('list') // 'list' หรือ 'form'
+  const [editingCommercial, setEditingCommercial] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  const handleBack = () => {
+    setCurrentView('list')
+    setEditingCommercial(null)
+    setIsEditing(false)
+  }
+
+  const handleSave = (commercialData) => {
+    if (isEditing) {
+      // แก้ไขข้อมูลที่มีอยู่
+      setCommercials(prev => prev.map(c => 
+        c.id === commercialData.id ? commercialData : c
+      ))
+    } else {
+      // เพิ่มข้อมูลใหม่
+      setCommercials(prev => [...prev, commercialData])
+    }
+    setCurrentView('list')
+    setEditingCommercial(null)
+    setIsEditing(false)
+  }
+
+  const handleEdit = (commercial) => {
+    setEditingCommercial(commercial)
+    setIsEditing(true)
+    setCurrentView('form')
+  }
+
+  const handleDelete = (id) => {
+    if (window.confirm('คุณต้องการลบข้อมูลนี้ใช่หรือไม่?')) {
+      setCommercials(prev => prev.filter(c => c.id !== id))
+    }
+  }
+
+  if (currentView === 'form') {
+    return (
+      <CommercialForm
+        commercial={editingCommercial}
+        onBack={handleBack}
+        onSave={handleSave}
+        isEditing={isEditing}
+      />
+    )
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 font-prompt">
+            ระบบจัดการโฮมออฟฟิศ/ตึกแถว (Demo)
+          </h1>
+          <p className="text-gray-600 font-prompt mt-1">
+            หน้าทดสอบ CommercialForm โดยไม่ต้องเชื่อมต่อ API
+          </p>
+        </div>
+        <Button
+          onClick={() => {
+            setEditingCommercial(null)
+            setIsEditing(false)
+            setCurrentView('form')
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          เพิ่มใหม่
+        </Button>
+      </div>
+
+      {/* Commercial List */}
+      {commercials.length === 0 ? (
+        <Card className="p-12 text-center">
+          <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2 font-prompt">
+            ยังไม่มีข้อมูลโฮมออฟฟิศ/ตึกแถว
+          </h3>
+          <p className="text-gray-500 mb-4 font-prompt">
+            เริ่มต้นโดยการเพิ่มข้อมูลโฮมออฟฟิศ/ตึกแถวใหม่
+          </p>
+          <Button
+            onClick={() => {
+              setEditingCommercial(null)
+              setIsEditing(false)
+              setCurrentView('form')
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            เพิ่มข้อมูลใหม่
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {commercials.map((commercial) => (
+            <Card key={commercial.id} className="p-6 hover:shadow-lg transition-shadow">
+              {/* Cover Image */}
+              {commercial.coverImage && (
+                <div className="mb-4">
+                  <img
+                    src={commercial.coverImage.url}
+                    alt={commercial.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    commercial.status === 'sale' ? 'bg-green-100 text-green-800' :
+                    commercial.status === 'rent' ? 'bg-blue-100 text-blue-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    {commercial.status === 'sale' ? 'ขาย' :
+                     commercial.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
+                  </span>
+                  <span className="text-xs text-gray-500 font-mono">
+                    {commercial.projectCode}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-semibold text-gray-900 font-prompt line-clamp-2">
+                  {commercial.title}
+                </h3>
+
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span className="font-prompt">{commercial.location}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500 font-prompt">พื้นที่:</span>
+                    <span className="ml-1 font-medium">{commercial.area} ตร.ม.</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 font-prompt">ชั้น:</span>
+                    <span className="ml-1 font-medium">{commercial.floors} ชั้น</span>
+                  </div>
+                </div>
+
+                {commercial.price > 0 && (
+                  <div className="text-lg font-bold text-green-600">
+                    ฿{commercial.price.toLocaleString('th-TH')}
+                  </div>
+                )}
+
+                {commercial.rentPrice > 0 && (
+                  <div className="text-sm text-blue-600">
+                    เช่า: ฿{commercial.rentPrice.toLocaleString('th-TH')}/เดือน
+                  </div>
+                )}
+
+                {/* Facilities Preview */}
+                {commercial.facilities.length > 0 && (
+                  <div className="pt-3 border-t">
+                    <div className="flex flex-wrap gap-1">
+                      {commercial.facilities.slice(0, 3).map((facilityId) => (
+                        <span
+                          key={facilityId}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                        >
+                          {facilityId}
+                        </span>
+                      ))}
+                      {commercial.facilities.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          +{commercial.facilities.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex space-x-2 pt-3 border-t">
+                  <Button
+                    onClick={() => handleEdit(commercial)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    แก้ไข
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(commercial.id)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    ลบ
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Demo Info */}
+      <Card className="mt-8 p-6 bg-blue-50 border-blue-200">
+        <h3 className="text-lg font-medium text-blue-800 mb-3 font-prompt">
+          💡 ข้อมูลการทดสอบ
+        </h3>
+        <div className="text-sm text-blue-700 space-y-2 font-prompt">
+          <p>• หน้านี้เป็นหน้าทดสอบ CommercialForm โดยไม่ต้องเชื่อมต่อ API</p>
+          <p>• สามารถเพิ่ม แก้ไข ลบข้อมูลโฮมออฟฟิศ/ตึกแถวได้</p>
+          <p>• รูปภาพจะถูกจำลองการอัปโหลดในเครื่อง (ไม่ส่งไปยัง server)</p>
+          <p>• ข้อมูลจะถูกเก็บใน localStorage ของเบราว์เซอร์</p>
+          <p>• ฟีเจอร์คำนวณราคาต่อตารางเมตรทำงานอัตโนมัติ</p>
+        </div>
+      </Card>
+    </div>
+  )
+}

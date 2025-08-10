@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -37,6 +38,7 @@ import {
 } from 'lucide-react'
 
 const CommercialManagement = () => {
+  const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -164,7 +166,10 @@ const CommercialManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 font-prompt">โฮมออฟฟิศ/ตึกแถว</h1>
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลโฮมออฟฟิศ ตึกแถว และอสังหาริมทรัพย์เชิงพาณิชย์ในระบบ</p>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
+        <Button 
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={() => navigate('/admin/commercial/add')}
+        >
           <Plus className="h-4 w-4 mr-2" />
           เพิ่มอสังหาฯ
         </Button>
@@ -352,7 +357,11 @@ const CommercialManagement = () => {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -426,7 +435,11 @@ const CommercialManagement = () => {
                         {getTypeText(property.type)} • {property.yearBuilt}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">

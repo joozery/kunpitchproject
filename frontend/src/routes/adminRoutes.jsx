@@ -5,6 +5,8 @@ import CondoManagement from '../components/admin/CondoManagement'
 import HouseManagement from '../components/admin/HouseManagement'
 import LandManagement from '../components/admin/LandManagement'
 import CommercialManagement from '../components/admin/CommercialManagement'
+import CommercialForm from '../components/admin/CommercialForm'
+import CommercialDemo from '../pages/CommercialDemo'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
@@ -74,6 +76,36 @@ export const adminRoutes = [
     breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว'],
     icon: 'Briefcase',
     component: CommercialManagement
+  },
+  {
+    path: '/admin/commercial/add',
+    name: 'commercial-add',
+    title: 'เพิ่มโฮมออฟฟิศ/ตึกแถว',
+    description: 'เพิ่มข้อมูลโฮมออฟฟิศ/ตึกแถวใหม่',
+    category: 'property',
+    breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว', 'เพิ่มใหม่'],
+    icon: 'Plus',
+    component: CommercialForm
+  },
+  {
+    path: '/admin/commercial/edit/:id',
+    name: 'commercial-edit',
+    title: 'แก้ไขโฮมออฟฟิศ/ตึกแถว',
+    description: 'แก้ไขข้อมูลโฮมออฟฟิศ/ตึกแถว',
+    category: 'property',
+    breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว', 'แก้ไข'],
+    icon: 'Edit',
+    component: CommercialForm
+  },
+  {
+    path: '/admin/commercial-demo',
+    name: 'commercial-demo',
+    title: 'โฮมออฟฟิศ/ตึกแถว (Demo)',
+    description: 'ทดสอบ CommercialForm โดยไม่ต้องเชื่อมต่อ API',
+    category: 'property',
+    breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว (Demo)'],
+    icon: 'TestTube',
+    component: CommercialDemo
   },
   
   {
