@@ -49,13 +49,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     bedrooms: condo?.bedrooms?.toString() || '', // ห้องนอน
     bathrooms: condo?.bathrooms?.toString() || '', // ห้องน้ำ
     floor: condo?.floor || '', // ชั้นที่ (text สำหรับ duplex เช่น 17-18)
-    pricePerSqm: condo?.pricePerSqm?.toString() || '', // ราคาต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    pricePerSqm: condo?.pricePerSqm?.toString() || '', // ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    rentPricePerSqm: condo?.rentPricePerSqm?.toString() || '', // ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
     
     // SEO
     seoTags: condo?.seoTags || '',
     
-    // Project Facilities (จะโหลดจากโครงการ)
-    facilities: condo?.facilities || [],
+
     selectedProjectId: condo?.selectedProjectId || '',
     
     // Timestamps
@@ -78,27 +78,43 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     { value: 'both', label: 'ขาย/เช่า', icon: Building }
   ]
 
-  // Generate auto project code (ตัวเลขอัตโนมัติ)
+  // Generate auto project code (ws + ตัวเลข 7 หลัก)
   useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `${timestamp.toString().slice(-6)}${randomNum}` // รหัสตัวเลข 9 หลัก
+      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
 
-  // Auto calculate price per sqm
+  // Auto calculate sale price per sqm
   useEffect(() => {
-    if (formData.price && formData.area) {
-      const price = parseFloat(formData.price)
+    if (formData.area && formData.price) {
       const area = parseFloat(formData.area)
-      if (!isNaN(price) && !isNaN(area) && area > 0) {
+      const price = parseFloat(formData.price)
+      if (!isNaN(area) && !isNaN(price) && area > 0 && price > 0) {
         const pricePerSqm = (price / area).toFixed(2)
         setFormData(prev => ({ ...prev, pricePerSqm }))
+      } else if (!formData.price || formData.price === '') {
+        setFormData(prev => ({ ...prev, pricePerSqm: '' }))
       }
     }
   }, [formData.price, formData.area])
+
+  // Auto calculate rent price per sqm
+  useEffect(() => {
+    if (formData.area && formData.rentPrice) {
+      const area = parseFloat(formData.area)
+      const rentPrice = parseFloat(formData.rentPrice)
+      if (!isNaN(area) && !isNaN(rentPrice) && area > 0 && rentPrice > 0) {
+        const rentPricePerSqm = (rentPrice / area).toFixed(2)
+        setFormData(prev => ({ ...prev, rentPricePerSqm }))
+      } else if (!formData.rentPrice || formData.rentPrice === '') {
+        setFormData(prev => ({ ...prev, rentPricePerSqm: '' }))
+      }
+    }
+  }, [formData.rentPrice, formData.area])
 
   // Mock project data
   const mockProjects = [
@@ -107,41 +123,18 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       title: 'ลุมพินี วิลล์ รามคำแหง',
       projectCode: 'LPN001',
       location: 'รามคำแหง, กรุงเทพฯ',
-      facilities: ['wifi', 'parking', 'security24h', 'fitness', 'swimmingPool']
+
     },
     {
       id: '2', 
       title: 'ไอดีโอ โมบิ รังสิต',
       projectCode: 'IDEO002',
       location: 'รังสิต, ปทุมธานี',
-      facilities: ['wifi', 'parking', 'fitness', 'keycard', 'cctv']
+
     }
   ]
 
-  // Project Facilities with icons
-  const projectFacilities = [
-    // Transportation & Access
-    { id: 'passengerLift', label: 'Passenger Lift', icon: FacilityIcons.PassengerLift, category: 'transport' },
-    { id: 'privateLift', label: 'Private Lift', icon: FacilityIcons.PrivateLift, category: 'transport' },
-    { id: 'keycard', label: 'Key Card Access', icon: FacilityIcons.KeyCard, category: 'security' },
-    
-    // Security & Safety
-    { id: 'security24h', label: '24h Security', icon: FacilityIcons.Security24h, category: 'security' },
-    { id: 'cctv', label: 'CCTV', icon: FacilityIcons.CCTV, category: 'security' },
-    { id: 'fingerprint', label: 'Fingerprint Access', icon: FacilityIcons.Fingerprint, category: 'security' },
-    
-    // Fitness & Recreation
-    { id: 'fitness', label: 'Fitness Center', icon: FacilityIcons.Fitness, category: 'recreation' },
-    { id: 'swimmingPool', label: 'Swimming Pool', icon: FacilityIcons.SwimmingPool, category: 'recreation' },
-    { id: 'sauna', label: 'Sauna', icon: FacilityIcons.Sauna, category: 'recreation' },
-    { id: 'jacuzzi', label: 'Jacuzzi', icon: FacilityIcons.Jacuzzi, category: 'recreation' },
-    
-    // Utilities & Services
-    { id: 'wifi', label: 'Wi-Fi', icon: FacilityIcons.WiFi, category: 'utilities' },
-    { id: 'parking', label: 'Parking', icon: FacilityIcons.Parking, category: 'utilities' },
-    { id: 'mailbox', label: 'Mail Box', icon: FacilityIcons.MailBox, category: 'utilities' },
-    { id: 'reception', label: 'Reception', icon: FacilityIcons.Reception, category: 'utilities' }
-  ]
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ 
@@ -408,7 +401,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ตัวเลขอัตโนมัติ)
+                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}

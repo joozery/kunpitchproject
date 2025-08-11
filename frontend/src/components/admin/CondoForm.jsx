@@ -4,6 +4,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
 import { condoAPI, uploadAPI } from '../../lib/api'
+import { projectApi } from '../../lib/projectApi'
 import {
   ArrowLeft,
   Building,
@@ -22,7 +23,7 @@ import {
   Bath,
   Bed
 } from 'lucide-react'
-import { FacilityIcons } from '../icons/FacilityIcons'
+
 
 const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -49,13 +50,15 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     bedrooms: condo?.bedrooms?.toString() || '', // ห้องนอน
     bathrooms: condo?.bathrooms?.toString() || '', // ห้องน้ำ
     floor: condo?.floor || '', // ชั้นที่ (text สำหรับ duplex เช่น 17-18)
-    pricePerSqm: condo?.pricePerSqm?.toString() || '', // ราคาต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    pricePerSqm: condo?.pricePerSqm?.toString() || '', // ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    rentPricePerSqm: condo?.rentPricePerSqm?.toString() || '', // ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
     
     // SEO
     seoTags: condo?.seoTags || '',
     
-    // Project Facilities
-    facilities: condo?.facilities || [],
+    // โปรเจค
+    selectedProject: condo?.selectedProject || '', // โปรเจคที่เลือก
+    availableDate: condo?.availableDate || '', // วันที่ว่าง
     
     // Timestamps
     createdAt: condo?.createdAt || new Date().toISOString(),
@@ -67,8 +70,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const [facilitiesLoading, setFacilitiesLoading] = useState(true)
-  const [availableFacilities, setAvailableFacilities] = useState([])
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [selectedProjectInfo, setSelectedProjectInfo] = useState(null)
+  const [projectSearchTerm, setProjectSearchTerm] = useState('')
+  const [filteredProjects, setFilteredProjects] = useState([])
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
+
   const [uploadProgress, setUploadProgress] = useState(0)
 
   const listingTypes = [
@@ -80,10 +88,6 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   useEffect(() => {
     if (isEditing && condo) {
-      const mappedFacilities = Array.isArray(condo.facilities)
-        ? condo.facilities.map(f => (typeof f === 'string' ? f : f.id)).filter(Boolean)
-        : []
-
       setFormData(prev => ({
         ...prev,
         title: condo.title || '',
@@ -101,8 +105,10 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         bathrooms: condo.bathrooms !== undefined && condo.bathrooms !== null ? String(condo.bathrooms) : '',
         floor: condo.floor || '',
         pricePerSqm: condo.price_per_sqm !== undefined && condo.price_per_sqm !== null ? String(condo.price_per_sqm) : '',
+        rentPricePerSqm: condo.rent_price_per_sqm !== undefined && condo.rent_price_per_sqm !== null ? String(condo.rent_price_per_sqm) : '',
         seoTags: condo.seo_tags || '',
-        facilities: mappedFacilities,
+        selectedProject: condo.selected_project || '',
+        availableDate: condo.available_date || '',
         createdAt: condo.created_at || prev.createdAt,
         updatedAt: condo.updated_at || new Date().toISOString()
       }))
@@ -135,92 +141,119 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     }
   }, [isEditing, condo])
 
-  // Fetch facilities from API
+  // Fetch projects from API
   useEffect(() => {
-    const fetchFacilities = async () => {
+    const fetchProjects = async () => {
       try {
-        setFacilitiesLoading(true)
-        const response = await condoAPI.getFacilities()
-        if (response.success) {
-          setAvailableFacilities(response.data.all || [])
+        setProjectsLoading(true)
+        const response = await projectApi.getAll()
+        
+        if (response && (response.success || Array.isArray(response.data))) {
+          // แปลงข้อมูลจาก API ให้เข้ากับ format ที่ใช้ (รองรับทั้ง array ตรงๆ หรือ data.items)
+          const rawList = Array.isArray(response.data) ? response.data : (response.data?.items || [])
+          const formattedProjects = rawList.map(project => ({
+            id: project.id.toString(),
+            name: project.name_th || project.name_en || project.name || 'ไม่ระบุชื่อ',
+            location: `${project.district || ''}${project.district && project.province ? ', ' : ''}${project.province || ''}`.replace(/^,\s*|,\s*$/g, ''),
+            developer: project.developer || 'ไม่ระบุผู้พัฒนา',
+            type: project.project_type || 'condo',
+            address: project.address || '',
+            total_units: project.total_units || 0,
+            completion_year: project.completion_year || null
+          }))
+          
+          setProjects(formattedProjects)
+          setFilteredProjects(formattedProjects)
+          console.log('โหลดโปรเจคสำเร็จ:', formattedProjects.length, 'โปรเจค')
+        } else {
+          console.error('API response failed:', response.message)
+          setProjects([])
+          setFilteredProjects([])
         }
       } catch (error) {
-        console.error('Error fetching facilities:', error)
-        // Fallback to default facilities if API fails
-        setAvailableFacilities([])
+        console.error('Error fetching projects:', error)
+        setProjects([])
+        setFilteredProjects([])
       } finally {
-        setFacilitiesLoading(false)
+        setProjectsLoading(false)
       }
     }
 
-    fetchFacilities()
+    fetchProjects()
   }, [])
 
-  // Generate auto project code (ตัวเลขอัตโนมัติ)
+  // Filter projects based on search term
+  useEffect(() => {
+    if (!projectSearchTerm.trim()) {
+      setFilteredProjects(projects)
+    } else {
+      const filtered = projects.filter(project => 
+        project.name.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
+        project.location.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
+        project.developer.toLowerCase().includes(projectSearchTerm.toLowerCase())
+      )
+      setFilteredProjects(filtered)
+    }
+  }, [projectSearchTerm, projects])
+
+  // Auto-open dropdown when typing search
+  useEffect(() => {
+    if (projectSearchTerm.trim() && !projectsLoading) {
+      setIsProjectDropdownOpen(true)
+    }
+  }, [projectSearchTerm, projectsLoading])
+
+  // Update selected project info when project changes
+  useEffect(() => {
+    if (formData.selectedProject) {
+      const project = projects.find(p => p.id === formData.selectedProject)
+      setSelectedProjectInfo(project || null)
+    } else {
+      setSelectedProjectInfo(null)
+    }
+  }, [formData.selectedProject, projects])
+
+  // Generate auto project code (ws + ตัวเลข 7 หลัก)
   useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `${timestamp.toString().slice(-6)}${randomNum}` // รหัสตัวเลข 9 หลัก
+      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
 
-  // Auto calculate price per sqm
+  // Auto calculate sale price per sqm
   useEffect(() => {
-    if (formData.area && (formData.price || formData.rentPrice)) {
+    if (formData.area && formData.price) {
       const area = parseFloat(formData.area)
-      if (!isNaN(area) && area > 0) {
-        let pricePerSqm = 0
-        
-        if (formData.status === 'rent' && formData.rentPrice) {
-          // คำนวณจากราคาเช่า (ต่อเดือน)
-          const rentPrice = parseFloat(formData.rentPrice)
-          if (!isNaN(rentPrice) && rentPrice > 0) {
-            pricePerSqm = (rentPrice / area).toFixed(2)
-            console.log(`คำนวณราคาต่อตารางเมตรจากราคาเช่า: ${rentPrice} ÷ ${area} = ${pricePerSqm} บาท/ตร.ม./เดือน`)
-          }
-        } else if (formData.status === 'sale' && formData.price) {
-          // คำนวณจากราคาขาย
-          const price = parseFloat(formData.price)
-          if (!isNaN(price) && price > 0) {
-            pricePerSqm = (price / area).toFixed(2)
-            console.log(`คำนวณราคาต่อตารางเมตรจากราคาขาย: ${price} ÷ ${area} = ${pricePerSqm} บาท/ตร.ม.`)
-          }
-        } else if (formData.status === 'both') {
-          // กรณีขาย/เช่า ให้คำนวณจากราคาขายก่อน ถ้าไม่มีให้คำนวณจากราคาเช่า
-          if (formData.price) {
-            const price = parseFloat(formData.price)
-            if (!isNaN(price) && price > 0) {
-              pricePerSqm = (price / area).toFixed(2)
-              console.log(`คำนวณราคาต่อตารางเมตรจากราคาขาย (both): ${price} ÷ ${area} = ${pricePerSqm} บาท/ตร.ม.`)
-            }
-          } else if (formData.rentPrice) {
-            const rentPrice = parseFloat(formData.rentPrice)
-            if (!isNaN(rentPrice) && rentPrice > 0) {
-              pricePerSqm = (rentPrice / area).toFixed(2)
-              console.log(`คำนวณราคาต่อตารางเมตรจากราคาเช่า (both): ${rentPrice} ÷ ${area} = ${pricePerSqm} บาท/ตร.ม./เดือน`)
-            }
-          }
-        }
-        
-        if (pricePerSqm > 0) {
-          setFormData(prev => ({ ...prev, pricePerSqm }))
-          console.log(`อัปเดต pricePerSqm: ${pricePerSqm}`)
-        }
+      const price = parseFloat(formData.price)
+      if (!isNaN(area) && !isNaN(price) && area > 0 && price > 0) {
+        const pricePerSqm = (price / area).toFixed(2)
+        setFormData(prev => ({ ...prev, pricePerSqm }))
+        console.log(`คำนวณราคาขายต่อตารางเมตร: ${price} ÷ ${area} = ${pricePerSqm} บาท/ตร.ม.`)
+      } else if (!formData.price || formData.price === '') {
+        setFormData(prev => ({ ...prev, pricePerSqm: '' }))
       }
     }
-  }, [formData.price, formData.rentPrice, formData.area, formData.status])
+  }, [formData.price, formData.area])
+
+  // Auto calculate rent price per sqm
+  useEffect(() => {
+    if (formData.area && formData.rentPrice) {
+      const area = parseFloat(formData.area)
+      const rentPrice = parseFloat(formData.rentPrice)
+      if (!isNaN(area) && !isNaN(rentPrice) && area > 0 && rentPrice > 0) {
+        const rentPricePerSqm = (rentPrice / area).toFixed(2)
+        setFormData(prev => ({ ...prev, rentPricePerSqm }))
+        console.log(`คำนวณราคาเช่าต่อตารางเมตร: ${rentPrice} ÷ ${area} = ${rentPricePerSqm} บาท/ตร.ม./เดือน`)
+      } else if (!formData.rentPrice || formData.rentPrice === '') {
+        setFormData(prev => ({ ...prev, rentPricePerSqm: '' }))
+      }
+    }
+  }, [formData.rentPrice, formData.area])
 
 
-
-  // Convert API facilities to component format
-  const projectFacilities = availableFacilities.map(facility => ({
-    id: facility.id,
-    label: facility.label,
-    icon: FacilityIcons[facility.icon] || FacilityIcons.Star, // Fallback icon
-    category: facility.category
-  }))
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ 
@@ -233,17 +266,6 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
-  }
-
-
-
-  const handleFacilityToggle = (facilityId) => {
-    setFormData(prev => ({
-      ...prev,
-      facilities: prev.facilities.includes(facilityId)
-        ? prev.facilities.filter(id => id !== facilityId)
-        : [...prev.facilities, facilityId]
-    }))
   }
 
   // Handle multiple image uploads
@@ -321,14 +343,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const validateForm = () => {
     const newErrors = {}
 
+    // ผ่อนการบังคับกรอก: ให้บังคับเฉพาะชื่อโครงการเท่านั้น
     if (!formData.title) newErrors.title = 'กรุณากรอกชื่อโครงการ'
-    if (!formData.status) newErrors.status = 'กรุณาเลือกสถานะ'
-    if (!formData.price && formData.status !== 'rent') newErrors.price = 'กรุณากรอกราคา'
-    if (!formData.location) newErrors.location = 'กรุณากรอกสถานที่'
-    if (!formData.area) newErrors.area = 'กรุณากรอกพื้นที่'
-    if (!formData.bedrooms) newErrors.bedrooms = 'กรุณากรอกจำนวนห้องนอน'
-    if (!formData.bathrooms) newErrors.bathrooms = 'กรุณากรอกจำนวนห้องน้ำ'
-    if (!formData.floor) newErrors.floor = 'กรุณากรอกชั้นที่'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -361,8 +377,10 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         bathrooms: parseInt(formData.bathrooms),
         floor: formData.floor,
         price_per_sqm: parseFloat(formData.pricePerSqm) || 0,
+        rent_price_per_sqm: parseFloat(formData.rentPricePerSqm) || 0,
         seo_tags: formData.seoTags,
-        facilities: formData.facilities,
+        selected_project: formData.selectedProject,
+        available_date: formData.availableDate,
         images: images.map(img => ({
           url: img.url,
           public_id: img.public_id
@@ -371,7 +389,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
 
       console.log('ข้อมูลที่จะส่งไปยัง backend:', condoData)
-      console.log('ราคาต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
+      console.log('ราคาขายต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
+      console.log('ราคาเช่าต่อตารางเมตรที่คำนวณได้:', formData.rentPricePerSqm)
 
       let response
       
@@ -461,7 +480,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ตัวเลขอัตโนมัติ)
+                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
@@ -470,6 +489,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 placeholder="สร้างอัตโนมัติ"
               />
             </div>
+
+
 
             {/* สร้างเมื่อ - แก้ไขล่าสุด */}
             <div>
@@ -491,15 +512,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               <select
                 value={formData.status}
                 onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.status ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300`}
               >
                 <option value="sale">ขาย</option>
                 <option value="rent">เช่า</option>
                 <option value="both">ขาย/เช่า</option>
               </select>
-              {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
+              
             </div>
 
             {/* ประเภท */}
@@ -531,13 +550,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.price}
                   onChange={(e) => handleInputChange('price', e.target.value)}
                   placeholder="เช่น 3500000"
-                  className={errors.price ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <DollarSign className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
-              {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+              
             </div>
 
             {/* ราคาเช่า */}
@@ -578,13 +596,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="เช่น รามคำแหง, กรุงเทพฯ"
-                  className={errors.location ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <MapPin className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
-              {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+              
             </div>
 
             {/* Google Map */}
@@ -635,7 +652,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="อธิบายรายละเอียดของคอนโด เช่น สภาพห้อง การตกแต่ง สิ่งอำนวยความสะดวก..."
+                              placeholder="อธิบายรายละเอียดของคอนโด เช่น สภาพห้อง การตกแต่ง วิวที่ห้อง..."
               rows={5}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -662,13 +679,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.area}
                   onChange={(e) => handleInputChange('area', e.target.value)}
                   placeholder="เช่น 65.5"
-                  className={errors.area ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <span className="text-sm text-gray-500">ตร.ม.</span>
                 </div>
               </div>
-              {errors.area && <p className="text-red-500 text-sm mt-1">{errors.area}</p>}
+              
             </div>
 
             {/* ห้องนอน */}
@@ -683,13 +699,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.bedrooms}
                   onChange={(e) => handleInputChange('bedrooms', e.target.value)}
                   placeholder="เช่น 2"
-                  className={errors.bedrooms ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <Bed className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
-              {errors.bedrooms && <p className="text-red-500 text-sm mt-1">{errors.bedrooms}</p>}
+              
             </div>
 
             {/* ห้องน้ำ */}
@@ -704,13 +719,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.bathrooms}
                   onChange={(e) => handleInputChange('bathrooms', e.target.value)}
                   placeholder="เช่น 2"
-                  className={errors.bathrooms ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <Bath className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
-              {errors.bathrooms && <p className="text-red-500 text-sm mt-1">{errors.bathrooms}</p>}
+              
             </div>
 
             {/* จำนวนชั้นคอนโด */}
@@ -723,88 +737,191 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   value={formData.floor}
                   onChange={(e) => handleInputChange('floor', e.target.value)}
                   placeholder="เช่น 15 หรือ 17-18 (สำหรับ duplex)"
-                  className={errors.floor ? 'border-red-500' : ''}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <Building className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-1">สำหรับห้อง duplex ให้ใส่เป็น 17-18 (ชั้นเชื่อม)</p>
-              {errors.floor && <p className="text-red-500 text-sm mt-1">{errors.floor}</p>}
+              
             </div>
 
-            {/* ราคาต่อ per sq.m. */}
-            <div className="md:col-span-2">
+            {/* ราคาขายต่อ ตร.ม. */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ราคาต่อ per sq.m. (ฟังก์ชันคำนวณอัตโนมัติ)
+                ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
               </label>
               <div className="relative">
                 <Input
                   value={formData.pricePerSqm ? `฿${parseFloat(formData.pricePerSqm).toLocaleString('th-TH', { 
                     minimumFractionDigits: 2, 
                     maximumFractionDigits: 2 
-                  })} /ตร.ม.${formData.status === 'rent' ? '/เดือน' : ''}` : ''}
+                  })} /ตร.ม.` : ''}
                   readOnly
                   className="bg-green-50 border-green-200 text-green-700 font-semibold"
-                  placeholder="จะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน"
+                  placeholder="จะคำนวณจากราคาขาย"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <Calculator className="h-4 w-4 text-green-500" />
                 </div>
               </div>
-              
-              {/* สถานะการคำนวณ */}
               {formData.pricePerSqm && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                  <p className="text-sm text-green-700 font-medium">
-                    ✅ คำนวณแล้ว: {formData.status === 'rent' ? 'จากราคาเช่า' : formData.status === 'sale' ? 'จากราคาขาย' : 'จากราคา'} 
-                    = ฿{parseFloat(formData.pricePerSqm).toLocaleString('th-TH', { 
-                      minimumFractionDigits: 2, 
-                      maximumFractionDigits: 2 
-                    })} /ตร.ม.{formData.status === 'rent' ? '/เดือน' : ''}
+                <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded">
+                  <p className="text-xs text-green-700">
+                    ✅ คำนวณจากราคาขาย = ฿{parseFloat(formData.pricePerSqm).toLocaleString('th-TH')} /ตร.ม.
                   </p>
                 </div>
               )}
-              
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-medium text-blue-800 mb-1">ตัวอย่างการคำนวณ:</h4>
-                {formData.status === 'rent' ? (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      ราคาเช่า: 25,000 บาท/เดือน ÷ 47.48 ตารางเมตร = 526.54 บาท/ตร.ม./เดือน
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคาเช่า ÷ พื้นที่ = ราคาต่อตารางเมตรต่อเดือน
-                    </p>
-                  </div>
-                ) : formData.status === 'sale' ? (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      ราคาขาย: 4,800,000 บาท ÷ 47.48 ตารางเมตร = 101,095.95 บาท/ตร.ม.
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคาขาย ÷ พื้นที่ = ราคาต่อตารางเมตร
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      48,000 บาท ÷ 47.48 ตารางเมตร = 1,010.95 บาท/ตร.ม.
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคา ÷ พื้นที่ = ราคาต่อตารางเมตร
-                    </p>
-                  </div>
-                )}
-                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="text-xs text-yellow-700">
-                    💡 <strong>หมายเหตุ:</strong> ระบบจะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน
-                    {formData.status === 'rent' && ' (ราคาเช่าต่อเดือน)'}
-                    {formData.status === 'sale' && ' (ราคาขาย)'}
-                    {formData.status === 'both' && ' (ราคาขายหรือราคาเช่า)'}
-                  </p>
+            </div>
+
+            {/* ราคาเช่าต่อ ตร.ม. */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
+              </label>
+              <div className="relative">
+                <Input
+                  value={formData.rentPricePerSqm ? `฿${parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                  })} /ตร.ม./เดือน` : ''}
+                  readOnly
+                  className="bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                  placeholder="จะคำนวณจากราคาเช่า"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <Calculator className="h-4 w-4 text-blue-500" />
                 </div>
               </div>
+              {formData.rentPricePerSqm && (
+                <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-xs text-blue-700">
+                    ✅ คำนวณจากราคาเช่า = ฿{parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH')} /ตร.ม./เดือน
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* โปรเจคและวันที่ว่าง */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <Building className="h-6 w-6 mr-3 text-blue-600" />
+            โปรเจคและวันที่ว่าง
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* โปรเจค */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                โปรเจค *
+              </label>
+              
+              {/* ช่องค้นหาโปรเจค */}
+              <div className="mb-3">
+                <Input
+                  type="text"
+                  placeholder="ค้นหาโปรเจค (ชื่อ, สถานที่, หรือผู้พัฒนา)..."
+                  value={projectSearchTerm}
+                  onFocus={() => setIsProjectDropdownOpen(true)}
+                  onChange={(e) => setProjectSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filteredProjects.length > 0) {
+                      const first = filteredProjects[0]
+                      handleInputChange('selectedProject', first.id)
+                      setIsProjectDropdownOpen(false)
+                    }
+                    if (e.key === 'Escape') {
+                      setIsProjectDropdownOpen(false)
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
+              
+              {projectsLoading ? (
+                <div className="flex items-center justify-center py-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">กำลังโหลดโปรเจค...</span>
+                </div>
+              ) : (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsProjectDropdownOpen(prev => !prev)}
+                    className="w-full flex justify-between items-center px-3 py-2 border border-gray-300 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <span className="truncate">{selectedProjectInfo ? `${selectedProjectInfo.name} - ${selectedProjectInfo.location}` : '-- เลือกโปรเจคที่ห้องนี้อยู่ --'}</span>
+                    <svg className={`h-4 w-4 ml-2 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" /></svg>
+                  </button>
+                  {isProjectDropdownOpen && (
+                    <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-auto" role="listbox">
+                      {filteredProjects.length === 0 ? (
+                        <div className="p-3 text-sm text-gray-500">ไม่พบโปรเจค</div>
+                      ) : (
+                        filteredProjects.map(project => (
+                          <div
+                            key={project.id}
+                            className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${formData.selectedProject === project.id ? 'bg-blue-50' : ''}`}
+                            role="option"
+                            aria-selected={formData.selectedProject === project.id}
+                            onClick={() => {
+                              handleInputChange('selectedProject', project.id)
+                              setIsProjectDropdownOpen(false)
+                            }}
+                          >
+                            <div className="font-medium text-gray-800">{project.name}</div>
+                            <div className="text-xs text-gray-500">{project.location} {project.developer ? `• ${project.developer}` : ''}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                  {projectSearchTerm && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      พบ {filteredProjects.length} โปรเจค จาก {projects.length} โปรเจค
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {/* แสดงข้อมูลโปรเจคที่เลือก */}
+              {selectedProjectInfo && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="w-full">
+                      <h4 className="font-medium text-blue-800 font-prompt">
+                        ✅ เลือกแล้ว: {selectedProjectInfo.name}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm text-blue-600">
+                        <p>📍 {selectedProjectInfo.location}</p>
+                        <p>🏢 {selectedProjectInfo.developer}</p>
+                        {selectedProjectInfo.type && <p>🏗️ ประเภท: {selectedProjectInfo.type}</p>}
+                        {selectedProjectInfo.total_units > 0 && <p>🏠 {selectedProjectInfo.total_units} ยูนิต</p>}
+                        {selectedProjectInfo.completion_year && <p>📅 ปีที่แล้วเสร็จ: {selectedProjectInfo.completion_year}</p>}
+                        {selectedProjectInfo.address && <p className="md:col-span-2">📋 {selectedProjectInfo.address}</p>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* วันที่ว่าง */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                วันที่ว่าง
+              </label>
+              <Input
+                type="date"
+                value={formData.availableDate}
+                onChange={(e) => handleInputChange('availableDate', e.target.value)}
+                placeholder="เลือกวันที่ว่าง"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                วันที่ที่ห้องจะว่างพร้อมเข้าอยู่
+              </p>
             </div>
           </div>
         </Card>
@@ -829,101 +946,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </div>
         </Card>
 
-        {/* Project Facilities */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
-            <Star className="h-6 w-6 mr-3 text-blue-600" />
-            สิ่งอำนวยความสะดวก (Project Facilities)
-            {facilitiesLoading && (
-              <div className="ml-3 text-sm text-blue-600">กำลังโหลด...</div>
-            )}
-          </h2>
-          
-          {facilitiesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">กำลังโหลดสิ่งอำนวยความสะดวก...</span>
-            </div>
-          ) : (
-            <div>
-              {/* แสดง facilities ที่เลือกแล้ว */}
-              {formData.facilities.length > 0 && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-green-800 font-prompt">
-                        ✅ สิ่งอำนวยความสะดวกที่เลือกแล้ว ({formData.facilities.length} รายการ)
-                      </h3>
-                    </div>
-                  </div>
-                  
-                  {/* Selected Facilities Display */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {formData.facilities.map(facilityId => {
-                      const facility = projectFacilities.find(f => f.id === facilityId)
-                      if (!facility) return null
-                      const IconComponent = facility.icon
-                      return (
-                        <div
-                          key={facilityId}
-                          className="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-green-200 transition-colors"
-                          onClick={() => handleFacilityToggle(facilityId)}
-                        >
-                          <div className="p-1 rounded-full bg-green-200">
-                            <IconComponent className="h-4 w-4" />
-                          </div>
-                          <span className="font-prompt text-xs">{facility.label}</span>
-                          <X className="h-3 w-3 text-green-500 hover:text-green-700" />
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
 
-              {/* All facilities for selection */}
-              <div className="mt-6">
-                <h3 className="text-lg font-medium mb-4 text-gray-700 font-prompt">
-                  📋 เลือกสิ่งอำนวยความสะดวกทั้งหมด ({availableFacilities.length} รายการ)
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {projectFacilities.map(facility => {
-                    const IconComponent = facility.icon
-                    const isSelected = formData.facilities.includes(facility.id)
-                    
-                    return (
-                      <div
-                        key={facility.id}
-                        onClick={() => handleFacilityToggle(facility.id)}
-                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                          isSelected
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center text-center space-y-2">
-                          <div className={`p-2 rounded-full transition-all duration-200 ${
-                            isSelected 
-                              ? 'bg-blue-100 text-blue-600' 
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          }`}>
-                            <IconComponent className="h-5 w-5" />
-                          </div>
-                          <span className={`text-xs font-medium font-prompt ${
-                            isSelected ? 'text-blue-700' : 'text-gray-700'
-                          }`}>
-                            {facility.label}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-        </Card>
 
         {/* รูปภาพ */}
         <Card className="p-6">
@@ -1103,7 +1126,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </Button>
           <Button
             type="submit"
-            disabled={loading || uploading || facilitiesLoading}
+                          disabled={loading || uploading}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             {loading || uploading ? (
