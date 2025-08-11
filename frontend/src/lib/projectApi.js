@@ -141,5 +141,24 @@ export const projectApi = {
   },
 };
 
+// Commercials API
+export const commercialApi = {
+  // Get all commercials
+  getAll: async (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => v && queryParams.append(k, v));
+    const qs = queryParams.toString();
+    return apiCall(`/commercials${qs ? `?${qs}` : ''}`);
+  },
+  // Get by ID
+  getById: async (id) => apiCall(`/commercials/${id}`),
+  // Create
+  create: async (data) => apiCall('/commercials', { method: 'POST', body: JSON.stringify(data) }),
+  // Update
+  update: async (id, data) => apiCall(`/commercials/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  // Delete
+  delete: async (id) => apiCall(`/commercials/${id}`, { method: 'DELETE' })
+};
+
 // Export default for convenience
 export default projectApi; 

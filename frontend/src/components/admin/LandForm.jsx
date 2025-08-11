@@ -130,12 +130,12 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     }
   }, [isEditing, land])
 
-  // Generate auto project code (ตัวเลขอัตโนมัติ)
+  // Generate auto project code (ws + ตัวเลข 7 หลัก)
   React.useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `${timestamp.toString().slice(-6)}${randomNum}` // รหัสตัวเลข 9 หลัก
+      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -550,7 +550,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ตัวเลขอัตโนมัติ)
+                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
@@ -657,8 +657,8 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
                 onChange={(e) => handleInputChange('landOwnership', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="thai">คนสัญชาติไทย</option>
-                <option value="foreign">ต่างชาติ</option>
+                <option value="thai">สัญชาติไทย</option>
+                <option value="foreign">สัญชาติต่างชาติ</option>
               </select>
               {errors.landOwnership && <p className="text-red-500 text-sm mt-1">{errors.landOwnership}</p>}
             </div>

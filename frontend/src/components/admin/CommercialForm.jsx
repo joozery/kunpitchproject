@@ -25,14 +25,13 @@ import {
   Home
 } from 'lucide-react'
 import { FacilityIcons } from '../icons/FacilityIcons'
+import { commercialApi } from '../../lib/projectApi'
 
 // ฟังก์ชันสร้างรหัสโครงการอัตโนมัติ
 const generateProjectCode = () => {
-  const date = new Date()
-  const year = date.getFullYear().toString().slice(-2)
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-  return `SH${year}${month}${random}` // SH = Shop House
+  const timestamp = Date.now()
+  const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  return `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
 }
 
 // Mock data สำหรับ facilities (ไม่ต้องเชื่อมต่อ API)
@@ -66,7 +65,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     // ประเภทโฮมออฟฟิศ/ตึกแถว
     propertyType: commercial?.propertyType || 'shop_house', // โฮมออฟฟิศ/ตึกแถว
     buildingType: commercial?.buildingType || 'shop_house', // ประเภทอาคาร
-    commercialStyle: commercial?.commercialStyle || 'modern', // สไตล์การตกแต่ง
+
     
     // โลเคชั่น
     location: commercial?.location || '', // สถานที่
@@ -204,12 +203,12 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     }
   }, [isEditing, commercial])
 
-  // Generate auto project code (ตัวเลขอัตโนมัติ)
+  // Generate auto project code (ws + ตัวเลข 7 หลัก)
   useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `${timestamp.toString().slice(-6)}${randomNum}` // รหัสตัวเลข 9 หลัก
+      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -365,14 +364,6 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     const newErrors = {}
 
     if (!formData.title) newErrors.title = 'กรุณากรอกชื่อโครงการ'
-    if (!formData.status) newErrors.status = 'กรุณาเลือกสถานะ'
-    if (!formData.propertyType) newErrors.propertyType = 'กรุณาเลือกประเภทอสังหาริมทรัพย์'
-    if (!formData.price && formData.status !== 'rent') newErrors.price = 'กรุณากรอกราคา'
-    if (!formData.location) newErrors.location = 'กรุณากรอกสถานที่'
-    if (!formData.area) newErrors.area = 'กรุณากรอกพื้นที่รวม'
-    if (!formData.landArea) newErrors.landArea = 'กรุณากรอกพื้นที่ดิน'
-    if (!formData.buildingArea) newErrors.buildingArea = 'กรุณากรอกพื้นที่อาคาร'
-    if (!formData.floors) newErrors.floors = 'กรุณากรอกจำนวนชั้น'
 
     // Validation สำหรับข้อมูลเฉพาะโฮมออฟฟิศ/ตึกแถว
     if (formData.hasMezzanine && (!formData.mezzanineArea || parseFloat(formData.mezzanineArea) <= 0)) {
@@ -401,76 +392,69 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     try {
       setLoading(true)
       
-      // Transform form data to local format
+      // Transform form data to API format
       const commercialData = {
-        id: isEditing && commercial?.id ? commercial.id : Date.now().toString(),
         title: formData.title,
-        projectCode: formData.projectCode,
         status: formData.status,
         price: parseFloat(formData.price) || 0,
-        rentPrice: parseFloat(formData.rentPrice) || 0,
-        propertyType: formData.propertyType,
-        buildingType: formData.buildingType,
-        commercialStyle: formData.commercialStyle,
+        rent_price: parseFloat(formData.rentPrice) || 0,
+        property_type: formData.propertyType,
+        building_type: formData.buildingType,
         location: formData.location,
         district: formData.district,
         province: formData.province,
-        postalCode: formData.postalCode,
-        googleMapUrl: formData.googleMapUrl,
-        nearbyTransport: formData.nearbyTransport,
-        listingType: formData.listingType,
+        postal_code: formData.postalCode,
+        google_map_url: formData.googleMapUrl,
+        nearby_transport: formData.nearbyTransport,
+        listing_type: formData.listingType,
         description: formData.description,
-        area: parseFloat(formData.area),
-        landArea: parseFloat(formData.landArea),
-        buildingArea: parseFloat(formData.buildingArea),
-        floors: parseInt(formData.floors),
-        floorHeight: parseFloat(formData.floorHeight) || 0,
-        parkingSpaces: parseInt(formData.parkingSpaces) || 0,
+        area: parseFloat(formData.area) || 0,
+        land_area: parseFloat(formData.landArea) || 0,
+        building_area: parseFloat(formData.buildingArea) || 0,
+        floors: parseInt(formData.floors) || 0,
+        floor_height: parseFloat(formData.floorHeight) || 0,
+        parking_spaces: parseInt(formData.parkingSpaces) || 0,
+        price_per_sqm: parseFloat(formData.pricePerSqm) || 0,
         frontage: parseFloat(formData.frontage) || 0,
         depth: parseFloat(formData.depth) || 0,
-        roadWidth: parseFloat(formData.roadWidth) || 0,
+        road_width: parseFloat(formData.roadWidth) || 0,
         zoning: formData.zoning,
-        buildingAge: parseInt(formData.buildingAge) || 0,
-        pricePerSqm: parseFloat(formData.pricePerSqm) || 0,
-        seoTags: formData.seoTags,
+        building_age: parseInt(formData.buildingAge) || 0,
+        shop_front: parseFloat(formData.shopFront) || 0,
+        shop_depth: parseFloat(formData.shopDepth) || 0,
+        has_mezzanine: formData.hasMezzanine,
+        mezzanine_area: parseFloat(formData.mezzanineArea) || 0,
+        has_basement: formData.hasBasement,
+        basement_area: parseFloat(formData.basementArea) || 0,
+        has_warehouse: formData.hasWarehouse,
+        warehouse_area: parseFloat(formData.warehouseArea) || 0,
+        seo_tags: formData.seoTags,
         facilities: formData.facilities,
-        
-        // ข้อมูลเฉพาะโฮมออฟฟิศ/ตึกแถว
-        shopFront: parseFloat(formData.shopFront) || 0,
-        shopDepth: parseFloat(formData.shopDepth) || 0,
-        hasMezzanine: formData.hasMezzanine,
-        mezzanineArea: parseFloat(formData.mezzanineArea) || 0,
-        hasBasement: formData.hasBasement,
-        basementArea: parseFloat(formData.basementArea) || 0,
-        hasWarehouse: formData.hasWarehouse,
-        warehouseArea: parseFloat(formData.warehouseArea) || 0,
-        
         images: images.map(img => ({
           url: img.preview || img.url,
           public_id: img.id || img.public_id
         })),
-        coverImage: coverImage ? {
-          url: coverImage.preview || coverImage.url,
-          public_id: coverImage.id || coverImage.public_id
-        } : null,
-        createdAt: formData.createdAt,
-        updatedAt: new Date().toISOString()
+        cover_image: coverImage ? (coverImage.preview || coverImage.url) : null
       }
 
-      console.log('ข้อมูลโฮมออฟฟิศ/ตึกแถวที่บันทึก:', commercialData)
-      console.log('ราคาต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
+      console.log('ส่งข้อมูลไป API:', commercialData)
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (isEditing) {
+        // แก้ไขโฮมออฟฟิศ/ตึกแถว
+        const result = await commercialApi.update(commercial?.id, commercialData)
+        console.log('แก้ไขโฮมออฟฟิศ/ตึกแถวสำเร็จ:', result)
+        alert('แก้ไขประกาศโฮมออฟฟิศ/ตึกแถวสำเร็จ!')
+      } else {
+        // สร้างโฮมออฟฟิศ/ตึกแถวใหม่
+        const result = await commercialApi.create(commercialData)
+        console.log('สร้างโฮมออฟฟิศ/ตึกแถวสำเร็จ:', result)
+        alert('เพิ่มประกาศโฮมออฟฟิศ/ตึกแถวสำเร็จ!')
+      }
 
-      // Show success message
-      alert(isEditing ? 'แก้ไขข้อมูลโฮมออฟฟิศ/ตึกแถวสำเร็จ!' : 'เพิ่มโฮมออฟฟิศ/ตึกแถวใหม่สำเร็จ!')
-      
       if (onSave) {
         onSave(commercialData)
       }
-      
-      // Go back to list
+
       if (onBack) {
         onBack()
       }
@@ -521,7 +505,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* ชื่อโครงการ */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ชื่อโครงการ *
+                ชื่อโครงการ
               </label>
               <Input
                 value={formData.title}
@@ -535,7 +519,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ตัวเลขอัตโนมัติ)
+                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
@@ -560,7 +544,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* สถานะ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                สถานะ * (เลือกประเภท เช่า หรือ ขาย)
+                สถานะ (เลือกประเภท เช่า หรือ ขาย)
               </label>
               <select
                 value={formData.status}
@@ -579,7 +563,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* ประเภทอสังหาริมทรัพย์ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ประเภทอสังหาริมทรัพย์ *
+                ประเภทอสังหาริมทรัพย์
               </label>
               <select
                 value={formData.propertyType}
@@ -615,29 +599,12 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
               </select>
             </div>
 
-            {/* สไตล์การตกแต่ง */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                สไตล์การตกแต่ง
-              </label>
-              <select
-                value={formData.commercialStyle}
-                onChange={(e) => handleInputChange('commercialStyle', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="modern">โมเดิร์น</option>
-                <option value="classic">คลาสสิก</option>
-                <option value="industrial">อินดัสเทรียล</option>
-                <option value="minimalist">มินิมอล</option>
-                <option value="luxury">หรูหรา</option>
-                <option value="traditional">แบบดั้งเดิม</option>
-              </select>
-            </div>
+
 
             {/* ราคา (บาท) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ราคา (บาท) * {formData.status !== 'rent' && '(กรณีขาย)'}
+                ราคา (บาท) {formData.status !== 'rent' && '(กรณีขาย)'}
               </label>
               <div className="relative">
                 <Input
@@ -685,7 +652,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* สถานที่ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                โลเคชั่น : สถานที่ *
+                โลเคชั่น : สถานที่
               </label>
               <div className="relative">
                 <Input
@@ -803,7 +770,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* พื้นที่รวม */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                พื้นที่รวม (ตารางเมตร) *
+                พื้นที่รวม (ตารางเมตร)
               </label>
               <div className="relative">
                 <Input
@@ -825,7 +792,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* พื้นที่ดิน */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                พื้นที่ดิน (ตารางเมตร) *
+                พื้นที่ดิน (ตารางเมตร)
               </label>
               <div className="relative">
                 <Input
@@ -846,7 +813,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* พื้นที่อาคาร */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                พื้นที่อาคาร (ตารางเมตร) *
+                พื้นที่อาคาร (ตารางเมตร)
               </label>
               <div className="relative">
                 <Input
@@ -867,7 +834,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* จำนวนชั้น */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                จำนวนชั้น *
+                จำนวนชั้น
               </label>
               <div className="relative">
                 <Input
