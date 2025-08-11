@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import Swal from 'sweetalert2';
 import { 
   FaBuilding, FaCar, FaShieldAlt, FaHeart, FaBriefcase, FaUtensils, 
   FaArrowUp, FaLock, FaMotorcycle, FaShuttleVan, FaBolt,
@@ -159,10 +160,66 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   // โหลดข้อมูล project ถ้ามี
   useEffect(() => {
     if (project) {
-      setFormData(project);
-      setSelectedFacilities(project.facilities || []);
+      console.log('🔄 Loading project data:', project);
+      console.log('📋 Project facilities:', project.facilities);
+      console.log('📋 Project facilities type:', typeof project.facilities);
+      console.log('📋 Project facilities isArray:', Array.isArray(project.facilities));
+      console.log('📋 Project facilities length:', project.facilities && Array.isArray(project.facilities) ? project.facilities.length : 'N/A');
+      
+      setFormData({
+        ...project,
+        project_images: project.project_images || [],
+        cover_image: project.cover_image || null,
+        facilities: project.facilities || []
+      });
+      
+      console.log('🔄 FormData updated with facilities:', project.facilities || []);
+      
+      // แก้ไขการ set facilities
+      let projectFacilities = project.facilities;
+      
+      // ตรวจสอบว่า facilities เป็น string (JSON) หรือไม่
+      if (typeof projectFacilities === 'string') {
+        try {
+          projectFacilities = JSON.parse(projectFacilities);
+        } catch (e) {
+          console.warn('⚠️ Failed to parse facilities JSON:', e);
+          projectFacilities = [];
+        }
+      }
+      
+      if (projectFacilities && Array.isArray(projectFacilities) && projectFacilities.length > 0) {
+        console.log('✅ Setting selected facilities:', projectFacilities);
+        setSelectedFacilities(projectFacilities);
+        
+        // Debug: ตรวจสอบว่า facilities แต่ละตัวมีใน facilitiesList หรือไม่
+        projectFacilities.forEach(facilityId => {
+          const found = facilitiesList.find(f => f.id === facilityId);
+          console.log(`🔍 Facility ${facilityId}:`, found ? '✅ Found' : '❌ Not found');
+        });
+      } else {
+        console.log('⚠️ No facilities found or invalid format:', projectFacilities);
+        setSelectedFacilities([]);
+      }
+      
+      // ตรวจสอบว่า facilitiesList พร้อมใช้งานหรือไม่
+      console.log('🔄 facilitiesList length:', facilitiesList.length);
+      console.log('🔄 facilitiesList first item:', facilitiesList[0]);
+      
+      console.log('🔄 Final selectedFacilities state:', selectedFacilities);
     }
-  }, [project]);
+  }, [project, facilitiesList]);
+
+  // อัปเดต formData.facilities เมื่อ selectedFacilities เปลี่ยน
+  useEffect(() => {
+    console.log('🔄 Updating formData.facilities with:', selectedFacilities);
+    if (selectedFacilities && Array.isArray(selectedFacilities)) {
+      setFormData(prev => ({
+        ...prev,
+        facilities: selectedFacilities
+      }));
+    }
+  }, [selectedFacilities]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -172,13 +229,31 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   };
 
   const handleFacilityToggle = (facilityId) => {
+    console.log(`🔄 Toggling facility: ${facilityId}`);
+    console.log(`🔄 Current selectedFacilities:`, selectedFacilities);
+    
     setSelectedFacilities(prev => {
-      if (prev.includes(facilityId)) {
-        return prev.filter(id => id !== facilityId);
+      const currentFacilities = prev && Array.isArray(prev) ? prev : [];
+      console.log(`🔄 Current facilities in state:`, currentFacilities);
+      
+      if (currentFacilities.includes(facilityId)) {
+        const newFacilities = currentFacilities.filter(id => id !== facilityId);
+        console.log(`🔄 Removed facility ${facilityId}, new list:`, newFacilities);
+        return newFacilities;
       } else {
-        return [...prev, facilityId];
+        const newFacilities = [...currentFacilities, facilityId];
+        console.log(`🔄 Added facility ${facilityId}, new list:`, newFacilities);
+        return newFacilities;
       }
     });
+    
+    // อัปเดต formData.facilities ทันที
+    setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        facilities: selectedFacilities
+      }));
+    }, 0);
   };
 
   // File upload handlers
@@ -195,29 +270,177 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   const handleProjectImagesUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 100) {
-      alert('อัปโหลดรูปภาพได้ไม่เกิน 100 รูป');
+      Swal.fire({
+        title: 'รูปภาพเกินจำนวนที่กำหนด',
+        text: 'อัปโหลดรูปภาพได้ไม่เกิน 100 รูป',
+        icon: 'warning',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
     setFormData(prev => ({
       ...prev,
-      project_images: files
+      project_images: [...(prev.project_images || []), ...files]
     }));
   };
 
   const removeProjectImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      project_images: prev.project_images.filter((_, i) => i !== index)
-    }));
+    Swal.fire({
+      title: 'ลบรูปภาพ',
+      text: `คุณต้องการลบรูปภาพที่ ${index + 1} หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFormData(prev => ({
+          ...prev,
+          project_images: (prev.project_images || []).filter((_, i) => i !== index)
+        }));
+      }
+    });
+  };
+
+  const removeCoverImage = () => {
+    Swal.fire({
+      title: 'ลบรูปปก',
+      text: 'คุณต้องการลบรูปปกหรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFormData(prev => ({
+          ...prev,
+          cover_image: null
+        }));
+      }
+    });
+  };
+
+  const removeAllProjectImages = () => {
+    Swal.fire({
+      title: 'ลบรูปภาพทั้งหมด',
+      text: 'คุณต้องการลบรูปภาพโครงการทั้งหมดหรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFormData(prev => ({
+          ...prev,
+          project_images: []
+        }));
+      }
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const submitData = {
-      ...formData,
-      facilities: selectedFacilities
-    };
-    onSubmit(submitData);
+    
+    // สร้าง FormData สำหรับส่งรูปภาพ
+    const formDataToSend = new FormData();
+    
+    // เพิ่มข้อมูลพื้นฐาน
+    formDataToSend.append('name_th', formData.name_th);
+    formDataToSend.append('name_en', formData.name_en || '');
+    formDataToSend.append('project_type', formData.project_type);
+    formDataToSend.append('developer', formData.developer);
+    formDataToSend.append('completion_year', formData.completion_year || '');
+    formDataToSend.append('status', formData.status || 'active');
+    formDataToSend.append('area_range', formData.area_range || '');
+    formDataToSend.append('total_units', formData.total_units || '');
+    formDataToSend.append('total_buildings', formData.total_buildings || '');
+    formDataToSend.append('floors_info', formData.floors_info || '');
+    formDataToSend.append('nearby_bts', formData.nearby_bts || '');
+    formDataToSend.append('address', formData.address || '');
+    formDataToSend.append('district', formData.district || '');
+    formDataToSend.append('province', formData.province || '');
+    formDataToSend.append('postal_code', formData.postal_code || '');
+    formDataToSend.append('google_map_embed', formData.google_map_embed || '');
+    formDataToSend.append('location_highlights', formData.location_highlights || '');
+    formDataToSend.append('video_review', formData.video_review || '');
+    formDataToSend.append('official_website', formData.official_website || '');
+    
+    // เพิ่ม facilities
+    console.log('🔄 Submitting facilities:', selectedFacilities);
+    if (selectedFacilities && Array.isArray(selectedFacilities) && selectedFacilities.length > 0) {
+      selectedFacilities.forEach(facility => {
+        formDataToSend.append('facilities', facility);
+      });
+      console.log('✅ Added facilities to form data:', selectedFacilities);
+    } else {
+      // ส่ง array ว่างถ้าไม่มี facilities
+      formDataToSend.append('facilities', '[]');
+      console.log('⚠️ No facilities to submit, sending empty array');
+    }
+    
+    // เพิ่มรูปปก (ถ้ามี)
+    if (formData.cover_image) {
+      formDataToSend.append('cover_image', formData.cover_image);
+    }
+    
+    // เพิ่มรูปภาพโครงการ (ถ้ามี)
+    if (formData.project_images && formData.project_images.length > 0) {
+      formData.project_images.forEach((image, index) => {
+        formDataToSend.append('project_images', image);
+      });
+    }
+    
+    // เพิ่มรูปภาพเดิม (ถ้ามี) เพื่อให้ API รู้ว่าต้องเก็บไว้
+    if (project && project.project_images && project.project_images.length > 0) {
+      project.project_images.forEach((image, index) => {
+        formDataToSend.append('existing_project_images', JSON.stringify(image));
+      });
+    }
+    
+    console.log('📝 Submitting project data with images:', {
+      textData: {
+        name_th: formData.name_th,
+        project_type: formData.project_type,
+        developer: formData.developer
+      },
+      hasCoverImage: !!formData.cover_image,
+      hasExistingCoverImage: !!(project && project.cover_image),
+      projectImagesCount: formData.project_images ? formData.project_images.length : 0,
+      existingProjectImagesCount: project && project.project_images ? project.project_images.length : 0,
+      facilitiesCount: selectedFacilities && Array.isArray(selectedFacilities) ? selectedFacilities.length : 0,
+      facilitiesData: selectedFacilities
+    });
+    
+    // แสดง SweetAlert2 สำหรับข้อมูลที่จะส่ง
+    Swal.fire({
+      title: 'กำลังส่งข้อมูลโครงการ...',
+      html: `
+        <div class="text-left">
+          <p><strong>ชื่อโครงการ:</strong> ${formData.name_th}</p>
+          <p><strong>ประเภท:</strong> ${formData.project_type}</p>
+          <p><strong>ผู้พัฒนา:</strong> ${formData.developer}</p>
+          <p><strong>รูปปก:</strong> ${formData.cover_image ? 'มี' : 'ไม่มี'}</p>
+          <p><strong>รูปภาพโครงการ:</strong> ${formData.project_images ? formData.project_images.length : 0} รูป</p>
+          <p><strong>สิ่งอำนวยความสะดวก:</strong> ${selectedFacilities && Array.isArray(selectedFacilities) ? selectedFacilities.length : 0} รายการ</p>
+        </div>
+      `,
+      icon: 'info',
+      showConfirmButton: true,
+      confirmButtonText: 'ส่งข้อมูล',
+      showCancelButton: true,
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ส่งข้อมูลไปยัง API
+        onSubmit(formDataToSend);
+      }
+    });
   };
 
   const projectTypes = [
@@ -490,21 +713,42 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
               
               {/* แสดง facilities ที่เลือกแล้ว */}
-              {selectedFacilities.length > 0 && (
+              {selectedFacilities && Array.isArray(selectedFacilities) && selectedFacilities.length > 0 && (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-medium text-green-800">
-                        ✅ สิ่งอำนวยความสะดวกที่เลือกแล้ว ({selectedFacilities.length} รายการ)
+                        ✅ สิ่งอำนวยความสะดวกที่เลือกแล้ว ({selectedFacilities && Array.isArray(selectedFacilities) ? selectedFacilities.length : 0} รายการ)
                       </h3>
+                      <p className="text-sm text-green-600 mt-1">
+                        คลิกเพื่อยกเลิกการเลือก
+                      </p>
                     </div>
+                  </div>
+                  
+                  {/* Debug info */}
+                  <div className="mb-3 p-2 bg-green-100 rounded text-xs text-green-700">
+                    <strong>Debug:</strong> selectedFacilities = {JSON.stringify(selectedFacilities)}
+                    <br />
+                    <strong>Debug:</strong> formData.facilities = {JSON.stringify(formData.facilities)}
+                    <br />
+                    <strong>Debug:</strong> selectedFacilities type = {typeof selectedFacilities}
+                    <br />
+                    <strong>Debug:</strong> selectedFacilities isArray = {Array.isArray(selectedFacilities)}
                   </div>
                   
                   {/* Selected Facilities Display */}
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {selectedFacilities.map(facilityId => {
-                      const facility = facilitiesList.find(f => f.id === facilityId)
-                      if (!facility) return null
+                    {selectedFacilities && Array.isArray(selectedFacilities) && selectedFacilities.map(facilityId => {
+                      console.log(`🔍 Looking for facility: ${facilityId}`);
+                      const facility = facilitiesList && Array.isArray(facilitiesList) ? facilitiesList.find(f => f.id === facilityId) : null;
+                      console.log(`🔍 Found facility:`, facility);
+                      
+                      if (!facility) {
+                        console.warn(`⚠️ Facility ${facilityId} not found in facilitiesList`);
+                        return null;
+                      }
+                      
                       return (
                         <div
                           key={facilityId}
@@ -527,11 +771,26 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-4 text-gray-700 flex items-center">
                   <span className="mr-2">📋</span>
-                  เลือกสิ่งอำนวยความสะดวกทั้งหมด ({facilitiesList.length} รายการ)
+                  เลือกสิ่งอำนวยความสะดวกทั้งหมด ({facilitiesList && Array.isArray(facilitiesList) ? facilitiesList.length : 0} รายการ)
                 </h3>
+                
+                {/* Debug info */}
+                <div className="mb-3 p-2 bg-gray-100 rounded text-xs text-gray-700">
+                  <strong>Debug:</strong> selectedFacilities = {JSON.stringify(selectedFacilities)}
+                  <br />
+                  <strong>Debug:</strong> formData.facilities = {JSON.stringify(formData.facilities)}
+                  <br />
+                  <strong>Debug:</strong> project.facilities = {JSON.stringify(project?.facilities)}
+                  <br />
+                  <strong>Debug:</strong> selectedFacilities type = {typeof selectedFacilities}
+                  <br />
+                  <strong>Debug:</strong> selectedFacilities isArray = {Array.isArray(selectedFacilities)}
+                </div>
+                
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {facilitiesList.map(facility => {
-                    const isSelected = selectedFacilities.includes(facility.id)
+                  {facilitiesList && Array.isArray(facilitiesList) && facilitiesList.map(facility => {
+                    const isSelected = selectedFacilities && Array.isArray(selectedFacilities) && selectedFacilities.includes(facility.id)
+                    console.log(`🎯 Facility ${facility.id}: isSelected = ${isSelected}`);
                     
                     return (
                       <div
@@ -632,14 +891,57 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                   </label>
                 </div>
                 
-                {formData.cover_image && (
-                  <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                {/* แสดงรูปปกที่เลือก */}
+                {(formData.cover_image || (project && project.cover_image)) && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-medium text-blue-700 flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-sm text-green-700">
-                      เลือกไฟล์แล้ว: {formData.cover_image.name || 'รูปปก'}
-                    </span>
+                        รูปปกที่เลือก
+                      </p>
+                      <button
+                        type="button"
+                        onClick={removeCoverImage}
+                        className="text-red-500 hover:text-red-700 text-sm flex items-center hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        ลบรูปปก
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <img
+                          src={formData.cover_image && formData.cover_image instanceof File ? URL.createObjectURL(formData.cover_image) : (project && project.cover_image ? project.cover_image : '')}
+                          alt="รูปปกโครงการ"
+                          className="w-28 h-28 object-cover rounded-lg border-2 border-blue-200 shadow-sm"
+                        />
+                        <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm">
+                          ปก
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        {formData.cover_image && formData.cover_image instanceof File ? (
+                          <>
+                            <p className="text-sm font-medium text-gray-900 mb-1">
+                              {formData.cover_image.name}
+                            </p>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                              <span>{(formData.cover_image.size / 1024 / 1024).toFixed(2)} MB</span>
+                              <span>•</span>
+                              <span>{formData.cover_image.type.split('/')[1]?.toUpperCase()}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900 mb-1">
+                            รูปปกที่มีอยู่เดิม
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -686,42 +988,138 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                   </label>
                 </div>
                 
-                {/* แสดงรูปภาพที่เลือก */}
-                {formData.project_images.length > 0 && (
+                {/* แสดงรูปภาพที่เลือกพร้อมพรีวิว */}
+                {(formData.project_images && formData.project_images.length > 0) || (project && project.project_images && project.project_images.length > 0) ? (
                   <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-medium text-gray-700">
-                        รูปภาพที่เลือก ({formData.project_images.length} รูป)
-                      </p>
-                      <span className="text-xs text-gray-500">
-                        {formData.project_images.length}/100 รูป
-                      </span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium text-gray-700">
+                          รูปภาพที่เลือก ({formData.project_images ? formData.project_images.length : 0} รูปใหม่ + {project && project.project_images ? project.project_images.length : 0} รูปเดิม)
+                        </p>
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                          {(formData.project_images ? formData.project_images.length : 0) + (project && project.project_images ? project.project_images.length : 0)}/100 รูป
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeAllProjectImages}
+                        className="text-red-500 hover:text-red-700 text-sm flex items-center hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        ลบทั้งหมด
+                      </button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {formData.project_images.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="bg-white p-3 rounded-lg border border-gray-200 text-center hover:shadow-md transition-shadow">
-                            <div className="w-full h-20 bg-gray-100 rounded flex items-center justify-center mb-2">
-                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <p className="text-xs text-gray-600 truncate" title={file.name}>
-                              {file.name || `รูปที่ ${index + 1}`}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeProjectImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
+                    
+                    {/* Debug info */}
+                    <div className="mb-3 p-2 bg-gray-100 rounded text-xs text-gray-700">
+                      <strong>Debug:</strong> formData.project_images = {JSON.stringify(formData.project_images)}, project.project_images = {JSON.stringify(project && project.project_images)}
+                    </div>
+                    
+                    {/* แสดงรูปภาพเดิม */}
+                    {project && project.project_images && project.project_images.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-gray-600 mb-3">รูปภาพที่มีอยู่เดิม:</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                          {project.project_images.map((image, index) => {
+                            // Safety check สำหรับ image
+                            if (!image) {
+                              console.warn('⚠️ Invalid image object:', image);
+                              return null;
+                            }
+                            
+                            const imageUrl = image.url || image;
+                            if (!imageUrl) {
+                              console.warn('⚠️ No image URL found:', image);
+                              return null;
+                            }
+                            
+                            return (
+                              <div key={`existing-${index}`} className="relative group">
+                                <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
+                                  <div className="relative">
+                                    <img
+                                      src={imageUrl}
+                                      alt={`รูปเดิมที่ ${index + 1}`}
+                                      className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
+                                    />
+                                    <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
+                                      {index + 1}
+                                    </div>
+                                    <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
+                                      เดิม
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-600 truncate mb-1">
+                                      รูปเดิมที่ {index + 1}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      รูปภาพเดิม
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+                    
+                    {/* แสดงรูปภาพใหม่ */}
+                    {formData.project_images && formData.project_images.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-3">รูปภาพใหม่ที่เพิ่ม:</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                          {formData.project_images.map((file, index) => {
+                            // Safety check สำหรับ file
+                            if (!file || !(file instanceof File)) {
+                              console.warn('⚠️ Invalid file object:', file);
+                              return null;
+                            }
+                            
+                            return (
+                              <div key={`new-${index}`} className="relative group">
+                                <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
+                                  <div className="relative">
+                                    <img
+                                      src={URL.createObjectURL(file)}
+                                      alt={`รูปใหม่ที่ ${index + 1}`}
+                                      className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
+                                    />
+                                    <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+                                      {index + 1}
+                                    </div>
+                                    <div className="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">
+                                      ใหม่
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-600 truncate mb-1" title={file.name}>
+                                      {file.name || `รูปใหม่ที่ ${index + 1}`}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeProjectImage(index)}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                                  title="ลบรูปภาพ"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -730,7 +1128,22 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={onCancel}
+                onClick={() => {
+                  Swal.fire({
+                    title: 'ยกเลิกการดำเนินการ',
+                    text: 'คุณต้องการยกเลิกการดำเนินการหรือไม่? ข้อมูลที่กรอกจะหายไป',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'ใช่, ยกเลิกเลย!',
+                    cancelButtonText: 'ไม่, กลับไปกรอกข้อมูล'
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      onCancel();
+                    }
+                  });
+                }}
               >
                 ยกเลิก
               </Button>

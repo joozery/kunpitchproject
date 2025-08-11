@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { projectApi } from '../../lib/projectApi';
 import ProjectForm from './ProjectForm';
+import Swal from 'sweetalert2';
 
 const ProjectManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -20,96 +22,175 @@ const ProjectManagement = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      // TODO: เรียก API เพื่อดึงข้อมูลโครงการ
-      const mockProjects = [
-        {
-          id: 1,
-          name_th: 'ลุมพินี พาร์ค',
-          name_en: 'Lumpini Park',
-          project_type: 'คอนโดมิเนียม',
-          developer: 'ลุมพินี ดีเวลลอปเมนต์',
-          status: 'พร้อมอยู่',
-          total_units: 500,
-          address: '123 ลุมพินี ถนนลุมพินี',
-          district: 'ลุมพินี',
-          province: 'กรุงเทพมหานคร'
-        },
-        {
-          id: 2,
-          name_th: 'สุขุมวิท 71',
-          name_en: 'Sukhumvit 71',
-          project_type: 'บ้านเดี่ยว',
-          developer: 'สุขุมวิท ดีเวลลอปเมนต์',
-          status: 'กำลังก่อสร้าง',
-          total_units: 50,
-          address: '456 สุขุมวิท 71 ถนนสุขุมวิท',
-          district: 'วัฒนา',
-          province: 'กรุงเทพมหานคร'
-        }
-      ];
-      setProjects(mockProjects);
+      console.log('🔄 Fetching projects from API...');
+      const response = await projectApi.getAll();
+      console.log('✅ Projects fetched:', response.data);
+      setProjects(response.data || []);
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('❌ Error fetching projects:', error);
+      
+      Swal.fire({
+        title: 'เกิดข้อผิดพลาด!',
+        text: 'เกิดข้อผิดพลาดในการโหลดข้อมูลโครงการ',
+        icon: 'error',
+        confirmButtonText: 'ตกลง'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddProject = () => {
-    setEditingProject(null);
-    setShowForm(true);
+    Swal.fire({
+      title: 'เพิ่มโครงการใหม่',
+      text: 'คุณต้องการเพิ่มโครงการใหม่หรือไม่?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'ใช่, เพิ่มเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setEditingProject(null);
+        setShowForm(true);
+      }
+    });
   };
 
   const handleEditProject = (project) => {
-    setEditingProject(project);
-    setShowForm(true);
+    Swal.fire({
+      title: 'แก้ไขโครงการ',
+      text: `คุณต้องการแก้ไขโครงการ "${project.name_th}" หรือไม่?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'ใช่, แก้ไขเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setEditingProject(project);
+        setShowForm(true);
+      }
+    });
   };
 
   const handleDeleteProject = async (id) => {
-    if (window.confirm('คุณต้องการลบโครงการนี้หรือไม่?')) {
+    const result = await Swal.fire({
+      title: 'คุณต้องการลบโครงการนี้หรือไม่?',
+      text: "การดำเนินการนี้ไม่สามารถยกเลิกได้!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก'
+    });
+    
+    if (result.isConfirmed) {
       try {
-        // TODO: เรียก API เพื่อลบโครงการ
+        setLoading(true);
+        console.log('🔄 Deleting project:', id);
+        await projectApi.delete(id);
+        console.log('✅ Project deleted:', id);
+        
         setProjects(prev => prev.filter(project => project.id !== id));
-        alert('ลบโครงการเรียบร้อยแล้ว');
+        
+        Swal.fire(
+          'ลบแล้ว!',
+          'โครงการถูกลบเรียบร้อยแล้ว',
+          'success'
+        );
       } catch (error) {
-        console.error('Error deleting project:', error);
-        alert('เกิดข้อผิดพลาดในการลบโครงการ');
+        console.error('❌ Error deleting project:', error);
+        
+        Swal.fire({
+          title: 'เกิดข้อผิดพลาด!',
+          text: `เกิดข้อผิดพลาดในการลบโครงการ: ${error.message}`,
+          icon: 'error',
+          confirmButtonText: 'ตกลง'
+        });
+      } finally {
+        setLoading(false);
       }
     }
   };
 
   const handleSubmit = async (projectData) => {
     try {
+      setLoading(true);
       if (editingProject) {
         // อัปเดตโครงการ
-        // TODO: เรียก API เพื่ออัปเดตโครงการ
+        console.log('🔄 Updating project:', editingProject.id);
+        const response = await projectApi.update(editingProject.id, projectData);
+        console.log('✅ Project updated:', response.data);
+        
+        // อัปเดต state projects โดยรวมข้อมูลเดิมกับข้อมูลใหม่
         setProjects(prev => prev.map(project => 
           project.id === editingProject.id 
-            ? { ...project, ...projectData }
+            ? { 
+                ...project, 
+                ...response.data,
+                // ตรวจสอบว่า facilities มีใน response หรือไม่
+                facilities: response.data.facilities || project.facilities || []
+              }
             : project
         ));
-        alert('อัปเดตโครงการเรียบร้อยแล้ว');
+        
+        Swal.fire({
+          title: 'สำเร็จ!',
+          text: 'อัปเดตโครงการเรียบร้อยแล้ว',
+          icon: 'success',
+          confirmButtonText: 'ตกลง'
+        });
       } else {
         // เพิ่มโครงการใหม่
-        // TODO: เรียก API เพื่อเพิ่มโครงการ
-        const newProject = {
-          id: Date.now(),
-          ...projectData
-        };
-        setProjects(prev => [newProject, ...prev]);
-        alert('เพิ่มโครงการเรียบร้อยแล้ว');
+        console.log('🔄 Creating new project:', projectData);
+        const response = await projectApi.create(projectData);
+        console.log('✅ Project created:', response.data);
+        
+        setProjects(prev => [response.data, ...prev]);
+        
+        Swal.fire({
+          title: 'สำเร็จ!',
+          text: 'เพิ่มโครงการเรียบร้อยแล้ว',
+          icon: 'success',
+          confirmButtonText: 'ตกลง'
+        });
       }
       setShowForm(false);
       setEditingProject(null);
     } catch (error) {
-      console.error('Error saving project:', error);
-      alert('เกิดข้อผิดพลาดในการบันทึกโครงการ');
+      console.error('❌ Error saving project:', error);
+      
+      Swal.fire({
+        title: 'เกิดข้อผิดพลาด!',
+        text: `เกิดข้อผิดพลาดในการบันทึกโครงการ: ${error.message}`,
+        icon: 'error',
+        confirmButtonText: 'ตกลง'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setEditingProject(null);
+    Swal.fire({
+      title: 'ยกเลิกการดำเนินการ',
+      text: 'คุณต้องการยกเลิกการดำเนินการหรือไม่? ข้อมูลที่กรอกจะหายไป',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ยกเลิกเลย!',
+      cancelButtonText: 'ไม่, กลับไปกรอกข้อมูล'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setShowForm(false);
+        setEditingProject(null);
+      }
+    });
   };
 
   const filteredProjects = projects.filter(project =>

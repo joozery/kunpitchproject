@@ -1,10 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1991/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
   try {
+    // ตรวจสอบว่าเป็น FormData หรือไม่
+    const isFormData = options.body instanceof FormData;
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
+      headers: isFormData ? {} : {
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -51,18 +54,40 @@ export const projectApi = {
 
   // Create new project
   create: async (projectData) => {
-    return apiCall('/projects', {
-      method: 'POST',
-      body: JSON.stringify(projectData),
-    });
+    // ตรวจสอบว่าเป็น FormData หรือไม่
+    if (projectData instanceof FormData) {
+      // ส่ง FormData โดยไม่ต้อง set Content-Type (ให้ browser จัดการเอง)
+      return apiCall('/projects', {
+        method: 'POST',
+        body: projectData,
+        headers: {}, // ไม่ต้อง set Content-Type สำหรับ FormData
+      });
+    } else {
+      // ส่ง JSON data
+      return apiCall('/projects', {
+        method: 'POST',
+        body: JSON.stringify(projectData),
+      });
+    }
   },
 
   // Update project
   update: async (id, projectData) => {
-    return apiCall(`/projects/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(projectData),
-    });
+    // ตรวจสอบว่าเป็น FormData หรือไม่
+    if (projectData instanceof FormData) {
+      // ส่ง FormData โดยไม่ต้อง set Content-Type (ให้ browser จัดการเอง)
+      return apiCall(`/projects/${id}`, {
+        method: 'PUT',
+        body: projectData,
+        headers: {}, // ไม่ต้อง set Content-Type สำหรับ FormData
+      });
+    } else {
+      // ส่ง JSON data
+      return apiCall(`/projects/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(projectData),
+      });
+    }
   },
 
   // Delete project
