@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
@@ -53,7 +54,7 @@ const mockFacilities = [
   { id: 'maintenance', label: 'บริการซ่อมบำรุง', icon: Building, category: 'service' }
 ]
 
-const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }) => {
+const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, id = null }) => {
   const [formData, setFormData] = useState({
     // ข้อมูลพื้นฐาน
     title: commercial?.title || '', // ชื่อโครงการ
@@ -1608,6 +1609,53 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false }
 
 // Export CommercialForm component
 export { CommercialForm }
+
+// Wrapper component สำหรับ routing
+export const CommercialFormWrapper = () => {
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const [commercial, setCommercial] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (id && id !== 'add') {
+      // TODO: ดึงข้อมูลจาก API เมื่อมีการเชื่อมต่อ
+      setLoading(false)
+    }
+  }, [id])
+
+  const handleBack = () => {
+    navigate('/admin/commercial')
+  }
+
+  const handleSave = (commercialData) => {
+    // TODO: บันทึกข้อมูลไปยัง API เมื่อมีการเชื่อมต่อ
+    console.log('บันทึกข้อมูล:', commercialData)
+    alert(id ? 'แก้ไขข้อมูลสำเร็จ!' : 'เพิ่มข้อมูลสำเร็จ!')
+    navigate('/admin/commercial')
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <CommercialForm
+      commercial={commercial}
+      onBack={handleBack}
+      onSave={handleSave}
+      isEditing={id && id !== 'add'}
+      id={id}
+    />
+  )
+}
 
 export default CommercialForm
 

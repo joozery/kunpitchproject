@@ -13,7 +13,9 @@ import {
   ChevronRight,
   Building,
   TreePine,
-  Briefcase
+  Briefcase,
+  MessageCircle,
+  FolderOpen
 } from 'lucide-react'
 
 const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
@@ -34,6 +36,13 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       description: 'จัดการข้อมูลอสังหาริมทรัพย์ทั้งหมด',
       path: '/admin/properties',
       icon: Building2
+    },
+    {
+      id: 'projects',
+      title: 'จัดการโครงการ',
+      description: 'จัดการรายละเอียดโครงการต่างๆ',
+      path: '/admin/projects',
+      icon: FolderOpen
     },
     {
       id: 'condos',
@@ -63,7 +72,13 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       path: '/admin/commercial',
       icon: Briefcase
     },
-
+    {
+      id: 'contact',
+      title: 'การติดต่อ',
+      description: 'ตั้งค่าข้อมูลการติดต่อและโซเชียลมีเดีย',
+      path: '/admin/contact',
+      icon: MessageCircle
+    },
     {
       id: 'settings',
       title: 'ตั้งค่า',

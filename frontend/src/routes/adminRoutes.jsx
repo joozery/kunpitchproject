@@ -5,8 +5,10 @@ import CondoManagement from '../components/admin/CondoManagement'
 import HouseManagement from '../components/admin/HouseManagement'
 import LandManagement from '../components/admin/LandManagement'
 import CommercialManagement from '../components/admin/CommercialManagement'
-import CommercialForm from '../components/admin/CommercialForm'
+import { CommercialFormWrapper } from '../components/admin/CommercialForm'
 import CommercialDemo from '../pages/CommercialDemo'
+import ContactSettings from '../components/admin/ContactSettings'
+import ProjectManagement from '../components/admin/ProjectManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
@@ -36,6 +38,16 @@ export const adminRoutes = [
     breadcrumb: ['จัดการ Property', 'ทั้งหมด'],
     icon: 'Building2',
     component: PropertyManagement
+  },
+  {
+    path: '/admin/projects',
+    name: 'projects',
+    title: 'จัดการโครงการ',
+    description: 'จัดการรายละเอียดโครงการต่างๆ',
+    category: 'property',
+    breadcrumb: ['จัดการ Property', 'โครงการ'],
+    icon: 'FolderOpen',
+    component: ProjectManagement
   },
   {
     path: '/admin/condos',
@@ -85,7 +97,7 @@ export const adminRoutes = [
     category: 'property',
     breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว', 'เพิ่มใหม่'],
     icon: 'Plus',
-    component: CommercialForm
+    component: CommercialFormWrapper
   },
   {
     path: '/admin/commercial/edit/:id',
@@ -95,7 +107,7 @@ export const adminRoutes = [
     category: 'property',
     breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว', 'แก้ไข'],
     icon: 'Edit',
-    component: CommercialForm
+    component: CommercialFormWrapper
   },
   {
     path: '/admin/commercial-demo',
@@ -106,6 +118,18 @@ export const adminRoutes = [
     breadcrumb: ['จัดการ Property', 'โฮมออฟฟิศ/ตึกแถว (Demo)'],
     icon: 'TestTube',
     component: CommercialDemo
+  },
+  
+  // Contact Settings Category
+  {
+    path: '/admin/contact',
+    name: 'contact',
+    title: 'การติดต่อ',
+    description: 'ตั้งค่าข้อมูลการติดต่อและโซเชียลมีเดีย',
+    category: 'system',
+    breadcrumb: ['ระบบ', 'การติดต่อ'],
+    icon: 'MessageCircle',
+    component: ContactSettings
   },
   
   {
