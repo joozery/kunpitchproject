@@ -46,15 +46,15 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
     },
     {
       id: 'condos',
-      title: 'คอนโด',
-      description: 'จัดการคอนโดมิเนียม',
+      title: 'คอนโด/อพาร์ตเม้นท์',
+      description: 'จัดการคอนโดมิเนียมและอพาร์ตเม้นท์',
       path: '/admin/condos',
       icon: Building
     },
     {
       id: 'houses',
-      title: 'บ้านเดี่ยว/ทาวเฮาส์/อพาร์ตเม้นท์',
-      description: 'จัดการบ้านเดี่ยว ทาวน์เฮาส์ อพาร์ตเม้นท์',
+      title: 'บ้านเดี่ยว/ทาวเฮาส์',
+      description: 'จัดการบ้านเดี่ยวและทาวน์เฮาส์',
       path: '/admin/houses',
       icon: HomeIcon
     },

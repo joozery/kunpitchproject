@@ -14,7 +14,8 @@ import {
   X,
   Maximize,
   Search,
-  Camera
+  Camera,
+  Calculator
 } from 'lucide-react'
 
 
@@ -48,6 +49,9 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     ngan: land?.ngan?.toString() || '', // งาน
     wah: land?.wah?.toString() || '', // วา
     pricePerSqWa: land?.pricePerSqWa?.toString() || '', // ราคาต่อ sq.wa
+    pricePerSqm: land?.pricePerSqm?.toString() || '', // ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
+    rentPricePerSqWa: land?.rentPricePerSqWa?.toString() || '', // ราคาเช่าต่อ ตร.วา (คำนวณอัตโนมัติ)
+    rentPricePerSqm: land?.rentPricePerSqm?.toString() || '', // ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
     view: land?.view || '', // วิวที่มองเห็น
     unitNumber: land?.unitNumber || '', // เลขที่ยูนิต
     
@@ -130,12 +134,12 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     }
   }, [isEditing, land])
 
-  // Generate auto project code (ws + ตัวเลข 7 หลัก)
+  // Generate auto project code (WS + ตัวเลข 7 หลัก)
   React.useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
+      const code = `WS${timestamp.toString().slice(-4)}${randomNum}` // รหัส WS + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -160,34 +164,25 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
   React.useEffect(() => {
     const totalSqWa = computeTotalSquareWa()
     if (totalSqWa > 0) {
+      // คำนวณราคาต่อ ตร.วา
       let pricePerSqWa = 0
-      if (formData.status === 'rent' && formData.rentPrice) {
-        const rent = parseFloat(formData.rentPrice)
-        if (!isNaN(rent) && rent > 0) {
-          pricePerSqWa = parseFloat((rent / totalSqWa).toFixed(2))
-        }
-      } else if (formData.status === 'sale' && formData.price) {
-        const price = parseFloat(formData.price)
-        if (!isNaN(price) && price > 0) {
-          pricePerSqWa = parseFloat((price / totalSqWa).toFixed(2))
-        }
-      } else if (formData.status === 'both') {
-        if (formData.price) {
-          const price = parseFloat(formData.price)
-          if (!isNaN(price) && price > 0) {
-            pricePerSqWa = parseFloat((price / totalSqWa).toFixed(2))
-          }
-        } else if (formData.rentPrice) {
-          const rent = parseFloat(formData.rentPrice)
-          if (!isNaN(rent) && rent > 0) {
-            pricePerSqWa = parseFloat((rent / totalSqWa).toFixed(2))
-          }
-        }
-      }
+      let rentPricePerSqWa = 0
 
-      if (pricePerSqWa > 0 && String(pricePerSqWa) !== formData.pricePerSqWa) {
-        setFormData(prev => ({ ...prev, pricePerSqWa: String(pricePerSqWa) }))
-      }
+      const price = parseFloat(formData.price)
+      const rent = parseFloat(formData.rentPrice)
+      if (!isNaN(price) && price > 0) pricePerSqWa = parseFloat((price / totalSqWa).toFixed(2))
+      if (!isNaN(rent) && rent > 0) rentPricePerSqWa = parseFloat((rent / totalSqWa).toFixed(2))
+
+      // คำนวณราคาต่อ ตร.ม. (1 ตร.วา = 4 ตร.ม.)
+      const pricePerSqm = pricePerSqWa > 0 ? parseFloat((pricePerSqWa / 4).toFixed(2)) : 0
+      const rentPricePerSqm = rentPricePerSqWa > 0 ? parseFloat((rentPricePerSqWa / 4).toFixed(2)) : 0
+
+      const next = { ...formData }
+      if (pricePerSqWa > 0) next.pricePerSqWa = String(pricePerSqWa)
+      if (pricePerSqm > 0) next.pricePerSqm = String(pricePerSqm)
+      if (rentPricePerSqWa > 0) next.rentPricePerSqWa = String(rentPricePerSqWa)
+      if (rentPricePerSqm > 0) next.rentPricePerSqm = String(rentPricePerSqm)
+      setFormData(next)
     }
   }, [formData.price, formData.rentPrice, formData.status, formData.squareWa, formData.rai, formData.ngan, formData.wah])
 
@@ -550,7 +545,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
+                รหัสโครงการ (WS + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
@@ -658,7 +653,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="thai">สัญชาติไทย</option>
-                <option value="foreign">สัญชาติต่างชาติ</option>
+                <option value="foreign">สัญชาติไทย/ต่างชาติ</option>
               </select>
               {errors.landOwnership && <p className="text-red-500 text-sm mt-1">{errors.landOwnership}</p>}
             </div>
@@ -850,6 +845,56 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
                   <span className="text-sm text-gray-500">วา</span>
                 </div>
               </div>
+            </div>
+
+            {/* ราคาขายต่อ ตร.ม. */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
+              </label>
+              <div className="relative">
+                <Input
+                  value={formData.pricePerSqm ? `฿${parseFloat(formData.pricePerSqm).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /ตร.ม.` : ''}
+                  readOnly
+                  className="bg-green-50 border-green-200 text-green-700 font-semibold"
+                  placeholder="จะคำนวณจากราคาขาย"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <Calculator className="h-4 w-4 text-green-500" />
+                </div>
+              </div>
+              {formData.pricePerSqm && (
+                <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded">
+                  <p className="text-xs text-green-700">
+                    ✅ คำนวณจากราคาขาย = ฿{parseFloat(formData.pricePerSqm).toLocaleString('th-TH')} /ตร.ม.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ราคาเช่าต่อ ตร.ม. */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
+              </label>
+              <div className="relative">
+                <Input
+                  value={formData.rentPricePerSqm ? `฿${parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /ตร.ม./เดือน` : ''}
+                  readOnly
+                  className="bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                  placeholder="จะคำนวณจากราคาเช่า"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <Calculator className="h-4 w-4 text-blue-500" />
+                </div>
+              </div>
+              {formData.rentPricePerSqm && (
+                <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-xs text-blue-700">
+                    ✅ คำนวณจากราคาเช่า = ฿{parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH')} /ตร.ม./เดือน
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* เลขที่ยูนิต */}

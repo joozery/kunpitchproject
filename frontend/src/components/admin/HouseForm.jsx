@@ -187,12 +187,12 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     } else setSelectedProjectInfo(null)
   }, [formData.selectedProject, projects])
 
-  // Generate auto project code (ws + ตัวเลข 7 หลัก)
+  // Generate auto project code (WS + ตัวเลข 7 หลัก)
   useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
+      const code = `WS${timestamp.toString().slice(-4)}${randomNum}` // รหัส WS + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -237,6 +237,8 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       if (!isNaN(sqwa) && !isNaN(price) && sqwa > 0 && price > 0) {
         const pricePerSqWa = (price / sqwa).toFixed(2)
         setFormData(prev => ({ ...prev, pricePerSqWa }))
+      } else if (!formData.price || !formData.landAreaSqWa) {
+        setFormData(prev => ({ ...prev, pricePerSqWa: '' }))
       }
     }
   }, [formData.price, formData.landAreaSqWa])
@@ -248,6 +250,8 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       if (!isNaN(sqwa) && !isNaN(rent) && sqwa > 0 && rent > 0) {
         const rentPricePerSqWa = (rent / sqwa).toFixed(2)
         setFormData(prev => ({ ...prev, rentPricePerSqWa }))
+      } else if (!formData.rentPrice || !formData.landAreaSqWa) {
+        setFormData(prev => ({ ...prev, rentPricePerSqWa: '' }))
       }
     }
   }, [formData.rentPrice, formData.landAreaSqWa])
@@ -407,6 +411,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         rent_price_per_sqwa: parseFloat(formData.rentPricePerSqWa) || null,
         seo_tags: formData.seoTags,
         is_new_house: Boolean(formData.isNewHouse),
+        project_code: formData.projectCode, // ส่งรหัสโครงการที่สร้าง WSxxx ไปเก็บ
         selected_project: formData.selectedProject,
         available_date: formData.availableDate,
         facilities: formData.facilities,
@@ -881,76 +886,97 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               {errors.floor && <p className="text-red-500 text-sm mt-1">{errors.floor}</p>}
             </div>
 
-            {/* ราคาต่อ per sq.m. */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ราคาต่อ per sq.m. (ฟังก์ชันคำนวณอัตโนมัติ)
-              </label>
-              <div className="relative">
-                <Input
-                  value={formData.pricePerSqm ? `฿${parseFloat(formData.pricePerSqm).toLocaleString('th-TH', { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                  })} /ตร.ม.${formData.status === 'rent' ? '/เดือน' : ''}` : ''}
-                  readOnly
-                  className="bg-green-50 border-green-200 text-green-700 font-semibold"
-                  placeholder="จะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน"
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <Calculator className="h-4 w-4 text-green-500" />
-                </div>
-              </div>
-              
-              {/* สถานะการคำนวณ */}
-              {formData.pricePerSqm && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                  <p className="text-sm text-green-700 font-medium">
-                    ✅ คำนวณแล้ว: {formData.status === 'rent' ? 'จากราคาเช่า' : formData.status === 'sale' ? 'จากราคาขาย' : 'จากราคา'} 
-                    = ฿{parseFloat(formData.pricePerSqm).toLocaleString('th-TH', { 
-                      minimumFractionDigits: 2, 
-                      maximumFractionDigits: 2 
-                    })} /ตร.ม.{formData.status === 'rent' ? '/เดือน' : ''}
-                  </p>
-                </div>
-              )}
-              
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-medium text-blue-800 mb-1">ตัวอย่างการคำนวณ:</h4>
-                {formData.status === 'rent' ? (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      ราคาเช่า: 25,000 บาท/เดือน ÷ 47.48 ตารางเมตร = 526.54 บาท/ตร.ม./เดือน
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคาเช่า ÷ พื้นที่ = ราคาต่อตารางเมตรต่อเดือน
-                    </p>
+            {/* ราคาขาย/เช่าต่อ ตร.ม. */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ราคาขายต่อ ตร.ม. */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                  ราคาขายต่อ ตร.ม. (คำนวณอัตโนมัติ)
+                </label>
+                <div className="relative">
+                  <Input
+                    value={formData.pricePerSqm ? `฿${parseFloat(formData.pricePerSqm).toLocaleString('th-TH', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })} /ตร.ม.` : ''}
+                    readOnly
+                    className="bg-green-50 border-green-200 text-green-700 font-semibold"
+                    placeholder="จะคำนวณจากราคาขาย"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <Calculator className="h-4 w-4 text-green-500" />
                   </div>
-                ) : formData.status === 'sale' ? (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      ราคาขาย: 4,800,000 บาท ÷ 47.48 ตารางเมตร = 101,095.95 บาท/ตร.ม.
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคาขาย ÷ พื้นที่ = ราคาต่อตารางเมตร
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      48,000 บาท ÷ 47.48 ตารางเมตร = 1,010.95 บาท/ตร.ม.
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      การคำนวณ: ราคา ÷ พื้นที่ = ราคาต่อตารางเมตร
+                </div>
+                {formData.pricePerSqm && (
+                  <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-xs text-green-700">
+                      ✅ คำนวณจากราคาขาย = ฿{parseFloat(formData.pricePerSqm).toLocaleString('th-TH')}
+                      {' '} /ตร.ม.
                     </p>
                   </div>
                 )}
-                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="text-xs text-yellow-700">
-                    💡 <strong>หมายเหตุ:</strong> ระบบจะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน
-                    {formData.status === 'rent' && ' (ราคาเช่าต่อเดือน)'}
-                    {formData.status === 'sale' && ' (ราคาขาย)'}
-                    {formData.status === 'both' && ' (ราคาขายหรือราคาเช่า)'}
-                  </p>
+              </div>
+
+              {/* ราคาเช่าต่อ ตร.ม. */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                  ราคาเช่าต่อ ตร.ม. (คำนวณอัตโนมัติ)
+                </label>
+                <div className="relative">
+                  <Input
+                    value={formData.rentPricePerSqm ? `฿${parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })} /ตร.ม./เดือน` : ''}
+                    readOnly
+                    className="bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                    placeholder="จะคำนวณจากราคาเช่า"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <Calculator className="h-4 w-4 text-blue-500" />
+                  </div>
+                </div>
+                {formData.rentPricePerSqm && (
+                  <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-xs text-blue-700">
+                      ✅ คำนวณจากราคาเช่า = ฿{parseFloat(formData.rentPricePerSqm).toLocaleString('th-TH')} /ตร.ม./เดือน
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* ตัวอย่างการคำนวณ */}
+              <div className="md:col-span-2">
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="text-sm font-medium text-blue-800 mb-1">ตัวอย่างการคำนวณ:</h4>
+                  {formData.status === 'rent' ? (
+                    <div>
+                      <p className="text-sm text-blue-700">
+                        ราคาเช่า: 25,000 บาท/เดือน ÷ 47.48 ตารางเมตร = 526.54 บาท/ตร.ม./เดือน
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคาเช่า ÷ พื้นที่ = ราคาต่อตารางเมตรต่อเดือน</p>
+                    </div>
+                  ) : formData.status === 'sale' ? (
+                    <div>
+                      <p className="text-sm text-blue-700">
+                        ราคาขาย: 4,800,000 บาท ÷ 47.48 ตารางเมตร = 101,095.95 บาท/ตร.ม.
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคาขาย ÷ พื้นที่ = ราคาต่อตารางเมตร</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-blue-700">48,000 บาท ÷ 47.48 ตารางเมตร = 1,010.95 บาท/ตร.ม.</p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคา ÷ พื้นที่ = ราคาต่อตารางเมตร</p>
+                    </div>
+                  )}
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-700">
+                      💡 <strong>หมายเหตุ:</strong> ระบบจะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน
+                      {formData.status === 'rent' && ' (ราคาเช่าต่อเดือน)'}
+                      {formData.status === 'sale' && ' (ราคาขาย)'}
+                      {formData.status === 'both' && ' (ราคาขายหรือราคาเช่า)'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -965,6 +991,13 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
                   className="bg-green-50 border-green-200 text-green-700 font-semibold"
                   placeholder="จะคำนวณจากราคาขาย ÷ พื้นที่ดิน (ตร.ว.)"
                 />
+                {formData.pricePerSqWa && (
+                  <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-xs text-green-700">
+                      ✅ คำนวณแล้ว: จากราคาขาย ÷ พื้นที่ดิน (ตร.ว.) = ฿{parseFloat(formData.pricePerSqWa).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /ตร.ว.
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">ราคาเช่าต่อ ตร.ว. (คำนวณอัตโนมัติ)</label>
@@ -974,6 +1007,46 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
                   className="bg-blue-50 border-blue-200 text-blue-700 font-semibold"
                   placeholder="จะคำนวณจากราคาเช่า ÷ พื้นที่ดิน (ตร.ว.)"
                 />
+                {formData.rentPricePerSqWa && (
+                  <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-xs text-blue-700">
+                      ✅ คำนวณแล้ว: จากราคาเช่า ÷ พื้นที่ดิน (ตร.ว.) = ฿{parseFloat(formData.rentPricePerSqWa).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /ตร.ว./เดือน
+                    </p>
+                  </div>
+                )}
+              </div>
+              {/* ตัวอย่างการคำนวณ ตร.ว. */}
+              <div className="md:col-span-2">
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="text-sm font-medium text-blue-800 mb-1">ตัวอย่างการคำนวณ:</h4>
+                  {formData.status === 'rent' ? (
+                    <div>
+                      <p className="text-sm text-blue-700">
+                        ราคาเช่า: {formData.rentPrice ? parseFloat(formData.rentPrice).toLocaleString('th-TH') : '—'} บาท/เดือน ÷ {formData.landAreaSqWa || '—'} ตารางวา = {formData.rentPrice && formData.landAreaSqWa ? (parseFloat(formData.rentPrice) / parseFloat(formData.landAreaSqWa)).toFixed(2) : '—'} บาท/ตร.ว./เดือน
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคาเช่า ÷ พื้นที่ดิน (ตร.ว.) = ราคาเช่าต่อ ตร.ว.</p>
+                    </div>
+                  ) : formData.status === 'sale' ? (
+                    <div>
+                      <p className="text-sm text-blue-700">
+                        ราคาขาย: {formData.price ? parseFloat(formData.price).toLocaleString('th-TH') : '—'} บาท ÷ {formData.landAreaSqWa || '—'} ตารางวา = {formData.price && formData.landAreaSqWa ? (parseFloat(formData.price) / parseFloat(formData.landAreaSqWa)).toFixed(2) : '—'} บาท/ตร.ว.
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคาขาย ÷ พื้นที่ดิน (ตร.ว.) = ราคาขายต่อ ตร.ว.</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-blue-700">
+                        {formData.price ? parseFloat(formData.price).toLocaleString('th-TH') : '—'} บาท ÷ {formData.landAreaSqWa || '—'} ตารางวา = {formData.price && formData.landAreaSqWa ? (parseFloat(formData.price) / parseFloat(formData.landAreaSqWa)).toFixed(2) : '—'} บาท/ตร.ว.
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">การคำนวณ: ราคา ÷ พื้นที่ดิน (ตร.ว.) = ราคา/เช่าต่อ ตร.ว.</p>
+                    </div>
+                  )}
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-700">
+                      💡 <strong>หมายเหตุ:</strong> ระบบจะคำนวณอัตโนมัติเมื่อกรอกข้อมูลครบถ้วน (ราคาขาย/เช่า + พื้นที่ดินเป็น ตร.ว.)
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

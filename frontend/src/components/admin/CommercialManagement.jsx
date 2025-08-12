@@ -36,72 +36,54 @@ import {
   Wifi,
   Coffee
 } from 'lucide-react'
+import { commercialApi } from '../../lib/projectApi'
 
 const CommercialManagement = () => {
   const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [viewMode, setViewMode] = useState('table')
 
-  // Mock data for commercial properties
+  // ดึงข้อมูลจาก API จริง
   useEffect(() => {
-    const mockProperties = [
-      {
-        id: 1,
-        title: 'โฮมออฟฟิศ 3 ชั้น ย่านธุรกิจ',
-        location: 'สาทร, กรุงเทพฯ',
-        price: 12000000,
-        rentPrice: 65000,
-        usableArea: 180,
-        parkingSpaces: 3,
-        floors: 3,
-        status: 'available',
-        type: 'home_office',
-        yearBuilt: 2020,
-        features: ['ตกแต่งพร้อม', 'ลิฟต์', 'ระบบรักษาความปลอดภัย', 'ที่จอดรถ'],
-        facilities: ['ห้องประชุม', 'ครัวเล็ก', 'ห้องน้ำแยก', 'ระเบียง'],
-        utilities: {
-          internet: true,
-          aircon: true,
-          parking: true,
-          security: true
-        },
-        images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-15'
-      },
-      {
-        id: 2,
-        title: 'ตึกแถว 4 ชั้น หน้ากว้าง',
-        location: 'ห้วยขวาง, กรุงเทพฯ',
-        price: 18500000,
-        rentPrice: 85000,
-        usableArea: 320,
-        parkingSpaces: 2,
-        floors: 4,
-        status: 'available',
-        type: 'shophouse',
-        yearBuilt: 2018,
-        features: ['หน้าร้านกว้าง', 'ติดถนนใหญ่', 'ลิฟต์สินค้า', 'โกดังหลังบ้าน'],
-        facilities: ['ห้องน้ำแยกชาย-หญิง', 'ครัวใหญ่', 'ระบบดับเพลิง', 'ที่จอดรถ'],
-        utilities: {
-          internet: true,
-          aircon: true,
-          parking: true,
-          security: false
-        },
-        images: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-        createdAt: '2024-01-12'
-      }
-    ]
-
-    setTimeout(() => {
-      setProperties(mockProperties)
-      setLoading(false)
-    }, 1000)
+    fetchProperties()
   }, [])
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await commercialApi.getAll()
+      console.log('ดึงข้อมูลโฮมออฟฟิศ/ตึกแถวสำเร็จ:', result)
+      setProperties(result.data || [])
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', err)
+      setError('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง')
+      setProperties([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('คุณแน่ใจหรือไม่ที่จะลบรายการนี้?')) {
+      return
+    }
+
+    try {
+      await commercialApi.delete(id)
+      console.log('ลบโฮมออฟฟิศ/ตึกแถวสำเร็จ:', id)
+      alert('ลบรายการสำเร็จ!')
+      fetchProperties() // ดึงข้อมูลใหม่
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการลบ:', err)
+      alert('เกิดข้อผิดพลาดในการลบ กรุณาลองใหม่อีกครั้ง')
+    }
+  }
 
   const getStatusColor = (status) => {
     const colors = {
@@ -147,7 +129,22 @@ const CommercialManagement = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-          <span className="text-gray-600 font-prompt">กำลังโหลดข้อมูล...</span>
+          <span className="text-gray-600 font-prompt">กำลังโหลดข้อมูลโฮมออฟฟิศ/ตึกแถว...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="text-center space-y-4">
+          <div className="text-red-500 text-6xl">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 font-prompt">เกิดข้อผิดพลาด</h3>
+          <p className="text-gray-600 font-prompt">{error}</p>
+          <Button onClick={fetchProperties} className="bg-purple-600 hover:bg-purple-700">
+            ลองใหม่อีกครั้ง
+          </Button>
         </div>
       </div>
     )
@@ -306,152 +303,184 @@ const CommercialManagement = () => {
         {viewMode === 'table' ? (
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-prompt">อสังหาฯ</TableHead>
-                    <TableHead className="font-prompt">ประเภท</TableHead>
-                    <TableHead className="font-prompt">ที่อยู่</TableHead>
-                    <TableHead className="font-prompt">ราคา</TableHead>
-                    <TableHead className="font-prompt">สถานะ</TableHead>
-                    <TableHead className="font-prompt">ขนาด</TableHead>
-                    <TableHead className="font-prompt">จัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProperties.map((property) => (
-                    <TableRow key={property.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={property.images[0]}
-                            alt={property.title}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-900 font-prompt">{property.title}</p>
-                            <p className="text-sm text-gray-500 font-prompt">
-                              {property.floors} ชั้น • {property.parkingSpaces} ที่จอด
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-prompt">{getTypeText(property.type)}</TableCell>
-                      <TableCell className="font-prompt">{property.location}</TableCell>
-                      <TableCell className="font-prompt">
-                        <div>
-                          <p className="font-medium text-gray-900">฿{property.price.toLocaleString()}</p>
-                          {property.rentPrice > 0 && (
-                            <p className="text-sm text-gray-500">฿{property.rentPrice.toLocaleString()}/เดือน</p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(property.status)}`}>
-                          {getStatusText(property.status)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-prompt">{property.usableArea} ตร.ม.</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {filteredProperties.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-6xl mb-4">🏢</div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-prompt mb-2">ยังไม่มีข้อมูลโฮมออฟฟิศ/ตึกแถว</h3>
+                  <p className="text-gray-600 font-prompt mb-6">เริ่มต้นโดยการเพิ่มข้อมูลโฮมออฟฟิศ/ตึกแถวใหม่</p>
+                  <Button 
+                    onClick={() => navigate('/admin/commercial/add')}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    เพิ่มโฮมออฟฟิศ/ตึกแถวใหม่
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-prompt">อสังหาฯ</TableHead>
+                      <TableHead className="font-prompt">ประเภท</TableHead>
+                      <TableHead className="font-prompt">ที่อยู่</TableHead>
+                      <TableHead className="font-prompt">ราคา</TableHead>
+                      <TableHead className="font-prompt">สถานะ</TableHead>
+                      <TableHead className="font-prompt">ขนาด</TableHead>
+                      <TableHead className="font-prompt">จัดการ</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProperties.map((property) => (
+                      <TableRow key={property.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={property.cover_image || property.images?.[0] || '/placeholder-image.jpg'}
+                              alt={property.title}
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                            <div>
+                              <p className="font-medium text-gray-900 font-prompt">{property.title}</p>
+                              <p className="text-sm text-gray-500 font-prompt">
+                                {property.floors || 0} ชั้น • {property.parking_spaces || 0} ที่จอด
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-prompt">{getTypeText(property.property_type)}</TableCell>
+                        <TableCell className="font-prompt">{property.location}</TableCell>
+                        <TableCell className="font-prompt">
+                          <div>
+                            <p className="font-medium text-gray-900">฿{Number(property.price || 0).toLocaleString('th-TH')}</p>
+                            {Number(property.rent_price) > 0 && (
+                              <p className="text-sm text-gray-500">฿{Number(property.rent_price).toLocaleString('th-TH')}/เดือน</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full font-prompt ${getStatusColor(property.status)}`}>
+                            {getStatusText(property.status)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-prompt">{property.area || 0} ตร.ม.</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden">
-                <div className="relative">
-                  <img
-                    src={property.images[0]}
-                    alt={property.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(property.status)}`}>
-                      {getStatusText(property.status)}
-                    </span>
-                  </div>
-                  <div className="absolute top-2 right-2 flex space-x-1">
-                    <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
-                      <Star className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 font-prompt">{property.title}</h3>
-                      <p className="text-sm text-gray-500 font-prompt">{property.location}</p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
-                      <div className="flex items-center space-x-1">
-                        <Maximize className="h-4 w-4" />
-                        <span>{property.usableArea} ตร.ม.</span>
+          <>
+            {filteredProperties.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">🏢</div>
+                <h3 className="text-lg font-semibold text-gray-900 font-prompt mb-2">ยังไม่มีข้อมูลโฮมออฟฟิศ/ตึกแถว</h3>
+                <p className="text-gray-600 font-prompt mb-6">เริ่มต้นโดยการเพิ่มข้อมูลโฮมออฟฟิศ/ตึกแถวใหม่</p>
+                <Button 
+                  onClick={() => navigate('/admin/commercial/add')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  เพิ่มโฮมออฟฟิศ/ตึกแถวใหม่
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProperties.map((property) => (
+                  <Card key={property.id} className="overflow-hidden">
+                    <div className="relative">
+                      <img
+                        src={property.cover_image || property.images?.[0] || '/placeholder-image.jpg'}
+                        alt={property.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(property.status)}`}>
+                          {getStatusText(property.status)}
+                        </span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Car className="h-4 w-4" />
-                        <span>{property.parkingSpaces} ที่จอด</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900 font-prompt">฿{property.price.toLocaleString()}</p>
-                        {property.rentPrice > 0 && (
-                          <p className="text-sm text-gray-500 font-prompt">฿{property.rentPrice.toLocaleString()}/เดือน</p>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500 font-prompt">
-                        {property.floors} ชั้น
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="text-sm text-gray-500 font-prompt">
-                        {getTypeText(property.type)} • {property.yearBuilt}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
+                          <Heart className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
+                          <Star className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 font-prompt">{property.title}</h3>
+                          <p className="text-sm text-gray-500 font-prompt">{property.location}</p>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
+                          <div className="flex items-center space-x-1">
+                            <Maximize className="h-4 w-4" />
+                            <span>{property.area || 0} ตร.ม.</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Car className="h-4 w-4" />
+                            <span>{property.parking_spaces || 0} ที่จอด</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-900 font-prompt">฿{Number(property.price || 0).toLocaleString('th-TH')}</p>
+                            {Number(property.rent_price) > 0 && (
+                              <p className="text-sm text-gray-500 font-prompt">฿{Number(property.rent_price).toLocaleString('th-TH')}/เดือน</p>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 font-prompt">
+                            {property.floors || 0} ชั้น
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div className="text-sm text-gray-500 font-prompt">
+                            {getTypeText(property.property_type)} • {property.building_age || 'N/A'}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/commercial/edit/${property.id}`)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </AnimatePresence>
     </motion.div>

@@ -20,37 +20,43 @@ import {
   Calendar,
   Calculator,
   Store,
-  Car,
-  Users,
   Home
 } from 'lucide-react'
+// New icons for facilities
+import { FaCar } from 'react-icons/fa'
+import { LuCctv } from 'react-icons/lu'
+import { MdElevator, MdOutlineWifiPassword, MdElectricBolt } from 'react-icons/md'
+import { TbAirConditioning } from 'react-icons/tb'
+import { IoWater } from 'react-icons/io5'
+import { RiAlarmWarningFill } from 'react-icons/ri'
+import { SiGooglecloudstorage } from 'react-icons/si'
+import { FaToiletPortable, FaRegTrashCan } from 'react-icons/fa6'
+import { BiSolidUniversalAccess } from 'react-icons/bi'
 import { FacilityIcons } from '../icons/FacilityIcons'
 import { commercialApi } from '../../lib/projectApi'
+import { uploadAPI } from '../../lib/api'
 
 // ฟังก์ชันสร้างรหัสโครงการอัตโนมัติ
 const generateProjectCode = () => {
   const timestamp = Date.now()
   const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-  return `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
+  return `WS${timestamp.toString().slice(-4)}${randomNum}` // รหัส WS + ตัวเลข 7 หลัก
 }
 
 // Mock data สำหรับ facilities (ไม่ต้องเชื่อมต่อ API)
 const mockFacilities = [
-  { id: 'parking', label: 'ที่จอดรถ', icon: Car, category: 'parking' },
-  { id: 'security', label: 'ระบบรักษาความปลอดภัย', icon: Users, category: 'security' },
-  { id: 'elevator', label: 'ลิฟต์', icon: Building, category: 'building' },
-  { id: 'air_conditioning', label: 'เครื่องปรับอากาศ', icon: Building, category: 'building' },
-  { id: 'internet', label: 'อินเทอร์เน็ต', icon: Building, category: 'technology' },
-  { id: 'water_supply', label: 'ระบบน้ำประปา', icon: Building, category: 'utility' },
-  { id: 'electricity', label: 'ระบบไฟฟ้า', icon: Building, category: 'utility' },
-  { id: 'drainage', label: 'ระบบระบายน้ำ', icon: Building, category: 'utility' },
-  { id: 'fire_safety', label: 'ระบบป้องกันอัคคีภัย', icon: Building, category: 'safety' },
-  { id: 'cctv', label: 'กล้องวงจรปิด', icon: Camera, category: 'security' },
-  { id: 'access_control', label: 'ระบบควบคุมการเข้าออก', icon: Users, category: 'security' },
-  { id: 'backup_power', label: 'ไฟฟ้าสำรอง', icon: Building, category: 'utility' },
-  { id: 'waste_management', label: 'ระบบจัดการขยะ', icon: Building, category: 'utility' },
-  { id: 'landscaping', label: 'ภูมิทัศน์', icon: Building, category: 'aesthetic' },
-  { id: 'maintenance', label: 'บริการซ่อมบำรุง', icon: Building, category: 'service' }
+  { id: 'parking', label: 'Parking', icon: FaCar, category: 'parking' },
+  { id: 'security_cctv', label: 'Security with CCTV', icon: LuCctv, category: 'security' },
+  { id: 'elevator', label: 'Lift', icon: MdElevator, category: 'building' },
+  { id: 'air_conditioning', label: 'Air Conditioner', icon: TbAirConditioning, category: 'building' },
+  { id: 'internet', label: 'Internet / Wi-Fi', icon: MdOutlineWifiPassword, category: 'technology' },
+  { id: 'water_supply', label: 'Water supply system', icon: IoWater, category: 'utility' },
+  { id: 'electricity', label: 'Electrical system', icon: MdElectricBolt, category: 'utility' },
+  { id: 'toilet', label: 'Toilet', icon: FaToiletPortable, category: 'utility' },
+  { id: 'alarm', label: 'Alarm', icon: RiAlarmWarningFill, category: 'safety' },
+  { id: 'access_control', label: 'Access Control', icon: BiSolidUniversalAccess, category: 'security' },
+  { id: 'storage', label: 'พื้นที่เก็บของ', icon: SiGooglecloudstorage, category: 'aesthetic' },
+  { id: 'waste_management', label: 'ระบบจัดการขยะ', icon: FaRegTrashCan, category: 'utility' },
 ]
 
 const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, id = null }) => {
@@ -189,16 +195,22 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
         setCoverImage(null)
       }
 
-      // Set gallery images (exclude cover if duplicated)
-      const urls = Array.isArray(commercial.images) ? commercial.images : []
-      const filtered = coverUrl ? urls.filter(u => u !== coverUrl) : urls
-      const mappedImages = filtered.map((url, idx) => ({
-        id: `img-${Date.now()}-${idx}`,
-        preview: url,
-        url,
-        public_id: undefined,
-        uploading: false
-      }))
+      // Set gallery images (support both array of URLs and array of objects)
+      const rawImages = Array.isArray(commercial.images) ? commercial.images : []
+      const mappedImages = rawImages
+        .map((item, idx) => {
+          const imageUrl = typeof item === 'string' ? item : (item?.url || item?.image_url)
+          const publicId = typeof item === 'string' ? undefined : (item?.public_id)
+          if (!imageUrl || (coverUrl && imageUrl === coverUrl)) return null
+          return {
+            id: `img-${Date.now()}-${idx}`,
+            preview: imageUrl,
+            url: imageUrl,
+            public_id: publicId,
+            uploading: false
+          }
+        })
+        .filter(Boolean)
       setImages(mappedImages)
     }
   }, [isEditing, commercial])
@@ -208,7 +220,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
+      const code = `WS${timestamp.toString().slice(-4)}${randomNum}` // รหัส WS + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -318,23 +330,23 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     }
   }
 
-  // Local image upload simulation (ไม่ต้องเชื่อมต่อ API)
+  // อัปโหลดรูปไป Cloudinary ผ่าน API
   const handleImageUpload = async (file, isCover = false) => {
     try {
       setUploading(true)
-      
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Create local URL for preview
-      const imageUrl = URL.createObjectURL(file)
-      
+
+      const result = await uploadAPI.uploadSingle(file)
+      const uploaded = result?.data || result
+      const imageUrl = uploaded.url
+      const publicId = uploaded.public_id
+
       const imageData = {
         id: Date.now().toString(),
-        preview: imageUrl,
         url: imageUrl,
-        public_id: `local_${Date.now()}`,
-        uploading: false
+        preview: imageUrl,
+        public_id: publicId,
+        uploading: false,
+        file
       }
 
       if (isCover) {
@@ -342,8 +354,8 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
       } else {
         setImages(prev => [...prev, imageData])
       }
-      
-      console.log('อัปโหลดรูปภาพสำเร็จ (จำลอง):', file.name)
+
+      console.log('อัปโหลดรูปภาพขึ้น Cloudinary สำเร็จ:', uploaded)
     } catch (error) {
       console.error('Error uploading image:', error)
       alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
@@ -352,11 +364,29 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     }
   }
 
-  const handleRemoveImage = (imageId, isCover = false) => {
-    if (isCover) {
-      setCoverImage(null)
-    } else {
-      setImages(prev => prev.filter(img => img.id !== imageId))
+  const handleRemoveImage = async (imageId, isCover = false) => {
+    try {
+      let imageToRemove = null
+      
+      if (isCover) {
+        imageToRemove = coverImage
+        setCoverImage(null)
+      } else {
+        imageToRemove = images.find(img => img.id === imageId)
+        setImages(prev => prev.filter(img => img.id !== imageId))
+      }
+
+      // ลบรูปจาก Cloudinary ถ้ามี public_id
+      if (imageToRemove && imageToRemove.public_id) {
+        try {
+          await uploadAPI.delete(imageToRemove.public_id)
+          console.log('ลบรูปจาก Cloudinary สำเร็จ:', imageToRemove.public_id)
+        } catch (err) {
+          console.error('ไม่สามารถลบรูปจาก Cloudinary:', err)
+        }
+      }
+    } catch (error) {
+      console.error('Error removing image:', error)
     }
   }
 
@@ -392,22 +422,24 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     try {
       setLoading(true)
       
-      // Transform form data to API format
+
+      
+      // Transform form data to API format - แปลง undefined เป็น null เพื่อป้องกัน SQL error
       const commercialData = {
-        title: formData.title,
-        status: formData.status,
+        title: formData.title || null,
+        status: formData.status || null,
         price: parseFloat(formData.price) || 0,
         rent_price: parseFloat(formData.rentPrice) || 0,
-        property_type: formData.propertyType,
-        building_type: formData.buildingType,
-        location: formData.location,
-        district: formData.district,
-        province: formData.province,
-        postal_code: formData.postalCode,
-        google_map_url: formData.googleMapUrl,
-        nearby_transport: formData.nearbyTransport,
-        listing_type: formData.listingType,
-        description: formData.description,
+        property_type: formData.propertyType || null,
+        building_type: formData.buildingType || null,
+        location: formData.location || null,
+        district: formData.district || null,
+        province: formData.province || null,
+        postal_code: formData.postalCode || null,
+        google_map_url: formData.googleMapUrl || null,
+        nearby_transport: formData.nearbyTransport || null,
+        listing_type: formData.listingType || null,
+        description: formData.description || null,
         area: parseFloat(formData.area) || 0,
         land_area: parseFloat(formData.landArea) || 0,
         building_area: parseFloat(formData.buildingArea) || 0,
@@ -418,30 +450,44 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
         frontage: parseFloat(formData.frontage) || 0,
         depth: parseFloat(formData.depth) || 0,
         road_width: parseFloat(formData.roadWidth) || 0,
-        zoning: formData.zoning,
+        zoning: formData.zoning || null,
         building_age: parseInt(formData.buildingAge) || 0,
         shop_front: parseFloat(formData.shopFront) || 0,
         shop_depth: parseFloat(formData.shopDepth) || 0,
-        has_mezzanine: formData.hasMezzanine,
+        has_mezzanine: formData.hasMezzanine || false,
         mezzanine_area: parseFloat(formData.mezzanineArea) || 0,
-        has_basement: formData.hasBasement,
+        has_basement: formData.hasBasement || false,
         basement_area: parseFloat(formData.basementArea) || 0,
-        has_warehouse: formData.hasWarehouse,
+        has_warehouse: formData.hasWarehouse || false,
         warehouse_area: parseFloat(formData.warehouseArea) || 0,
-        seo_tags: formData.seoTags,
-        facilities: formData.facilities,
+        seo_tags: formData.seoTags || null,
+        facilities: formData.facilities || [],
         images: images.map(img => ({
-          url: img.preview || img.url,
-          public_id: img.id || img.public_id
+          url: img.url || img.preview || null,
+          public_id: img.public_id || null
         })),
         cover_image: coverImage ? (coverImage.preview || coverImage.url) : null
       }
 
       console.log('ส่งข้อมูลไป API:', commercialData)
+      
+      // Debug: ตรวจสอบ fields ที่อาจเป็น undefined
+      const undefinedFields = Object.entries(commercialData)
+        .filter(([key, value]) => value === undefined)
+        .map(([key]) => key)
+      
+      if (undefinedFields.length > 0) {
+        console.warn('⚠️ Fields ที่เป็น undefined:', undefinedFields)
+        console.warn('⚠️ ข้อมูลทั้งหมด:', commercialData)
+      }
 
       if (isEditing) {
         // แก้ไขโฮมออฟฟิศ/ตึกแถว
-        const result = await commercialApi.update(commercial?.id, commercialData)
+        const commercialId = id || commercial?.id
+        if (!commercialId) {
+          throw new Error('ไม่พบ ID ของโฮมออฟฟิศ/ตึกแถวที่ต้องการแก้ไข')
+        }
+        const result = await commercialApi.update(commercialId, commercialData)
         console.log('แก้ไขโฮมออฟฟิศ/ตึกแถวสำเร็จ:', result)
         alert('แก้ไขประกาศโฮมออฟฟิศ/ตึกแถวสำเร็จ!')
       } else {
@@ -519,7 +565,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
+                รหัสโครงการ (WS + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
@@ -885,7 +931,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
                   placeholder="เช่น 2"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <Car className="h-4 w-4 text-gray-400" />
+                  <FaCar className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
             </div>
@@ -1586,19 +1632,34 @@ export const CommercialFormWrapper = () => {
 
   useEffect(() => {
     if (id && id !== 'add') {
-      // TODO: ดึงข้อมูลจาก API เมื่อมีการเชื่อมต่อ
+      // ดึงข้อมูลจาก API เมื่อแก้ไข
+      const fetchCommercial = async () => {
+        try {
+          setLoading(true)
+          const result = await commercialApi.getById(id)
+          console.log('ดึงข้อมูลโฮมออฟฟิศ/ตึกแถวสำเร็จ:', result)
+          setCommercial(result.data || result)
+        } catch (error) {
+          console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error)
+          alert('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง')
+          navigate('/admin/commercial')
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchCommercial()
+    } else {
       setLoading(false)
     }
-  }, [id])
+  }, [id, navigate])
 
   const handleBack = () => {
     navigate('/admin/commercial')
   }
 
   const handleSave = (commercialData) => {
-    // TODO: บันทึกข้อมูลไปยัง API เมื่อมีการเชื่อมต่อ
-    console.log('บันทึกข้อมูล:', commercialData)
-    alert(id ? 'แก้ไขข้อมูลสำเร็จ!' : 'เพิ่มข้อมูลสำเร็จ!')
+    // บันทึกข้อมูลไปยัง API (CommercialForm จะจัดการเอง)
+    console.log('บันทึกข้อมูลสำเร็จ:', commercialData)
     navigate('/admin/commercial')
   }
 

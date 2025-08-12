@@ -213,12 +213,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     }
   }, [formData.selectedProject, projects])
 
-  // Generate auto project code (ws + ตัวเลข 7 หลัก)
+  // Generate auto project code (WS + ตัวเลข 7 หลัก)
   useEffect(() => {
     if (!isEditing && !formData.projectCode) {
       const timestamp = Date.now()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const code = `ws${timestamp.toString().slice(-4)}${randomNum}` // รหัส ws + ตัวเลข 7 หลัก
+      const code = `WS${timestamp.toString().slice(-4)}${randomNum}` // รหัส WS + ตัวเลข 7 หลัก
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
@@ -480,7 +480,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                รหัสโครงการ (ws + ตัวเลข 7 หลัก)
+                รหัสโครงการ (WS + ตัวเลข 7 หลัก)
               </label>
               <Input
                 value={formData.projectCode}
