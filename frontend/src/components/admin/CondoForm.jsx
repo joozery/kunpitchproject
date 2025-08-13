@@ -129,7 +129,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       // Transport
       'lift': <FaArrowUp className="w-5 h-5" />,
       'private-lift': <FaLock className="w-5 h-5" />,
-      'parking': <FaCar className="w-5 h-5" />,
+      'parking-common': <FaCar className="w-5 h-5" />,
       'motorcycle': <FaMotorcycle className="w-5 h-5" />,
       'shuttle': <FaShuttleVan className="w-5 h-5" />,
       'ev-charger': <FaBolt className="w-5 h-5" />,
@@ -144,7 +144,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       'private-pool': <FaBath className="w-5 h-5" />,
       'sauna': <FaBath className="w-5 h-5" />,
       'steam': <FaBath className="w-5 h-5" />,
-      'jacuzzi': <FaBath className="w-5 h-5" />,
+      'jacuzzi-common': <FaBath className="w-5 h-5" />,
       'sport': <FaFutbol className="w-5 h-5" />,
       'golf': <FaTrophy className="w-5 h-5" />,
       'stadium': <FaTrophy className="w-5 h-5" />,
@@ -169,7 +169,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       'store': <FaStore className="w-5 h-5" />,
       'library': <FaBook className="w-5 h-5" />,
       'laundry': <FaTshirt className="w-5 h-5" />,
-      'garden': <FaSeedling className="w-5 h-5" />,
+      'garden-common': <FaSeedling className="w-5 h-5" />,
       'wifi': <FaWifi className="w-5 h-5" />,
       
       // Amenities (more accurate icons)
