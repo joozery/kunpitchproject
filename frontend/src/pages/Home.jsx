@@ -2,7 +2,6 @@ import React from 'react'
 import Header from '../components/Header'
 import HeroSection from '../components/HeroSection'
 import FeaturedPropertiesSection from '../components/FeaturedPropertiesSection'
-import TestimonialsSection from '../components/TestimonialsSection'
 import BlogSection from '../components/BlogSection'
 import Footer from '../components/Footer'
 
@@ -17,9 +16,6 @@ const Home = () => {
 
       {/* Featured Properties Section */}
       <FeaturedPropertiesSection />
-
-      {/* Testimonials Section */}
-      <TestimonialsSection />
 
       {/* Blog Section */}
       <BlogSection />
