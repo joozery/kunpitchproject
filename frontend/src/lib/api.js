@@ -186,6 +186,33 @@ export const landAPI = {
   // Delete land
   delete: (id) => api.delete(`/lands/${id}`),
 };
+
+// Commercial API
+export const commercialAPI = {
+  // Get all commercials
+  getAll: (params = {}) => api.get('/commercials', { params }),
+
+  // Get commercial by ID
+  getById: (id) => api.get(`/commercials/${id}`),
+
+  // Create new commercial
+  create: (commercialData) => api.post('/commercials', commercialData),
+
+  // Update commercial
+  update: (id, commercialData) => {
+    return api.put(`/commercials/${id}`, commercialData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+
+  // Delete commercial
+  delete: (id) => api.delete(`/commercials/${id}`),
+
+  // Toggle featured status
+  toggleFeatured: (id) => api.patch(`/commercials/${id}/featured`),
+};
 // Upload API
 export const uploadAPI = {
   // Upload single image
@@ -235,6 +262,7 @@ export default {
   condoAPI,
   houseAPI,
   landAPI,
+  commercialAPI,
   uploadAPI,
   usersAPI,
   healthCheck,

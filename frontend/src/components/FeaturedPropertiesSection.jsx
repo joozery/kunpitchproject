@@ -100,23 +100,47 @@ const FeaturedPropertiesSection = () => {
   }, [])
 
   return (
-    <section className="py-20" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)'}}>
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center mb-16">
+    <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="inline-flex items-center gap-3 mb-4"
+          >
+            <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+            <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">Featured Properties</span>
+            <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+          </motion.div>
+          
           <motion.h2 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 font-prompt"
-            style={{background: 'linear-gradient(135deg, #203d6b, #1d5e9d, #8bb4db)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald"
+            style={{
+              background: 'linear-gradient(135deg, #1e293b 0%, #334155 25%, #475569 50%, #64748b 75%, #94a3b8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
           >
             ประกาศแนะนำ
           </motion.h2>
+          
           <motion.p 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-gray-700 text-lg lg:text-xl font-prompt max-w-3xl mx-auto"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-slate-600 text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
           >
             Property ยอดนิยมที่ลูกค้าให้ความสนใจ พร้อมทำเลและราคาที่เหมาะสม
           </motion.p>
