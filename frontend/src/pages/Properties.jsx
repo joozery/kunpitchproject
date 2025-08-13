@@ -145,18 +145,26 @@ const Properties = () => {
       <Header />
 
       {/* Page Header */}
-      <section className="pt-24 pb-12 bg-gradient-to-r from-blue-600 to-blue-800">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-prompt">
-              Property ทั้งหมด
-            </h1>
-            <p className="text-xl text-blue-100 font-prompt">
-              ค้นหาอสังหาริมทรัพย์ที่ใช่สำหรับคุณ
-            </p>
-          </div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-4xl md:text-5xl font-bold mb-4 font-prompt"
+          >
+            Properties
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl text-blue-100 font-prompt"
+          >
+            Discover your perfect property
+          </motion.p>
         </div>
-      </section>
+      </div>
 
       {/* Search and Filter Section */}
       <section className="py-8 bg-white border-b">
@@ -240,7 +248,7 @@ const Properties = () => {
               {/* Results Count */}
               <div className="mb-8">
                 <p className="text-gray-600 font-prompt">
-                  พบ {filteredProperties.length} Property
+                  Found {filteredProperties.length} Properties
                 </p>
               </div>
 
@@ -344,8 +352,8 @@ const Properties = () => {
                     ))
                   ) : (
                     <div className="col-span-full text-center py-12">
-                      <div className="text-gray-500 text-lg">ไม่พบข้อมูลที่ค้นหา</div>
-                      </div>
+                      <div className="text-gray-500 text-lg">No properties found matching your search</div>
+                    </div>
                   )}
                 </div>
               )}
@@ -439,8 +447,8 @@ const Properties = () => {
                     ))
                   ) : (
                     <div className="text-center py-12">
-                      <div className="text-gray-500 text-lg">ไม่พบข้อมูลที่ค้นหา</div>
-                      </div>
+                      <div className="text-gray-500 text-lg">No properties found matching your search</div>
+                    </div>
                   )}
                 </div>
               )}
@@ -454,10 +462,10 @@ const Properties = () => {
                     <Search className="h-16 w-16 mx-auto" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2 font-prompt">
-                    ไม่พบ Property ที่ตรงกับเงื่อนไข
+                    No Properties Found
                   </h3>
                   <p className="text-gray-600 font-prompt">
-                    ลองเปลี่ยนเงื่อนไขการค้นหาหรือติดต่อเราเพื่อขอคำปรึกษา
+                    Try adjusting your search criteria or contact us for assistance
                   </p>
                 </div>
           )}

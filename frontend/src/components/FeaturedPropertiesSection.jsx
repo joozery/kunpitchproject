@@ -194,38 +194,32 @@ const FeaturedPropertiesSection = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald flex items-center justify-center gap-3"
-            style={{
-              background: 'linear-gradient(135deg, #1e293b 0%, #334155 25%, #475569 50%, #64748b 75%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600"
           >
-            <Star className="h-8 w-8" />
-            อสังหาฯ ทั้งหมด
+            All Properties
           </motion.h2>
         </div>
 
         {/* Properties Slider */}
-        <div 
-          id="featured-scroll"
-          className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 relative"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {/* Navigation Arrows */}
-          <button 
-            onClick={() => document.getElementById('featured-scroll').scrollLeft -= 400}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
+        <div className="relative">
+          <div 
+            id="featured-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            <ArrowRight className="h-6 w-6 text-slate-700 rotate-180" />
-          </button>
-          <button 
-            onClick={() => document.getElementById('featured-scroll').scrollLeft += 400}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
-          >
-            <ArrowRight className="h-6 w-6 text-slate-700" />
-          </button>
+            {/* Navigation Arrows */}
+            <button 
+              onClick={() => document.getElementById('featured-scroll').scrollLeft -= 400}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
+            >
+              <ArrowRight className="h-6 w-6 text-slate-700 rotate-180" />
+            </button>
+            <button 
+              onClick={() => document.getElementById('featured-scroll').scrollLeft += 400}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
+            >
+              <ArrowRight className="h-6 w-6 text-slate-700" />
+            </button>
           {loading ? (
             <div className="flex space-x-6">
               {[...Array(4)].map((_, i) => (
@@ -320,9 +314,10 @@ const FeaturedPropertiesSection = () => {
             ))
           ) : (
             <div className="text-center py-12 w-full">
-              <div className="text-gray-500 text-lg">ไม่พบข้อมูลอสังหาฯ</div>
+              <div className="text-gray-500 text-lg">No properties found</div>
             </div>
           )}
+        </div>
         </div>
 
         {/* View All Button */}
@@ -334,7 +329,7 @@ const FeaturedPropertiesSection = () => {
             className="text-center mt-12"
           >
             <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30">
-              ดูอสังหาฯ เพิ่มเติม
+              View More Properties
               <ArrowRight className="h-4 w-4" />
             </button>
           </motion.div>

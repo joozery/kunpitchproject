@@ -106,10 +106,10 @@ const PropertyTypeSections = () => {
     return Math.floor(numRentPrice).toLocaleString('th-TH')
   }
 
-  const PropertyCard = ({ property, type }) => {
+    const PropertyCard = ({ property, type }) => {
     console.log(`Property ${type} data:`, property)
     
-    const getPropertyImage = (property) => {
+        const getPropertyImage = (property) => {
       // Check for cover_image first
       if (property.cover_image) {
         // Ensure the URL is absolute and uses HTTPS
@@ -234,7 +234,7 @@ const PropertyTypeSections = () => {
               ฿{formatPrice(property.price)}
             </div>
           </div>
-          
+
           {/* Bottom Right Status Badge with Gray */}
           <div className="absolute bottom-4 right-4">
             <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
@@ -242,7 +242,7 @@ const PropertyTypeSections = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Content */}
         <div className="p-6 flex-1 flex flex-col">
           {/* Title */}
@@ -262,7 +262,7 @@ const PropertyTypeSections = () => {
               <div className="flex items-center space-x-2 text-gray-600">
                 <Bed className="h-4 w-4 text-blue-500" />
                 <span>{property.bedrooms} ห้องนอน</span>
-              </div>
+                </div>
             )}
             {property.bathrooms && (
               <div className="flex items-center space-x-2 text-gray-600">
@@ -283,7 +283,7 @@ const PropertyTypeSections = () => {
               </div>
             )}
           </div>
-          
+
           {/* Price Section */}
           <div className="mt-auto">
             <div className="text-right mb-4">
@@ -312,20 +312,20 @@ const PropertyTypeSections = () => {
               
               {/* Button Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            </button>
+          </button>
           </div>
         </div>
       </motion.div>
     )
   }
 
-  return (
+    return (
     <div className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Condos Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 font-prompt">คอนโด</h2>
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">Condominiums</h2>
             <div className="flex space-x-2">
               <button 
                 onClick={() => document.getElementById('condos-scroll').scrollLeft -= 400}
@@ -362,11 +362,11 @@ const PropertyTypeSections = () => {
             )}
           </div>
         </div>
-
+        
         {/* Houses Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 font-prompt">บ้าน</h2>
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">Houses</h2>
             <div className="flex space-x-2">
               <button 
                 onClick={() => document.getElementById('houses-scroll').scrollLeft -= 400}
@@ -382,7 +382,7 @@ const PropertyTypeSections = () => {
               </button>
             </div>
           </div>
-          
+
           <div 
             id="houses-scroll"
             className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
@@ -393,7 +393,7 @@ const PropertyTypeSections = () => {
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
                 ))}
-              </div>
+                    </div>
             ) : (
               houses.map((house, index) => (
                 <div key={house.id} className="flex-shrink-0 w-80">
@@ -407,7 +407,7 @@ const PropertyTypeSections = () => {
         {/* Lands Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 font-prompt">ที่ดิน</h2>
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">Lands</h2>
             <div className="flex space-x-2">
               <button 
                 onClick={() => document.getElementById('lands-scroll').scrollLeft -= 400}
@@ -433,13 +433,13 @@ const PropertyTypeSections = () => {
               <div className="flex space-x-6">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
-                ))}
-              </div>
-            ) : (
+              ))}
+            </div>
+          ) : (
               lands.map((land, index) => (
                 <div key={land.id} className="flex-shrink-0 w-80">
                   <PropertyCard property={land} type="land" />
-                </div>
+            </div>
               ))
             )}
           </div>
@@ -448,7 +448,7 @@ const PropertyTypeSections = () => {
         {/* Commercials Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 font-prompt">โฮมออฟฟิศ</h2>
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">Commercial Properties</h2>
             <div className="flex space-x-2">
               <button 
                 onClick={() => document.getElementById('commercials-scroll').scrollLeft -= 400}
