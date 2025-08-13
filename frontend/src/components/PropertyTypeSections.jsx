@@ -21,6 +21,7 @@ const PropertyTypeSections = () => {
       try {
         // Fetch condos
         const condosResult = await condoAPI.getAll({ limit: 8 })
+        console.log('Condos API response:', condosResult)
         if (condosResult && condosResult.success) {
           setCondos(condosResult.data || [])
         }
@@ -33,6 +34,7 @@ const PropertyTypeSections = () => {
       try {
         // Fetch houses
         const housesResult = await houseAPI.getAll({ limit: 8 })
+        console.log('Houses API response:', housesResult)
         if (housesResult && housesResult.success) {
           setHouses(housesResult.data || [])
         }
@@ -45,6 +47,7 @@ const PropertyTypeSections = () => {
       try {
         // Fetch lands
         const landsResult = await landAPI.getAll({ limit: 8 })
+        console.log('Lands API response:', landsResult)
         if (landsResult && landsResult.success) {
           setLands(landsResult.data || [])
         }
