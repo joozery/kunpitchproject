@@ -61,7 +61,7 @@ const HeroSection = () => {
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
             }}
           >
-            <h1 className={`typewriter-loop ${typingDone ? 'typing-done' : ''}`}>
+            <h1 className={`typewriter-loop font-oswald ${typingDone ? 'typing-done' : ''}`}>
               Your Perfect Space Awaits
             </h1>
           </motion.div>
@@ -120,7 +120,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.2 }}
-          className="mt-4 md:mt-6 text-center text-white/90 text-lg md:text-xl font-oswald"
+          className="mt-4 md:mt-6 text-center text-white/90 text-lg md:text-xl font-oswald font-semibold"
           style={{
             textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
           }}
