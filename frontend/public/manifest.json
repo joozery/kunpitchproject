@@ -1,0 +1,27 @@
+{
+  "name": "Whalespace - International Real Estate",
+  "short_name": "Whalespace",
+  "description": "เชื่อมต่อคุณกับพื้นที่ที่เหมาะสม ตั้งแต่คอนโด บ้านเดี่ยว ทาวน์เฮาส์ ที่ดิน และโฮมออฟฟิศ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/WHLE03.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/WHLE03.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "lifestyle", "real estate"],
+  "lang": "th",
+  "dir": "ltr"
+} 

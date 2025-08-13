@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://whalespace.com/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /login
+
+# Allow important pages
+Allow: /
+Allow: /properties
+Allow: /condos
+Allow: /houses
+Allow: /lands
+Allow: /commercials
+
+# Crawl delay (optional)
+Crawl-delay: 1 
