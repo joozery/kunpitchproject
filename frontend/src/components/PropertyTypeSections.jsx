@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Car, Ruler, Building } from 'lucide-react'
+import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Car, Ruler, Building, Square, Eye as EyeIcon } from 'lucide-react'
 import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 
 const PropertyTypeSections = () => {
@@ -14,6 +14,23 @@ const PropertyTypeSections = () => {
     lands: true,
     commercials: true
   })
+
+  // Click tracking state
+  const [clickCounts, setClickCounts] = useState({})
+
+  // Handle card click
+  const handleCardClick = (propertyId, propertyType) => {
+    setClickCounts(prev => ({
+      ...prev,
+      [propertyId]: (prev[propertyId] || 0) + 1
+    }))
+    
+    // Log click for analytics
+    console.log(`Card clicked: ${propertyType} - ID: ${propertyId}, Clicks: ${(clickCounts[propertyId] || 0) + 1}`)
+    
+    // Here you can add API call to save click data to database
+    // saveClickData(propertyId, propertyType)
+  }
 
   // Fetch data for each property type
   useEffect(() => {
@@ -76,19 +93,23 @@ const PropertyTypeSections = () => {
   }, [])
 
   const formatPrice = (price) => {
-    if (!price) return 'ราคาติดต่อ'
-    return `฿${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+    if (!price) return '0'
+    // Convert to number and remove decimals
+    const numPrice = parseFloat(price) || 0
+    return Math.floor(numPrice).toLocaleString('th-TH')
   }
 
   const formatRentPrice = (rentPrice) => {
     if (!rentPrice) return null
-    return `฿${rentPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}/เดือน`
+    // Convert to number and remove decimals
+    const numRentPrice = parseFloat(rentPrice) || 0
+    return Math.floor(numRentPrice).toLocaleString('th-TH')
   }
 
-    const PropertyCard = ({ property, type }) => {
+  const PropertyCard = ({ property, type }) => {
     console.log(`Property ${type} data:`, property)
     
-        const getPropertyImage = (property) => {
+    const getPropertyImage = (property) => {
       // Check for cover_image first
       if (property.cover_image) {
         // Ensure the URL is absolute and uses HTTPS
@@ -146,7 +167,7 @@ const PropertyTypeSections = () => {
       return fallbackImages[type] || fallbackImages.condo
     }
 
-    const getPropertyTypeLabel = () => {
+    const getTypeLabel = (type) => {
       const labels = {
         condo: 'คอนโด',
         house: 'บ้าน',
@@ -161,14 +182,29 @@ const PropertyTypeSections = () => {
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 h-full flex flex-col group cursor-pointer"
+        className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer"
+        style={{
+          background: '#ffffff',
+          border: '3px solid transparent',
+          borderRadius: '16px',
+          backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #3b82f6, #6b7280, #f59e0b)',
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'content-box, border-box',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59,130,246,0.2)'
+        }}
       >
-        {/* Image */}
-        <div className="relative overflow-hidden h-48 flex-shrink-0">
+        {/* Gradient Border Overlay */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-gray-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+        
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
+        
+        {/* Image Container */}
+        <div className="relative overflow-hidden h-52 flex-shrink-0">
           <img
             src={getPropertyImage(property)}
             alt={property.title || property.name}
-            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
             onError={(e) => {
               // Fallback to a default image if the current one fails
               const fallbackImages = {
@@ -181,237 +217,276 @@ const PropertyTypeSections = () => {
             }}
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
-          {/* Top Left Badge */}
-          <div className="absolute top-3 left-3">
-            <div className="bg-white/90 backdrop-blur-sm text-gray-700 px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-              <HomeIcon className="h-3 w-3" />
-              <span>{property.listing_type === 'rent' ? 'เช่า' : 'ขาย'}</span>
+          {/* Enhanced Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          {/* Top Left Badge with Blue-Gold Gradient */}
+          <div className="absolute top-4 left-4">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+              {getTypeLabel(type)}
             </div>
           </div>
           
-          {/* Top Right Icons */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            <button className="bg-white/90 backdrop-blur-sm text-gray-700 p-1.5 rounded transition-all duration-300 hover:bg-white">
-              <Eye className="h-3 w-3" />
-            </button>
-            <button className="bg-white/90 backdrop-blur-sm text-gray-700 p-1.5 rounded transition-all duration-300 hover:bg-white">
-              <Heart className="h-3 w-3" />
-            </button>
-          </div>
-
-          {/* Bottom Right Badge */}
-          {property.featured && (
-            <div className="absolute bottom-3 right-3">
-              <div className="text-white px-2 py-1 rounded text-xs font-medium bg-gradient-to-r from-blue-600 to-indigo-600">
-                แนะนำ
-              </div>
+          {/* Top Right Price Badge with Gold */}
+          <div className="absolute top-4 right-4">
+            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
+              ฿{formatPrice(property.price)}
             </div>
-          )}
+          </div>
+          
+          {/* Bottom Right Status Badge with Gray */}
+          <div className="absolute bottom-4 right-4">
+            <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+              {property.status === 'sale' ? 'ขาย' : property.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
+            </div>
+          </div>
         </div>
-
+        
         {/* Content */}
-        <div className="p-5 flex-1 flex flex-col">
-          {/* Price */}
-          <div className="mb-3">
-            <div className="text-lg font-bold text-blue-600">
-              {formatPrice(property.price)}
-            </div>
-            {formatRentPrice(property.rent_price) && (
-              <div className="text-xs text-gray-500">{formatRentPrice(property.rent_price)}</div>
-            )}
-          </div>
-
+        <div className="p-6 flex-1 flex flex-col">
           {/* Title */}
-          <h3 className="text-base font-semibold text-gray-900 mb-2 font-oswald leading-tight line-clamp-2">
+          <h3 className="text-lg font-bold text-gray-900 mb-3 font-prompt group-hover:text-blue-600 transition-colors duration-300">
             {property.title || property.name}
           </h3>
           
           {/* Location */}
-          <div className="flex items-center text-gray-600 mb-4 text-sm">
-            <MapPin className="h-4 w-4 mr-2 text-blue-600" />
-            <span className="line-clamp-1">{property.location || property.address || 'ไม่ระบุที่อยู่'}</span>
-          </div>
+          <p className="text-gray-600 mb-4 font-prompt flex items-center text-sm">
+            <MapPin className="h-4 w-4 mr-2 text-blue-500" />
+            {property.location || property.address || 'ไม่ระบุที่อยู่'}
+          </p>
 
           {/* Property Details */}
-          <div className="space-y-3 flex-1">
-            {type !== 'land' && type !== 'commercial' && (
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <div className="flex items-center space-x-2">
-                  <Bed className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium">{property.bedrooms || 0}</span>
-                  <span>ห้องนอน</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Bath className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium">{property.bathrooms || 0}</span>
-                  <span>ห้องน้ำ</span>
-                </div>
+          <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+            {property.bedrooms && (
+              <div className="flex items-center space-x-2 text-gray-600">
+                <Bed className="h-4 w-4 text-blue-500" />
+                <span>{property.bedrooms} ห้องนอน</span>
               </div>
             )}
-            
-            {/* Area */}
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">พื้นที่: {property.area || property.size || 'ไม่ระบุ'} ตร.ม.</span>
-            </div>
-
-            {/* Project Name for Condos */}
-            {type === 'condo' && property.project_name && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">โครงการ: {property.project_name}</span>
+            {property.bathrooms && (
+              <div className="flex items-center space-x-2 text-gray-600">
+                <Bath className="h-4 w-4 text-blue-500" />
+                <span>{property.bathrooms} ห้องน้ำ</span>
               </div>
             )}
-
-            {/* Commercial Type */}
-            {type === 'commercial' && property.commercial_type && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">ประเภท: {property.commercial_type}</span>
+            {property.area && (
+              <div className="flex items-center space-x-2 text-gray-600">
+                <Square className="h-4 w-4 text-blue-500" />
+                <span>{property.area} ตร.ม.</span>
+              </div>
+            )}
+            {property.parking && (
+              <div className="flex items-center space-x-2 text-gray-600">
+                <Car className="h-4 w-4 text-blue-500" />
+                <span>{property.parking} ที่จอด</span>
               </div>
             )}
           </div>
-
-          {/* View Details Button */}
-          <button className="w-full bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center group-hover:from-blue-50 group-hover:to-indigo-50 group-hover:text-blue-600 mt-4">
-            ดูรายละเอียด
-            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </button>
+          
+          {/* Price Section */}
+          <div className="mt-auto">
+            <div className="text-right mb-4">
+              <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
+                ฿{formatPrice(property.price)}
+              </div>
+              {property.rent_price > 0 && (
+                <div className="text-sm text-gray-500 font-medium">
+                  ฿{formatRentPrice(property.rent_price)}/เดือน
+                </div>
+              )}
+              {/* Click Count near Price */}
+              <div className="flex items-center justify-end mt-2 text-sm text-gray-500">
+                <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                <span>{clickCounts[property.id] || 0} ครั้ง</span>
+              </div>
+            </div>
+            
+            {/* View Details Button with Blue-Gold Gradient */}
+            <button 
+              className="w-full bg-gradient-to-r from-blue-600 via-gray-600 to-yellow-500 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center group-hover:from-blue-500 group-hover:via-gray-500 group-hover:to-yellow-400 relative overflow-hidden"
+              onClick={() => handleCardClick(property.id, type)}
+            >
+              <span className="relative z-10">ดูรายละเอียด</span>
+              <ArrowRight className="h-4 w-4 ml-2 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              
+              {/* Button Shimmer Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            </button>
+          </div>
         </div>
       </motion.div>
     )
   }
 
-  const PropertySection = ({ title, subtitle, properties, loading, type, icon: Icon }) => {
-    return (
-      <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="inline-flex items-center gap-3 mb-4"
-            >
-              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-              <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">{subtitle}</span>
-              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            </motion.div>
-            
-            <motion.h2 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald flex items-center justify-center gap-3"
-              style={{
-                background: 'linear-gradient(135deg, #1e293b 0%, #334155 25%, #475569 50%, #64748b 75%, #94a3b8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}
-            >
-              <Icon className="h-8 w-8" />
-              {title}
-            </motion.h2>
-          </div>
-
-          {/* Properties Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, index) => (
-                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg animate-pulse h-96">
-                  <div className="h-48 bg-gradient-to-r from-slate-200 to-blue-200"></div>
-                  <div className="p-5">
-                    <div className="h-6 bg-gradient-to-r from-slate-200 to-blue-200 rounded mb-3"></div>
-                    <div className="h-4 bg-gradient-to-r from-slate-200 to-blue-200 rounded mb-4"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gradient-to-r from-slate-200 to-blue-200 rounded"></div>
-                      <div className="h-4 bg-gradient-to-r from-slate-200 to-blue-200 rounded"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : properties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} type={type} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg">ไม่พบข้อมูล {title}</div>
-            </div>
-          )}
-
-          {/* View All Button */}
-          {properties.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-center mt-12"
-            >
-              <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30">
-                ดู{title}ทั้งหมด
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </motion.div>
-          )}
-        </div>
-      </section>
-    )
-  }
-
   return (
-    <>
-      {/* Condos Section */}
-      <PropertySection
-        title="คอนโด/อพาร์ตเม้นท์"
-        subtitle="Condos & Apartments"
-        properties={condos}
-        loading={loading.condos}
-        type="condo"
-        icon={Building2}
-      />
+    <div className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Condos Section */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">คอนโด</h2>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => document.getElementById('condos-scroll').scrollLeft -= 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+              </button>
+              <button 
+                onClick={() => document.getElementById('condos-scroll').scrollLeft += 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </button>
+            </div>
+          </div>
+          
+          <div 
+            id="condos-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {loading.condos ? (
+              <div className="flex space-x-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                ))}
+              </div>
+            ) : (
+              condos.map((condo, index) => (
+                <div key={condo.id} className="flex-shrink-0 w-80">
+                  <PropertyCard property={condo} type="condo" />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-      {/* Houses Section */}
-      <PropertySection
-        title="บ้านเดี่ยว/ทาวน์เฮาส์"
-        subtitle="Houses & Townhouses"
-        properties={houses}
-        loading={loading.houses}
-        type="house"
-        icon={HomeIcon}
-      />
+        {/* Houses Section */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">บ้าน</h2>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => document.getElementById('houses-scroll').scrollLeft -= 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+              </button>
+              <button 
+                onClick={() => document.getElementById('houses-scroll').scrollLeft += 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </button>
+            </div>
+          </div>
+          
+          <div 
+            id="houses-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {loading.houses ? (
+              <div className="flex space-x-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                ))}
+              </div>
+            ) : (
+              houses.map((house, index) => (
+                <div key={house.id} className="flex-shrink-0 w-80">
+                  <PropertyCard property={house} type="house" />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-      {/* Lands Section */}
-      <PropertySection
-        title="ที่ดิน"
-        subtitle="Land Properties"
-        properties={lands}
-        loading={loading.lands}
-        type="land"
-        icon={Ruler}
-      />
+        {/* Lands Section */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">ที่ดิน</h2>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => document.getElementById('lands-scroll').scrollLeft -= 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+              </button>
+              <button 
+                onClick={() => document.getElementById('lands-scroll').scrollLeft += 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </button>
+            </div>
+          </div>
+          
+          <div 
+            id="lands-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {loading.lands ? (
+              <div className="flex space-x-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                ))}
+              </div>
+            ) : (
+              lands.map((land, index) => (
+                <div key={land.id} className="flex-shrink-0 w-80">
+                  <PropertyCard property={land} type="land" />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-      {/* Commercial Section */}
-      <PropertySection
-        title="โฮมออฟฟิศ/ตึกแถว"
-        subtitle="Commercial Properties"
-        properties={commercials}
-        loading={loading.commercials}
-        type="commercial"
-        icon={Building}
-      />
-    </>
+        {/* Commercials Section */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 font-prompt">โฮมออฟฟิศ</h2>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => document.getElementById('commercials-scroll').scrollLeft -= 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+              </button>
+              <button 
+                onClick={() => document.getElementById('commercials-scroll').scrollLeft += 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </button>
+            </div>
+          </div>
+          
+          <div 
+            id="commercials-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {loading.commercials ? (
+              <div className="flex space-x-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                ))}
+              </div>
+            ) : (
+              commercials.map((commercial, index) => (
+                <div key={commercial.id} className="flex-shrink-0 w-80">
+                  <PropertyCard property={commercial} type="commercial" />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
