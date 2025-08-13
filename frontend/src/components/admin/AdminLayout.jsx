@@ -10,6 +10,12 @@ const AdminLayout = ({ children, activePage = 'dashboard', onPageChange }) => {
     setSidebarCollapsed(!sidebarCollapsed)
   }
 
+  const onLogout = () => {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    window.location.href = '/login'
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import AdminLayout from '../components/admin/AdminLayout'
 import { adminRoutes } from '../routes/adminRoutes.jsx'

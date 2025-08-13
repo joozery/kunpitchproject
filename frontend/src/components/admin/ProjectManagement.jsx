@@ -76,8 +76,8 @@ const ProjectManagement = () => {
   };
 
   const handleEditProject = (project) => {
-    setEditingProject(project);
-    setShowForm(true);
+        setEditingProject(project);
+        setShowForm(true);
   };
 
   const handleDeleteProject = async (id) => {
@@ -332,13 +332,13 @@ const ProjectManagement = () => {
             {/* Search Input */}
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
+        <Input
                 placeholder="ค้นหาโครงการ, ผู้พัฒนา, ที่ตั้ง..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 font-prompt"
-              />
-            </div>
+        />
+      </div>
 
             {/* Project Type Filter */}
             <select
@@ -469,11 +469,11 @@ const ProjectManagement = () => {
                             e.target.src = placeholderImage;
                           }}
                         />
-                        <div>
+                      <div>
                           <p className="font-medium text-gray-900 font-prompt">{project.name_th}</p>
-                          {project.name_en && (
+                        {project.name_en && (
                             <p className="text-sm text-gray-500 font-prompt">{project.name_en}</p>
-                          )}
+                        )}
                         </div>
                       </div>
                     </TableCell>

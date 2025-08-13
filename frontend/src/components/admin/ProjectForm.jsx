@@ -13,7 +13,7 @@ import {
   FaHandshake, FaLaptop, FaHamburger, FaCoffee,
   FaDoorOpen, FaCouch, FaHome, FaStore, FaBook, FaTshirt, FaSeedling, FaWifi
 } from 'react-icons/fa';
-// Additional icon packs for more accurate amenities icons
+
 import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md';
 import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri';
 import { PiCookingPot, PiThermometerHot, PiOven } from 'react-icons/pi';
@@ -50,8 +50,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     // สิ่งอำนวยความสะดวก
     facilities: [],
     
-    // สิ่งอำนวยความสะดวกภายในห้อง (Amenities)
-    amenities: [],
+    
     
     // สื่อ
     video_review: '',
@@ -111,38 +110,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   ]);
 
   const [selectedFacilities, setSelectedFacilities] = useState([]);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [dragActive, setDragActive] = useState(false);
-
-  // รายการสิ่งอำนวยความสะดวกภายในห้อง (Amenities)
-  const [amenitiesList] = useState([
-    { id: 'fullyFurnished', label: 'Fully Furnished', category: 'furniture', icon: 'furniture' },
-    { id: 'airConditioner', label: 'Air Conditioner', category: 'appliance', icon: 'ac' },
-    { id: 'television', label: 'Television', category: 'appliance', icon: 'tv' },
-    { id: 'refrigerator', label: 'Refrigerator', category: 'appliance', icon: 'fridge' },
-    { id: 'microwave', label: 'Microwave', category: 'appliance', icon: 'microwave' },
-    { id: 'electricStove', label: 'Electric Stove', category: 'appliance', icon: 'stove' },
-    { id: 'rangeHood', label: 'Range Hood', category: 'appliance', icon: 'hood' },
-    { id: 'washingMachine', label: 'Washing Machine', category: 'appliance', icon: 'washing' },
-    { id: 'waterHeater', label: 'Water Heater', category: 'appliance', icon: 'heater' },
-    { id: 'oven', label: 'Oven', category: 'appliance', icon: 'oven' },
-    { id: 'bathtub', label: 'Bathtub', category: 'bathroom', icon: 'bathtub' },
-    { id: 'digitalDoorLock', label: 'Digital Door Lock', category: 'security', icon: 'lock' },
-    { id: 'internetWifi', label: 'Internet / Wi-Fi', category: 'technology', icon: 'wifi' },
-    { id: 'garage', label: 'Garage', category: 'parking', icon: 'garage' },
-    { id: 'smartHomeSystem', label: 'Smart Home System', category: 'technology', icon: 'smart' },
-    { id: 'jacuzzi', label: 'Jacuzzi', category: 'luxury', icon: 'jacuzzi' },
-    { id: 'parking', label: 'Parking', category: 'parking', icon: 'parking' },
-    { id: 'balcony', label: 'Balcony', category: 'structure', icon: 'balcony' },
-    { id: 'dishwasher', label: 'Dishwasher', category: 'appliance', icon: 'dishwasher' },
-    { id: 'walkInCloset', label: 'Walk-in Closet', category: 'storage', icon: 'closet' },
-    { id: 'privateElevator', label: 'Private Elevator', category: 'luxury', icon: 'elevator' },
-    { id: 'privatePool', label: 'Private Pool', category: 'luxury', icon: 'pool' },
-    { id: 'waterFiltration', label: 'Water Filtration System', category: 'utility', icon: 'filter' },
-    { id: 'privateGarden', label: 'Private Garden', category: 'outdoor', icon: 'garden' },
-    { id: 'wineCooler', label: 'Wine Cooler / Wine Cellar', category: 'luxury', icon: 'wine' },
-    { id: 'builtInWardrobe', label: 'Built-in Wardrobe', category: 'storage', icon: 'wardrobe' }
-  ]);
 
   // ฟังก์ชันสำหรับแสดง React Icons
   const getFacilityIcon = (iconName) => {
@@ -193,31 +161,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       'garden': <FaSeedling className="w-5 h-5" />,
       'wifi': <FaWifi className="w-5 h-5" />,
       
-      // Amenities (more accurate icons)
-      'furniture': <FaCouch className="w-5 h-5" />,                 // Fully Furnished
-      'ac': <TbAirConditioning className="w-5 h-5" />,               // Air Conditioner
-      'tv': <FaTv className="w-5 h-5" />,                            // Television
-      'fridge': <MdKitchen className="w-5 h-5" />,                   // Refrigerator
-      'microwave': <MdMicrowave className="w-5 h-5" />,              // Microwave
-      'stove': <PiCookingPot className="w-5 h-5" />,                 // Electric Stove
-      'hood': <LuFan className="w-5 h-5" />,                         // Range Hood
-      'washing': <MdLocalLaundryService className="w-5 h-5" />,      // Washing Machine
-      'heater': <PiThermometerHot className="w-5 h-5" />,           // Water Heater
-      'oven': <PiOven className="w-5 h-5" />,                        // Oven
-      'bathtub': <FaBath className="w-5 h-5" />,                     // Bathtub
-      'lock': <FaLock className="w-5 h-5" />,                        // Digital Door Lock
-      'garage': <FaCar className="w-5 h-5" />,                       // Garage
-      'smart': <RiHomeWifiLine className="w-5 h-5" />,               // Smart Home System
-      'jacuzzi': <MdHotTub className="w-5 h-5" />,                   // Jacuzzi
-      'parking': <FaCar className="w-5 h-5" />,                      // Parking
-      'balcony': <MdBalcony className="w-5 h-5" />,                  // Balcony
-      'dishwasher': <FaUtensils className="w-5 h-5" />,              // Dishwasher
-      'closet': <MdCheckroom className="w-5 h-5" />,                 // Walk-in Closet
-      'elevator': <MdElevator className="w-5 h-5" />,                // Private Elevator
-      'filter': <RiFilterLine className="w-5 h-5" />,                // Water Filtration System
-      'garden': <FaSeedling className="w-5 h-5" />,                  // Private Garden
-      'wine': <FaWineBottle className="w-5 h-5" />,                  // Wine Cooler / Cellar
-      'wardrobe': <MdCheckroom className="w-5 h-5" />                // Built-in Wardrobe
+
     };
     
     return iconMap[iconName] || <FaBuilding className="w-5 h-5" />;
@@ -230,8 +174,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         ...project,
         project_images: project.project_images || [],
         cover_image: project.cover_image || null,
-        facilities: project.facilities || [],
-        amenities: project.amenities || []
+        facilities: project.facilities || []
       });
       
       // จัดการ facilities
@@ -253,24 +196,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         setSelectedFacilities([]);
       }
 
-      // จัดการ amenities
-      let projectAmenities = project.amenities;
-      
-      // ตรวจสอบว่า amenities เป็น string (JSON) หรือไม่
-      if (typeof projectAmenities === 'string') {
-        try {
-          projectAmenities = JSON.parse(projectAmenities);
-        } catch (e) {
-          projectAmenities = [];
-        }
-      }
-      
-      // ตั้งค่า selected amenities
-      if (projectAmenities && Array.isArray(projectAmenities)) {
-        setSelectedAmenities(projectAmenities);
-      } else {
-        setSelectedAmenities([]);
-      }
+
     }
   }, [project]);
 
@@ -284,15 +210,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     }
   }, [selectedFacilities]);
 
-  // อัปเดต formData.amenities เมื่อ selectedAmenities เปลี่ยน
-  useEffect(() => {
-    if (selectedAmenities && Array.isArray(selectedAmenities)) {
-      setFormData(prev => ({
-        ...prev,
-        amenities: selectedAmenities
-      }));
-    }
-  }, [selectedAmenities]);
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -313,17 +231,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     });
   };
 
-  const handleAmenityToggle = (amenityId) => {
-    setSelectedAmenities(prev => {
-      const currentAmenities = prev && Array.isArray(prev) ? prev : [];
-      
-      if (currentAmenities.includes(amenityId)) {
-        return currentAmenities.filter(id => id !== amenityId);
-      } else {
-        return [...currentAmenities, amenityId];
-      }
-    });
-  };
+
 
   // File upload handlers
   const handleCoverImageUpload = (e) => {
@@ -450,15 +358,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       formDataToSend.append('facilities', '[]');
     }
 
-    // เพิ่ม amenities
-    if (selectedAmenities && Array.isArray(selectedAmenities) && selectedAmenities.length > 0) {
-      selectedAmenities.forEach(amenity => {
-        formDataToSend.append('amenities', amenity);
-      });
-    } else {
-      // ส่ง array ว่างถ้าไม่มี amenities
-      formDataToSend.append('amenities', '[]');
-    }
+
     
     // เพิ่มรูปปก (ถ้ามี)
     if (formData.cover_image) {
@@ -862,99 +762,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* สิ่งอำนวยความสะดวกภายในห้อง (Amenities) */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <FaCouch className="w-4 h-4 text-purple-600" />
-                </div>
-                <Label className="text-lg font-semibold">สิ่งอำนวยความสะดวกภายในห้อง (Amenities)</Label>
-              </div>
-              
-              {/* แสดง amenities ที่เลือกแล้ว */}
-              {selectedAmenities && Array.isArray(selectedAmenities) && selectedAmenities.length > 0 && (
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-purple-800">
-                        ✅ สิ่งอำนวยความสะดวกที่เลือกแล้ว ({selectedAmenities && Array.isArray(selectedAmenities) ? selectedAmenities.length : 0} รายการ)
-                      </h3>
-                      <p className="text-sm text-purple-600 mt-1">
-                        คลิกเพื่อยกเลิกการเลือก
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Selected Amenities Display */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {selectedAmenities && Array.isArray(selectedAmenities) && selectedAmenities.map(amenityId => {
-                      const amenity = amenitiesList && Array.isArray(amenitiesList) ? amenitiesList.find(a => a.id === amenityId) : null;
-                      
-                      if (!amenity) {
-                        return null;
-                      }
-                      
-                      return (
-                        <div
-                          key={amenityId}
-                          className="flex items-center space-x-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-purple-200 transition-colors"
-                          onClick={() => handleAmenityToggle(amenityId)}
-                        >
-                          <div className="p-1 rounded-full bg-purple-200">
-                            {getFacilityIcon(amenity.icon)}
-                          </div>
-                          <span className="text-xs">{amenity.label}</span>
-                          <span className="text-purple-500 hover:text-purple-700">×</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* All amenities for selection */}
-              <div className="mt-6">
-                <h3 className="text-lg font-medium mb-4 text-gray-700 flex items-center">
-                  <span className="mr-2">🏠</span>
-                  เลือกสิ่งอำนวยความสะดวกภายในห้อง ({amenitiesList && Array.isArray(amenitiesList) ? amenitiesList.length : 0} รายการ)
-                </h3>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {amenitiesList && Array.isArray(amenitiesList) && amenitiesList.map(amenity => {
-                    const isSelected = selectedAmenities && Array.isArray(selectedAmenities) && selectedAmenities.includes(amenity.id)
-                    
-                    return (
-                      <div
-                        key={amenity.id}
-                        onClick={() => handleAmenityToggle(amenity.id)}
-                        className={`p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                          isSelected
-                            ? 'border-purple-500 bg-purple-50 text-purple-700'
-                            : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center text-center space-y-2">
-                          <div className={`p-2 rounded-full transition-all duration-200 ${
-                            isSelected 
-                              ? 'bg-purple-100 text-purple-600' 
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          }`}>
-                            <div className="w-5 h-5">
-                              {getFacilityIcon(amenity.icon)}
-                            </div>
-                          </div>
-                          <span className={`text-xs font-medium ${
-                            isSelected ? 'text-purple-700' : 'text-gray-700'
-                          }`}>
-                            {amenity.label}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
 
             {/* สื่อ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

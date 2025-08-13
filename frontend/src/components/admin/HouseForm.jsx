@@ -20,6 +20,17 @@ import {
 } from 'lucide-react'
 import { houseAPI, uploadAPI } from '../../lib/api'
 import { projectApi } from '../../lib/projectApi'
+// Additional icon packs for amenities
+import { 
+  FaTv, FaWineBottle, FaCouch, FaUtensils, FaSnowflake, FaBath, FaLock, FaWifi, FaCar, FaSwimmingPool, FaSeedling, FaTshirt,
+  FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaVideo, FaDumbbell, FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaUsers,
+  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding
+} from 'react-icons/fa'
+import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md'
+import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri'
+import { PiCookingPot, PiThermometerHot, PiOven } from 'react-icons/pi'
+import { TbAirConditioning } from 'react-icons/tb'
+import { LuFan } from 'react-icons/lu'
 
 const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -59,6 +70,9 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     selectedProject: initialData?.selected_project || '',
     availableDate: initialData?.available_date || '',
     
+    // สิ่งอำนวยความสะดวกภายในห้อง (Amenities)
+    amenities: [],
+    
     // Timestamps
     createdAt: initialData?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -76,6 +90,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
   const [filteredProjects, setFilteredProjects] = useState([])
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [selectedAmenities, setSelectedAmenities] = useState([])
 
   const propertyTypes = [
     { value: 'house', label: 'บ้านเดี่ยว' },
@@ -83,10 +98,52 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     { value: 'apartment', label: 'อพาร์ตเมนต์' }
   ]
 
+  // รายการสิ่งอำนวยความสะดวกภายในห้อง (Amenities)
+  const [amenitiesList] = useState([
+    { id: 'fullyFurnished', label: 'Fully Furnished', category: 'furniture', icon: 'furniture' },
+    { id: 'airConditioner', label: 'Air Conditioner', category: 'appliance', icon: 'ac' },
+    { id: 'television', label: 'Television', category: 'appliance', icon: 'tv' },
+    { id: 'refrigerator', label: 'Refrigerator', category: 'appliance', icon: 'fridge' },
+    { id: 'microwave', label: 'Microwave', category: 'appliance', icon: 'microwave' },
+    { id: 'electricStove', label: 'Electric Stove', category: 'appliance', icon: 'stove' },
+    { id: 'rangeHood', label: 'Range Hood', category: 'appliance', icon: 'hood' },
+    { id: 'washingMachine', label: 'Washing Machine', category: 'appliance', icon: 'washing' },
+    { id: 'waterHeater', label: 'Water Heater', category: 'appliance', icon: 'heater' },
+    { id: 'oven', label: 'Oven', category: 'appliance', icon: 'oven' },
+    { id: 'bathtub', label: 'Bathtub', category: 'bathroom', icon: 'bathtub' },
+    { id: 'digitalDoorLock', label: 'Digital Door Lock', category: 'security', icon: 'lock' },
+    { id: 'internetWifi', label: 'Internet / Wi-Fi', category: 'technology', icon: 'wifi' },
+    { id: 'garage', label: 'Garage', category: 'parking', icon: 'garage' },
+    { id: 'smartHomeSystem', label: 'Smart Home System', category: 'technology', icon: 'smart' },
+    { id: 'jacuzzi', label: 'Jacuzzi', category: 'luxury', icon: 'jacuzzi' },
+    { id: 'parking', label: 'Parking', category: 'parking', icon: 'parking' },
+    { id: 'balcony', label: 'Balcony', category: 'structure', icon: 'balcony' },
+    { id: 'dishwasher', label: 'Dishwasher', category: 'appliance', icon: 'dishwasher' },
+    { id: 'walkInCloset', label: 'Walk-in Closet', category: 'storage', icon: 'closet' },
+    { id: 'privateElevator', label: 'Private Elevator', category: 'luxury', icon: 'elevator' },
+    { id: 'privatePool', label: 'Private Pool', category: 'luxury', icon: 'pool' },
+    { id: 'waterFiltration', label: 'Water Filtration System', category: 'utility', icon: 'filter' },
+    { id: 'privateGarden', label: 'Private Garden', category: 'outdoor', icon: 'garden' },
+    { id: 'wineCooler', label: 'Wine Cooler / Wine Cellar', category: 'luxury', icon: 'wine' },
+    { id: 'builtInWardrobe', label: 'Built-in Wardrobe', category: 'storage', icon: 'wardrobe' }
+  ])
+
   // Prefill when editing (API data mapping)
   useEffect(() => {
     if (isEditing && initialData) {
       const mappedFacilities = []
+      // Normalize amenities from API: accept array or JSON string
+      let parsedAmenities = []
+      if (Array.isArray(initialData.amenities)) {
+        parsedAmenities = initialData.amenities
+      } else if (typeof initialData.amenities === 'string') {
+        try {
+          const maybe = JSON.parse(initialData.amenities)
+          parsedAmenities = Array.isArray(maybe) ? maybe : []
+        } catch (e) {
+          parsedAmenities = []
+        }
+      }
 
       setFormData(prev => ({
         ...prev,
@@ -112,6 +169,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         isNewHouse: Boolean(initialData.is_new_house) || false,
         selectedProject: initialData.selected_project || '',
         availableDate: initialData.available_date || '',
+        amenities: parsedAmenities,
         
         createdAt: initialData.created_at || prev.createdAt,
         updatedAt: initialData.updated_at || new Date().toISOString()
@@ -139,6 +197,10 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         uploading: false
       }))
       setImages(mappedImages)
+
+      // จัดการ amenities
+      console.log('House amenities from API (normalized):', parsedAmenities)
+      setSelectedAmenities(parsedAmenities)
     }
   }, [isEditing, initialData])
 
@@ -196,6 +258,85 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       setFormData(prev => ({ ...prev, projectCode: code }))
     }
   }, [isEditing])
+
+  // ฟังก์ชันสำหรับแสดง React Icons
+  const getFacilityIcon = (iconName) => {
+    const iconMap = {
+      // Transport
+      'lift': <FaArrowUp className="w-5 h-5" />,
+      'private-lift': <FaLock className="w-5 h-5" />,
+      'parking': <FaCar className="w-5 h-5" />,
+      'motorcycle': <FaMotorcycle className="w-5 h-5" />,
+      'shuttle': <FaShuttleVan className="w-5 h-5" />,
+      'ev-charger': <FaBolt className="w-5 h-5" />,
+      
+      // Security
+      'cctv': <FaVideo className="w-5 h-5" />,
+      'access-control': <FaLock className="w-5 h-5" />,
+      
+      // Recreation
+      'gym': <FaDumbbell className="w-5 h-5" />,
+      'pool': <FaSwimmingPool className="w-5 h-5" />,
+      'private-pool': <FaBath className="w-5 h-5" />,
+      'sauna': <FaBath className="w-5 h-5" />,
+      'steam': <FaBath className="w-5 h-5" />,
+      'jacuzzi': <FaBath className="w-5 h-5" />,
+      'sport': <FaFutbol className="w-5 h-5" />,
+      'golf': <FaTrophy className="w-5 h-5" />,
+      'stadium': <FaTrophy className="w-5 h-5" />,
+      'playground': <FaChild className="w-5 h-5" />,
+      'cinema': <FaFilm className="w-5 h-5" />,
+      
+      // Pet & Business
+      'pet': <FaPaw className="w-5 h-5" />,
+      'meeting': <FaUsers className="w-5 h-5" />,
+      'coworking': <FaLaptop className="w-5 h-5" />,
+      
+      // Dining
+      'restaurant': <FaHamburger className="w-5 h-5" />,
+      'cafe': <FaCoffee className="w-5 h-5" />,
+      'dining-room': <FaCoffee className="w-5 h-5" />,
+      'kitchen': <FaUtensils className="w-5 h-5" />,
+      
+      // Common
+      'lobby': <FaDoorOpen className="w-5 h-5" />,
+      'lounge': <FaCouch className="w-5 h-5" />,
+      'clubhouse': <FaHome className="w-5 h-5" />,
+      'store': <FaStore className="w-5 h-5" />,
+      'library': <FaBook className="w-5 h-5" />,
+      'laundry': <FaTshirt className="w-5 h-5" />,
+      'garden': <FaSeedling className="w-5 h-5" />,
+      'wifi': <FaWifi className="w-5 h-5" />,
+      
+      // Amenities (more accurate icons)
+      'furniture': <FaCouch className="w-5 h-5" />,                 // Fully Furnished
+      'ac': <TbAirConditioning className="w-5 h-5" />,               // Air Conditioner
+      'tv': <FaTv className="w-5 h-5" />,                            // Television
+      'fridge': <MdKitchen className="w-5 h-5" />,                   // Refrigerator
+      'microwave': <MdMicrowave className="w-5 h-5" />,              // Microwave
+      'stove': <PiCookingPot className="w-5 h-5" />,                 // Electric Stove
+      'hood': <LuFan className="w-5 h-5" />,                         // Range Hood
+      'washing': <MdLocalLaundryService className="w-5 h-5" />,      // Washing Machine
+      'heater': <PiThermometerHot className="w-5 h-5" />,           // Water Heater
+      'oven': <PiOven className="w-5 h-5" />,                        // Oven
+      'bathtub': <FaBath className="w-5 h-5" />,                     // Bathtub
+      'lock': <FaLock className="w-5 h-5" />,                        // Digital Door Lock
+      'garage': <FaCar className="w-5 h-5" />,                       // Garage
+      'smart': <RiHomeWifiLine className="w-5 h-5" />,               // Smart Home System
+      'jacuzzi': <MdHotTub className="w-5 h-5" />,                   // Jacuzzi
+      'parking': <FaCar className="w-5 h-5" />,                      // Parking
+      'balcony': <MdBalcony className="w-5 h-5" />,                  // Balcony
+      'dishwasher': <FaUtensils className="w-5 h-5" />,              // Dishwasher
+      'closet': <MdCheckroom className="w-5 h-5" />,                 // Walk-in Closet
+      'elevator': <MdElevator className="w-5 h-5" />,                // Private Elevator
+      'filter': <RiFilterLine className="w-5 h-5" />,                // Water Filtration System
+      'garden': <FaSeedling className="w-5 h-5" />,                  // Private Garden
+      'wine': <FaWineBottle className="w-5 h-5" />,                  // Wine Cooler / Cellar
+      'wardrobe': <MdCheckroom className="w-5 h-5" />                // Built-in Wardrobe
+    };
+    
+    return iconMap[iconName] || <FaBuilding className="w-5 h-5" />;
+  }
 
   // Auto calculate sale price per sqm
   useEffect(() => {
@@ -255,6 +396,26 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       }
     }
   }, [formData.rentPrice, formData.landAreaSqWa])
+
+  // อัปเดต formData.amenities เมื่อ selectedAmenities เปลี่ยน
+  useEffect(() => {
+    console.log('selectedAmenities changed:', selectedAmenities)
+    console.log('formData before update:', formData)
+    console.log('selectedAmenities length:', selectedAmenities ? selectedAmenities.length : 0)
+    console.log('selectedAmenities type:', typeof selectedAmenities)
+    console.log('formData.amenities before update:', formData.amenities)
+    if (selectedAmenities && Array.isArray(selectedAmenities)) {
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          amenities: selectedAmenities
+        }
+        console.log('Updated formData:', updated)
+        return updated
+      })
+      console.log('Updated formData.amenities:', selectedAmenities)
+    }
+  }, [selectedAmenities])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ 
@@ -414,7 +575,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         project_code: formData.projectCode, // ส่งรหัสโครงการที่สร้าง WSxxx ไปเก็บ
         selected_project: formData.selectedProject,
         available_date: formData.availableDate,
-        facilities: formData.facilities,
+        amenities: selectedAmenities,
         images: images.map(img => ({ 
           url: img.url, 
           public_id: img.public_id || null 
@@ -423,6 +584,11 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       }
 
       console.log('ส่งข้อมูลไป API:', houseData)
+      console.log('Amenities ที่จะส่งไป:', selectedAmenities)
+      console.log('formData.amenities:', formData.amenities)
+      console.log('selectedAmenities type:', typeof selectedAmenities)
+      console.log('selectedAmenities isArray:', Array.isArray(selectedAmenities))
+      console.log('selectedAmenities length:', selectedAmenities ? selectedAmenities.length : 0)
 
       if (isEditing) {
         // แก้ไขบ้าน
@@ -1093,7 +1259,62 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
           </div>
         </Card>
 
-        
+        {/* สิ่งอำนวยความสะดวกภายในห้อง (Amenities) */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <Star className="h-6 w-6 mr-3 text-blue-600" />
+            สิ่งอำนวยความสะดวกภายในห้อง
+          </h2>
+          
+          {/* Debug Info */}
+          <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
+            <p className="text-sm text-yellow-700 font-prompt">
+              <span className="font-medium">🐛 Debug:</span> 
+              selectedAmenities: {JSON.stringify(selectedAmenities)} | 
+              formData.amenities: {JSON.stringify(formData.amenities)}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {amenitiesList.map((amenity) => (
+              <label key={amenity.id} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={selectedAmenities.includes(amenity.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedAmenities(prev => [...prev, amenity.id])
+                      setFormData(prev => ({
+                        ...prev,
+                        amenities: [...prev.amenities, amenity.id]
+                      }))
+                    } else {
+                      setSelectedAmenities(prev => prev.filter(id => id !== amenity.id))
+                      setFormData(prev => ({
+                        ...prev,
+                        amenities: prev.amenities.filter(id => id !== amenity.id)
+                      }))
+                    }
+                  }}
+                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex items-center">
+                  <span className="mr-2 text-blue-600">
+                    {getFacilityIcon(amenity.icon)}
+                  </span>
+                  <span className="text-sm text-gray-700 font-prompt">{amenity.label}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+          
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700 font-prompt">
+              <span className="font-medium">💡 คำแนะนำ:</span> เลือกสิ่งอำนวยความสะดวกที่มีอยู่ในห้อง 
+              เพื่อให้ผู้ซื้อ/ผู้เช่าเห็นข้อมูลที่ครบถ้วน
+            </p>
+          </div>
+        </Card>
 
         {/* รูปภาพ */}
         <Card className="p-6">

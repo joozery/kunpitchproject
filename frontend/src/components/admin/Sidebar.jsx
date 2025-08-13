@@ -31,6 +31,13 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       icon: Home
     },
     {
+      id: 'users',
+      title: 'ผู้ใช้',
+      description: 'จัดการผู้ใช้งานและสิทธิ์',
+      path: '/admin/users',
+      icon: Users
+    },
+    {
       id: 'properties',
       title: 'จัดการ Property',
       description: 'จัดการข้อมูลอสังหาริมทรัพย์ทั้งหมด',

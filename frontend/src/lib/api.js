@@ -15,8 +15,10 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add any auth tokens here if needed
-    // config.headers.Authorization = `Bearer ${token}`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config;
   },
   (error) => {
@@ -219,11 +221,21 @@ export const uploadAPI = {
 // Health check
 export const healthCheck = () => api.get('/health');
 
+// Users API
+export const usersAPI = {
+  getAll: (params = {}) => api.get('/users', { params }),
+  getById: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`)
+};
+
 export default {
   propertyAPI,
   condoAPI,
   houseAPI,
   landAPI,
   uploadAPI,
+  usersAPI,
   healthCheck,
 }; 

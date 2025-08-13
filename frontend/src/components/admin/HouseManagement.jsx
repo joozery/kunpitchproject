@@ -70,7 +70,21 @@ const HouseManagement = () => {
   }, [])
 
   const handleAddClick = () => setShowAddForm(true)
-  const handleEditClick = (house) => { setEditingHouse(house); setShowEditForm(true) }
+  const handleEditClick = async (house) => {
+    try {
+      setShowEditForm(true)
+      // Fetch the latest data to ensure amenities/images are complete and properly typed
+      const res = await houseAPI.getById(house.id)
+      if (res?.success) {
+        setEditingHouse(res.data)
+      } else {
+        setEditingHouse(house)
+      }
+    } catch (e) {
+      console.error('Failed to load house details:', e)
+      setEditingHouse(house)
+    }
+  }
   const refreshList = async () => {
     try {
       setLoading(true)

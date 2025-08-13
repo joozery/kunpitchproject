@@ -9,10 +9,21 @@ import { CommercialFormWrapper } from '../components/admin/CommercialForm'
 import CommercialDemo from '../pages/CommercialDemo'
 import ContactSettings from '../components/admin/ContactSettings'
 import ProjectManagement from '../components/admin/ProjectManagement'
+import UserManagement from '../components/admin/UserManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
   // Main Dashboard
+  {
+    path: '/admin/users',
+    name: 'users',
+    title: 'ผู้ใช้',
+    description: 'จัดการผู้ใช้งานและสิทธิ์',
+    category: 'system',
+    breadcrumb: ['ระบบ', 'ผู้ใช้'],
+    icon: 'Users',
+    component: UserManagement
+  },
   {
     path: '/admin',
     redirect: '/admin/dashboard'
