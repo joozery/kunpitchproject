@@ -401,6 +401,39 @@
     display: inline-block;
   }
 
+  /* Typewriter loop: พิมพ์จนจบ พัก แล้วลบย้อนกลับ วนซ้ำ */
+  .typewriter-loop {
+    overflow: hidden;
+    /* caret moved to pseudo-element to control height */
+    white-space: nowrap;
+    margin: 0 auto;
+    letter-spacing: 0.02em;
+    width: 0;
+    display: inline-block;
+    position: relative;
+    line-height: 1; /* ensure caret uses exact text box height */
+    /* Customize caret height and top offset if needed */
+    --caret-h: 0.8em;   /* reduce caret height so it ends at baseline */
+    --caret-top: 0.12em; /* nudge down slightly to center vertically */
+    animation: typing-loop 6s steps(25, end) infinite;
+  }
+
+  .typewriter-loop::after {
+    display: none; /* Remove vertical caret */
+  }
+
+  @keyframes typing-loop {
+    0% { width: 0; }
+    42% { width: 100%; }
+    58% { width: 100%; }
+    100% { width: 0; }
+  }
+
+  @keyframes caret-blink {
+    from, to { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
   @keyframes typing {
     from { 
       width: 0;

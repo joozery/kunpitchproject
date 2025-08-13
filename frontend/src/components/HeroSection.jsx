@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronDown } from 'lucide-react'
 import whaleLogo from '../assets/WHLE-03.png'
+import bannerVideo from '../assets/banner.mp4'
 
 const HeroSection = () => {
   const [activeTab, setActiveTab] = useState('rent')
@@ -27,31 +28,21 @@ const HeroSection = () => {
   ]
 
   return (
-    <section className="relative h-[80vh] overflow-hidden" style={{background: 'linear-gradient(to bottom right, #203d6b, #1d5e9d, #8bb4db)'}}>
-      {/* Geometric Background Shapes - exactly like PropertyHub */}
-      <div className="absolute inset-0">
-        {/* Large left curve */}
-        <div className="absolute top-0 left-0 w-1/3 h-full">
-          <svg viewBox="0 0 400 800" className="w-full h-full opacity-20">
-            <path d="M0,0 Q200,400 0,800 L0,0 Z" fill="rgba(255,255,255,0.1)" />
-          </svg>
-        </div>
-        
-        {/* Right geometric shapes */}
-        <div className="absolute top-20 right-20 w-32 h-32 border-2 border-white/20 rounded-full"></div>
-        <div className="absolute bottom-32 right-32 w-24 h-24 border-2 border-white/15 rounded-full"></div>
-        
-        {/* Bottom curves */}
-        <div className="absolute bottom-0 left-1/4 w-1/2 h-1/3">
-          <svg viewBox="0 0 600 300" className="w-full h-full opacity-15">
-            <path d="M0,300 Q300,0 600,300 L600,300 L0,300 Z" fill="rgba(255,255,255,0.1)" />
-          </svg>
-        </div>
-      </div>
+    <section className="relative h-[90vh] overflow-hidden">
+      {/* Video Background */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src={bannerVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+      {/* Overlay removed as requested */}
 
-      <div className="relative z-10 container mx-auto px-6 pt-32 pb-6">
+      <div className="relative z-10 container mx-auto px-6 pt-32 pb-24">
         {/* Centered Logo and Title */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 text-white">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,10 +57,10 @@ const HeroSection = () => {
                 className="h-16 w-16 object-contain mr-5"
               />
               <div className="flex flex-col">
-                <h1 className="text-3xl md:text-4xl font-bold text-white font-prompt uppercase bg-gradient-to-r from-blue-200 via-white to-blue-100 bg-clip-text text-transparent leading-tight">
+                <h1 className="text-3xl md:text-4xl font-bold font-prompt uppercase leading-tight bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
                   WHALE SPACE
                 </h1>
-                <p className="text-white/80 text-sm font-prompt uppercase tracking-wider mt-1">
+                <p className="text-sm font-prompt uppercase tracking-wider mt-1 bg-gradient-to-r from-white via-blue-100 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
                   INTERNATIONAL REAL ESTATE
                 </p>
               </div>
@@ -82,8 +73,8 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-2xl md:text-3xl font-bold text-white mb-3 font-prompt"
           >
-            <h1 className={`typewriter ${typingDone ? 'typing-done' : ''}`}>
-              Thailand properties for sale and rent
+            <h1 className={`typewriter-loop`} style={{ fontFamily: 'Oswald, sans-serif', textShadow: '0 2px 8px rgba(0,0,0,0.5)', width: 'ch' }}>
+              Your Perfect Space Awaits
             </h1>
           </motion.div>
         </div>
@@ -170,6 +161,16 @@ const HeroSection = () => {
               </button>
             </div>
           </div>
+        </motion.div>
+
+        {/* Tagline below search form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mt-4 md:mt-6 text-center"
+        >
+          <p className="text-white/90 text-lg md:text-xl font-prompt tracking-wide" style={{ fontFamily: 'Oswald, sans-serif', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>Conecting You To The Right Space!</p>
         </motion.div>
       </div>
     </section>
