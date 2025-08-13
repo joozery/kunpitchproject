@@ -86,12 +86,17 @@ const PropertyTypeSections = () => {
     console.log(`Property ${type} data:`, property)
     
         const getPropertyImage = (property) => {
-      console.log(`Getting image for ${type}:`, { cover_image: property.cover_image, images: property.images })
-      
       // Check for cover_image first
       if (property.cover_image) {
-        console.log(`Using cover_image: ${property.cover_image}`)
-        return property.cover_image
+        // Ensure the URL is absolute and uses HTTPS
+        let imageUrl = property.cover_image
+        if (imageUrl.startsWith('http://')) {
+          imageUrl = imageUrl.replace('http://', 'https://')
+        }
+        if (imageUrl.startsWith('//')) {
+          imageUrl = 'https:' + imageUrl
+        }
+        return imageUrl
       }
       
       // Check for images array
@@ -102,27 +107,39 @@ const PropertyTypeSections = () => {
         if (typeof property.images === 'string') {
           try {
             imagesArray = JSON.parse(property.images)
-            console.log('Parsed images string:', imagesArray)
           } catch (e) {
-            console.warn('Failed to parse images string:', property.images)
+            // If parsing fails, treat it as a single image URL
+            let imageUrl = property.images
+            if (imageUrl.startsWith('http://')) {
+              imageUrl = imageUrl.replace('http://', 'https://')
+            }
+            if (imageUrl.startsWith('//')) {
+              imageUrl = 'https:' + imageUrl
+            }
+            return imageUrl
           }
         }
         
         // If it's an array and has items, return the first one
         if (Array.isArray(imagesArray) && imagesArray.length > 0) {
-          console.log(`Using first image from array: ${imagesArray[0]}`)
-          return imagesArray[0]
+          let imageUrl = imagesArray[0]
+          if (imageUrl.startsWith('http://')) {
+            imageUrl = imageUrl.replace('http://', 'https://')
+          }
+          if (imageUrl.startsWith('//')) {
+            imageUrl = 'https:' + imageUrl
+          }
+          return imageUrl
         }
       }
       
-      // Fallback images based on property type
+      // Fallback images based on property type (using HTTPS)
       const fallbackImages = {
         condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
         house: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
         land: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
         commercial: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
       }
-      console.log(`Using fallback image for ${type}: ${fallbackImages[type]}`)
       return fallbackImages[type] || fallbackImages.condo
     }
 
@@ -150,10 +167,6 @@ const PropertyTypeSections = () => {
             alt={property.title || property.name}
             className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
             onError={(e) => {
-              // Silent error handling - don't log to console in production
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('Image failed to load:', e.target.src)
-              }
               // Fallback to a default image if the current one fails
               const fallbackImages = {
                 condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',

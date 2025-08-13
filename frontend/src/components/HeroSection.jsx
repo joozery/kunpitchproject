@@ -18,11 +18,12 @@ const HeroSection = () => {
       {/* Video Background */}
       <iframe
         className="absolute inset-0 w-full h-full object-cover scale-[2.5]"
-        src="https://www.youtube.com/embed/ecsPQknpaGU?autoplay=1&mute=1&loop=1&playlist=ecsPQknpaGU&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
+        src="https://www.youtube.com/embed/ecsPQknpaGU?autoplay=1&mute=1&loop=1&playlist=ecsPQknpaGU&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https://whalespace.netlify.app"
         title="Background Video"
         frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
+        loading="lazy"
       />
 
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-16">
