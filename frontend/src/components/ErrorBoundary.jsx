@@ -16,6 +16,12 @@ class ErrorBoundary extends React.Component {
       console.error('Error caught by boundary:', error, errorInfo)
     }
     
+    // In production, log to external service instead of console
+    if (process.env.NODE_ENV === 'production') {
+      // You can send error to external logging service here
+      // Example: Sentry, LogRocket, etc.
+    }
+    
     this.setState({
       error: error,
       errorInfo: errorInfo

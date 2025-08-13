@@ -150,7 +150,10 @@ const PropertyTypeSections = () => {
             alt={property.title || property.name}
             className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
             onError={(e) => {
-              console.error('Image failed to load:', e.target.src)
+              // Silent error handling - don't log to console in production
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('Image failed to load:', e.target.src)
+              }
               // Fallback to a default image if the current one fails
               const fallbackImages = {
                 condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
@@ -160,6 +163,7 @@ const PropertyTypeSections = () => {
               }
               e.target.src = fallbackImages[type] || fallbackImages.condo
             }}
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
