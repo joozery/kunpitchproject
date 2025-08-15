@@ -15,7 +15,7 @@ const WhyChooseSection = () => {
           className="w-full h-full object-cover"
         />
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="absolute inset-0 bg-blue-900/60"></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
