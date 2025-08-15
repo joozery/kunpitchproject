@@ -5,7 +5,7 @@ import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, C
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState('ทั้งหมด')
+  const [selectedCategory, setSelectedCategory] = useState('All')
   const [currentSlide, setCurrentSlide] = useState(0)
   const sliderRef = useRef(null)
 
@@ -14,78 +14,78 @@ const BlogSection = () => {
     const mockBlogs = [
       {
         id: 1,
-        title: "10 เทคนิคการเลือกซื้อคอนโดในกรุงเทพฯ ให้ได้ผลตอบแทนดี",
-        excerpt: "การลงทุนซื้อคอนโดในกรุงเทพฯ ต้องมีเทคนิคและความรู้เพื่อให้ได้ผลตอบแทนที่คุ้มค่า มาดูกันว่ามีเทคนิคอะไรบ้างที่นักลงทุนควรรู้...",
+        title: "10 Tips for Buying Condos in Bangkok for Better Returns",
+        excerpt: "Investing in condos in Bangkok requires techniques and knowledge to get worthwhile returns. Let's see what techniques investors should know...",
         image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Whale Space Team",
         date: "2024-01-15",
-        category: "การลงทุน",
-        readTime: "5 นาที",
+        category: "Investment",
+        readTime: "5 min",
         views: 1250,
         comments: 23,
         featured: true
       },
       {
         id: 2,
-        title: "แนวโน้มตลาดอสังหาริมทรัพย์ไทย 2024",
-        excerpt: "วิเคราะห์แนวโน้มตลาดอสังหาริมทรัพย์ไทยในปี 2024 พร้อมคำแนะนำสำหรับนักลงทุนและผู้ซื้อบ้านที่ต้องการข้อมูลเชิงลึก...",
+        title: "Thai Real Estate Market Trends 2024",
+        excerpt: "Analysis of Thai real estate market trends in 2024 with recommendations for investors and homebuyers who need in-depth information...",
         image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Market Analyst",
         date: "2024-01-12",
-        category: "ตลาดอสังหาฯ",
-        readTime: "8 นาที",
+        category: "Market Trends",
+        readTime: "8 min",
         views: 2100,
         comments: 45,
         featured: true
       },
       {
         id: 3,
-        title: "วิธีการประเมินราคาบ้านให้ถูกต้อง",
-        excerpt: "เทคนิคการประเมินราคาบ้านอย่างถูกต้อง เพื่อให้คุณซื้อขายได้ในราคาที่เป็นธรรม และไม่เสียเปรียบในการเจรจา...",
+        title: "How to Properly Evaluate House Prices",
+        excerpt: "Techniques for properly evaluating house prices so you can buy and sell at fair prices and not lose out in negotiations...",
         image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Property Expert",
         date: "2024-01-10",
-        category: "คำแนะนำ",
-        readTime: "6 นาที",
+        category: "Tips",
+        readTime: "6 min",
         views: 1800,
         comments: 31,
         featured: false
       },
       {
         id: 4,
-        title: "กฎหมายใหม่ที่นักลงทุนอสังหาฯ ต้องรู้",
-        excerpt: "อัพเดทกฎหมายใหม่ๆ ที่เกี่ยวข้องกับการลงทุนอสังหาริมทรัพย์ เพื่อให้การลงทุนของคุณถูกต้องตามกฎหมายและปลอดภัย...",
+        title: "New Laws Real Estate Investors Must Know",
+        excerpt: "Update on new laws related to real estate investment to ensure your investment is legal and safe...",
         image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Legal Team",
         date: "2024-01-08",
-        category: "กฎหมาย",
-        readTime: "7 นาที",
+        category: "Legal",
+        readTime: "7 min",
         views: 950,
         comments: 12,
         featured: false
       },
       {
         id: 5,
-        title: "เทคนิคการตกแต่งบ้านเพื่อเพิ่มมูลค่า",
-        excerpt: "การตกแต่งและปรับปรุงบ้านอย่างชาญฉลาด สามารถเพิ่มมูลค่าของทรัพย์สินได้อย่างมีนัยสำคัญ มาดูเทคนิคที่ได้ผล...",
+        title: "Home Decoration Techniques to Increase Value",
+        excerpt: "Smart home decoration and renovation can significantly increase property value. Let's see effective techniques...",
         image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Design Team",
         date: "2024-01-05",
-        category: "การตกแต่ง",
-        readTime: "4 นาที",
+        category: "Design",
+        readTime: "4 min",
         views: 1650,
         comments: 28,
         featured: false
       },
       {
         id: 6,
-        title: "การวางแผนการเงินสำหรับการซื้อบ้านหลังแรก",
-        excerpt: "คำแนะนำในการวางแผนการเงินสำหรับการซื้อบ้านหลังแรก ตั้งแต่การเก็บเงินดาวน์ ไปจนถึงการเลือกสินเชื่อที่เหมาะสม...",
+        title: "Financial Planning for Your First Home Purchase",
+        excerpt: "Guidance on financial planning for your first home purchase, from saving for down payment to choosing the right loan...",
         image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
         author: "Financial Advisor",
         date: "2024-01-03",
-        category: "การเงิน",
-        readTime: "9 นาที",
+        category: "Finance",
+        readTime: "9 min",
         views: 2300,
         comments: 56,
         featured: true
@@ -110,19 +110,19 @@ const BlogSection = () => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      'การลงทุน': 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
-      'ตลาดอสังหาฯ': 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white',
-      'คำแนะนำ': 'bg-gradient-to-r from-purple-500 to-purple-600 text-white',
-      'กฎหมาย': 'bg-gradient-to-r from-red-500 to-red-600 text-white',
-      'การตกแต่ง': 'bg-gradient-to-r from-amber-500 to-amber-600 text-white',
-      'การเงิน': 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white'
+      'Investment': 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
+      'Market Trends': 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white',
+      'Tips': 'bg-gradient-to-r from-purple-500 to-purple-600 text-white',
+      'Legal': 'bg-gradient-to-r from-red-500 to-red-600 text-white',
+      'Design': 'bg-gradient-to-r from-amber-500 to-amber-600 text-white',
+      'Finance': 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white'
     }
     return colors[category] || 'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
   }
 
-  const categories = ['ทั้งหมด', 'การลงทุน', 'ตลาดอสังหาฯ', 'คำแนะนำ', 'กฎหมาย', 'การตกแต่ง', 'การเงิน']
+  const categories = ['All', 'Investment', 'Market Trends', 'Tips', 'Legal', 'Design', 'Finance']
 
-  const filteredBlogs = selectedCategory === 'ทั้งหมด' 
+  const filteredBlogs = selectedCategory === 'All' 
     ? blogs 
     : blogs.filter(blog => blog.category === selectedCategory)
 
@@ -143,7 +143,7 @@ const BlogSection = () => {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
             <div className="h-12 bg-gradient-to-r from-slate-200 to-blue-200 rounded-xl w-64 mx-auto mb-4 animate-pulse"></div>
@@ -171,7 +171,7 @@ const BlogSection = () => {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+    <section className="py-16 bg-white relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
@@ -205,7 +205,7 @@ const BlogSection = () => {
               backgroundClip: 'text'
             }}
           >
-            บทความและข่าวสาร
+            Articles & News
           </motion.h2>
           
           <motion.p 
@@ -214,7 +214,7 @@ const BlogSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-slate-600 text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            อัพเดทข้อมูลข่าวสาร เทคนิค และคำแนะนำเกี่ยวกับอสังหาริมทรัพย์จากผู้เชี่ยวชาญ
+            Stay updated with the latest insights, tips, and expert advice on real estate
           </motion.p>
         </div>
 
@@ -352,7 +352,7 @@ const BlogSection = () => {
 
                       {/* Read More Button */}
                       <button className="w-full bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center group-hover:from-blue-50 group-hover:to-indigo-50 group-hover:text-blue-600 mt-auto">
-                        อ่านต่อ
+                        Read More
                         <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
@@ -389,7 +389,7 @@ const BlogSection = () => {
         >
           <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30">
             <BookOpen className="h-4 w-4" />
-            ดูบทความทั้งหมด
+            View All Articles
             <ArrowRight className="h-4 w-4" />
           </button>
         </motion.div>
