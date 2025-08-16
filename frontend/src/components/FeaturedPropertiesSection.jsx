@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Star, Home, Eye as EyeIcon } from 'lucide-react'
 import { propertyAPI } from '../lib/api'
 
 const FeaturedPropertiesSection = () => {
+  const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -168,13 +170,8 @@ const FeaturedPropertiesSection = () => {
   const featuredProperties = properties;
 
   return (
-    <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
-      </div>
+    <section className="py-16 bg-white relative overflow-hidden">
+
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
@@ -186,7 +183,7 @@ const FeaturedPropertiesSection = () => {
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">Featured Properties</span>
+            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Hot Deal</span>
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           </motion.div>
           
@@ -194,9 +191,13 @@ const FeaturedPropertiesSection = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
           >
-            All Properties
+            <img 
+              src="https://img.icons8.com/external-kosonicon-outline-kosonicon/64/external-hot-deal-black-friday-kosonicon-outline-kosonicon-2.png" 
+              alt="Hot Deal Icon" 
+              className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
+            />
           </motion.h2>
         </div>
 
@@ -276,33 +277,50 @@ const FeaturedPropertiesSection = () => {
                       <MapPin className="h-4 w-4 mr-2 text-blue-500" />
                       {property.location || property.address}
                     </p>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <Home className="h-4 w-4 text-blue-500" />
-                          <span>{property.bedrooms || 0}</span>
+                    <div className="mb-4">
+                      {/* Property Features */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Bed className="h-4 w-4 text-blue-500" />
+                          <span>{property.bedrooms ? `${property.bedrooms} ห้องนอน` : 'N/A'}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <Building2 className="h-4 w-4 text-blue-500" />
-                          <span>{property.bathrooms || 0}</span>
+                          <span>{property.bathrooms ? `${property.bathrooms} ห้องน้ำ` : 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Home className="h-4 w-4 text-blue-500" />
+                          <span>{property.floor ? `ชั้นที่ ${property.floor}` : 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Star className="h-4 w-4 text-blue-500" />
+                          <span>{property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatPrice(property.price)}</div>
-                        {property.rent_price > 0 && (
-                          <div className="text-sm text-gray-500">฿{formatRentPrice(property.rent_price)}/เดือน</div>
-                        )}
-                        {/* Click Count near Price */}
-                        <div className="flex items-center justify-end mt-2 text-sm text-gray-500">
+                      
+                      {/* Price and Views */}
+                      <div className="flex items-center justify-between">
+                        <div className="text-right">
+                          <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatPrice(property.price)}</div>
+                          {property.rent_price > 0 && (
+                            <div className="text-sm text-gray-500">฿{formatRentPrice(property.rent_price)}/เดือน</div>
+                          )}
+                        </div>
+                        {/* Click Count */}
+                        <div className="flex items-center text-sm text-gray-500">
                           <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
                           <span>{clickCounts[property.id] || 0} ครั้ง</span>
                         </div>
                       </div>
                     </div>
-                    <button className="w-full bg-gradient-to-r from-blue-600 via-gray-600 to-yellow-500 text-white py-3 rounded-xl font-bold transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group-hover:from-blue-500 group-hover:via-gray-500 group-hover:to-yellow-400 relative overflow-hidden"
-                       onClick={() => handleCardClick(property.id, property.type)}
+                    <button className="w-full text-white py-3 rounded-xl font-bold transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 relative overflow-hidden"
+                       style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
+                       onClick={() => {
+                         handleCardClick(property.id, property.type)
+                         navigate(`/property/${property.id}`)
+                       }}
                     >
-                      <span className="relative z-10">ดูรายละเอียด</span>
+                      <span className="relative z-10">Details</span>
                       <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
                       
                       {/* Button Shimmer Effect */}

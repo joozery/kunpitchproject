@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronDown } from 'lucide-react'
-import whaleLogo from '../assets/WHLE-03.png'
 
 const HeroSection = () => {
   const [typingDone, setTypingDone] = useState(false)
@@ -27,36 +26,14 @@ const HeroSection = () => {
       />
 
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-16">
-        {/* Centered Logo and Title */}
+        {/* Centered Title */}
         <div className="text-center mb-8 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-6"
-          >
-            <div className="inline-flex items-center px-6 py-3 mb-4">
-              <img
-                src={whaleLogo}
-                alt="Whale Space Logo"
-                className="h-16 w-16 object-contain mr-5"
-              />
-              <div className="flex flex-col">
-                <h1 className="text-3xl md:text-4xl font-bold font-oswald uppercase bg-gradient-to-r from-blue-200 via-white to-blue-100 bg-clip-text text-transparent leading-tight drop-shadow-lg">
-                  WHALE SPACE
-                </h1>
-                <p className="text-white/80 text-sm font-oswald uppercase tracking-wider mt-1 bg-gradient-to-r from-blue-200 via-white to-blue-100 bg-clip-text text-transparent drop-shadow-lg">
-                  INTERNATIONAL REAL ESTATE
-                </p>
-              </div>
-            </div>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-2xl md:text-3xl font-bold text-white mb-3 font-oswald"
+            className="text-xl md:text-2xl font-bold text-white mb-3 font-oswald mt-8 md:mt-12"
             style={{
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
             }}
@@ -115,18 +92,7 @@ const HeroSection = () => {
           </div>
         </motion.div>
 
-        {/* New text below search form */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.2 }}
-          className="mt-4 md:mt-6 text-center text-white/90 text-lg md:text-xl font-oswald font-semibold"
-          style={{
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
-          }}
-        >
-          Conecting You To The Right Space!
-        </motion.p>
+
       </div>
     </section>
   )

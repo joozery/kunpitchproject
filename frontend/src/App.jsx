@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Admin from './pages/Admin'
 import Home from './pages/Home'
 import Login from './pages/Login'
+import PropertyDetail from './pages/PropertyDetail'
 import ErrorBoundary from './components/ErrorBoundary'
 
 const RequireAuth = ({ children }) => {
@@ -22,6 +23,7 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
+            <Route path="/property/:id" element={<PropertyDetail />} />
             
             {/* Auth */}
             <Route path="/login" element={<Login />} />
