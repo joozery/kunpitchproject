@@ -7,9 +7,11 @@ import { SlLocationPin } from 'react-icons/sl'
 import { LuBath } from 'react-icons/lu'
 import { IoBedOutline } from 'react-icons/io5'
 import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
+import { useCurrency } from '../lib/CurrencyContext'
 
 const ExclusiveUnits = () => {
   const navigate = useNavigate()
+  const { convert, format } = useCurrency()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -233,9 +235,9 @@ const ExclusiveUnits = () => {
                       <div className="flex items-center justify-end mb-4">
                         <div className="text-right">
                           {property.rent_price > 0 && (
-                            <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatPrice(property.rent_price)}/เดือน</div>
+                            <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.rent_price))}/เดือน</div>
                           )}
-                          <div className="text-sm text-gray-600 font-medium">฿{formatPrice(property.price)}</div>
+                          <div className="text-sm text-gray-600 font-medium">{format(convert(property.price))}</div>
                           <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
                             <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
                             <span>{property.views || 0} ครั้ง</span>

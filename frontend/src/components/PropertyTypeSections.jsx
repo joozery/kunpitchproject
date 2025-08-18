@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Eye as EyeIcon } from 'lucide-react'
+import { useCurrency } from '../lib/CurrencyContext'
 import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { SlLocationPin } from 'react-icons/sl'
 import { LuBath } from 'react-icons/lu'
@@ -10,6 +11,7 @@ import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 
 const PropertyTypeSections = () => {
   const navigate = useNavigate()
+  const { convert, format } = useCurrency()
   const [condos, setCondos] = useState([])
   const [houses, setHouses] = useState([])
   const [lands, setLands] = useState([])
@@ -295,11 +297,11 @@ const PropertyTypeSections = () => {
               <div className="text-right">
                 {property.rent_price > 0 && (
                   <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                    ฿{formatRentPrice(property.rent_price)}/เดือน
+                    {format(convert(property.rent_price))}/เดือน
                   </div>
                 )}
                 <div className="text-sm text-gray-600 font-medium">
-                  ฿{formatPrice(property.price)}
+                  {format(convert(property.price))}
                 </div>
                 <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
                   <EyeIcon className="h-4 w-4 mr-1 text-green-500" />

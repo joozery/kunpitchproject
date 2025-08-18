@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronDown } from 'lucide-react'
+import bannerVideo from '../assets/banner.mp4'
 
 const HeroSection = () => {
   const [typingDone, setTypingDone] = useState(false)
@@ -15,14 +16,14 @@ const HeroSection = () => {
   return (
     <section className="relative h-[75vh] overflow-hidden">
       {/* Video Background */}
-      <iframe
-        className="absolute inset-0 w-full h-full object-cover scale-[2.5]"
-        src="https://www.youtube.com/embed/ecsPQknpaGU?autoplay=1&mute=1&loop=1&playlist=ecsPQknpaGU&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https://whalespace.netlify.app"
-        title="Background Video"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-        loading="lazy"
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src={bannerVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
       />
 
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-16">

@@ -3,8 +3,10 @@ import { motion } from 'framer-motion'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon } from 'lucide-react'
 import { propertyAPI } from '../lib/api'
 import Header from '../components/Header'
+import { useCurrency } from '../lib/CurrencyContext'
 
 const Properties = () => {
+  const { convert, format } = useCurrency()
   const [properties, setProperties] = useState([])
   const [filteredProperties, setFilteredProperties] = useState([])
   const [loading, setLoading] = useState(true)
@@ -327,9 +329,9 @@ const Properties = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                             <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatPrice(property.price)}</div>
+                             <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.price))}</div>
                              {property.rent_price > 0 && (
-                               <div className="text-sm text-gray-500">฿{formatRentPrice(property.rent_price)}/เดือน</div>
+                               <div className="text-sm text-gray-500">{format(convert(property.rent_price))}/เดือน</div>
                              )}
                              {/* Click Count near Price */}
                              <div className="flex items-center justify-end mt-2 text-sm text-gray-500">
@@ -422,9 +424,9 @@ const Properties = () => {
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatPrice(property.price)}</div>
+                              <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.price))}</div>
                               {property.rent_price > 0 && (
-                                <div className="text-sm text-gray-500">฿{formatRentPrice(property.rent_price)}/เดือน</div>
+                                <div className="text-sm text-gray-500">{format(convert(property.rent_price))}/เดือน</div>
                               )}
                               {/* Click Count near Price */}
                               <div className="flex items-center justify-end mt-2 text-sm text-gray-500">

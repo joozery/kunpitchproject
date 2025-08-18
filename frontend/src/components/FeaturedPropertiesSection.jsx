@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Eye as EyeIcon } from 'lucide-react'
+import { propertyAPI } from '../lib/api'
+import { useCurrency } from '../lib/CurrencyContext'
 import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { SlLocationPin } from 'react-icons/sl'
 import { LuBath } from 'react-icons/lu'
 import { IoBedOutline } from 'react-icons/io5'
-import { propertyAPI } from '../lib/api'
+import AutoTranslate from './AutoTranslate'
 
 const FeaturedPropertiesSection = () => {
   const navigate = useNavigate()
   const [properties, setProperties] = useState([])
+  const { convert, format } = useCurrency()
   const [loading, setLoading] = useState(true)
 
   // Click tracking state
@@ -146,15 +149,15 @@ const FeaturedPropertiesSection = () => {
     }
   };
 
-  const getStatusStyle = (status) => {
-    if (status === 'for_sale' || status === 'sale') {
-      return { background: '#00bf63', color: '#ffffff' }
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'for_sale':
+        return 'bg-green-500 text-white';
+      case 'for_rent':
+        return 'bg-blue-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
     }
-    if (status === 'for_rent' || status === 'rent') {
-      return { background: '#0cc0df', color: '#ffffff' }
-    }
-    // default mixed or unknown -> gradient
-    return { background: 'linear-gradient(90deg, #00bf63 0%, #0cc0df 100%)', color: '#ffffff' }
   };
 
   const formatPrice = (price) => {
@@ -171,12 +174,247 @@ const FeaturedPropertiesSection = () => {
     return Math.floor(numRentPrice).toLocaleString('th-TH')
   }
 
+  const PropertyCard = ({ property, type }) => {
+    const getPropertyImage = (property) => {
+      // Check for cover_image first
+      if (property.cover_image) {
+        // Ensure the URL is absolute and uses HTTPS
+        let imageUrl = property.cover_image
+        if (imageUrl.startsWith('http://')) {
+          imageUrl = imageUrl.replace('http://', 'https://')
+        }
+        if (imageUrl.startsWith('//')) {
+          imageUrl = 'https:' + imageUrl
+        }
+        return imageUrl
+      }
+      
+      // Check for images array
+      if (property.images) {
+        let imagesArray = property.images
+        
+        // If images is a string, try to parse it as JSON
+        if (typeof property.images === 'string') {
+          try {
+            imagesArray = JSON.parse(property.images)
+          } catch (e) {
+            // If parsing fails, treat it as a single image URL
+            let imageUrl = property.images
+            if (imageUrl.startsWith('http://')) {
+              imageUrl = imageUrl.replace('http://', 'https://')
+            }
+            if (imageUrl.startsWith('//')) {
+              imageUrl = 'https:' + imageUrl
+            }
+            return imageUrl
+          }
+        }
+        
+        // If it's an array and has items, return the first one
+        if (Array.isArray(imagesArray) && imagesArray.length > 0) {
+          let imageUrl = imagesArray[0]
+          if (imageUrl.startsWith('http://')) {
+            imageUrl = imageUrl.replace('http://', 'https://')
+          }
+          if (imageUrl.startsWith('//')) {
+            imageUrl = 'https:' + imageUrl
+          }
+          return imageUrl
+        }
+      }
+      
+      // Fallback images based on property type (using HTTPS)
+      const fallbackImages = {
+        residential: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+        condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+        land: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+        commercial: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+      }
+      return fallbackImages[type] || fallbackImages.residential
+    }
+
+    const getTypeLabel = (type) => {
+      const labels = {
+        residential: 'บ้านเดี่ยว',
+        condo: 'คอนโด',
+        land: 'ที่ดิน',
+        commercial: 'โฮมออฟฟิศ'
+      }
+      return labels[type] || 'อสังหาฯ'
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt"
+        style={{
+          background: '#ffffff',
+          border: '3px solid transparent',
+          borderRadius: '16px',
+          backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #3b82f6, #6b7280, #f59e0b)',
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'content-box, border-box',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59,130,246,0.2)'
+        }}
+      >
+        {/* Gradient Border Overlay */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-gray-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+        
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
+        
+        {/* Image Container */}
+        <div className="relative overflow-hidden h-52 flex-shrink-0">
+          <img
+            src={getPropertyImage(property)}
+            alt={property.title || property.name}
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+            onError={(e) => {
+              // Fallback to a default image if the current one fails
+              const fallbackImages = {
+                residential: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                land: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                commercial: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+              }
+              e.target.src = fallbackImages[type] || fallbackImages.residential
+            }}
+            loading="lazy"
+          />
+          
+          {/* Enhanced Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          {/* Top Left Badge with Blue-Gold Gradient */}
+          <div className="absolute top-4 left-4">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+              {getTypeLabel(type)}
+            </div>
+          </div>
+          
+          {/* Top Right Status Badge (custom colors) */}
+          <div className="absolute top-4 right-4">
+            <div
+              className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20"
+              style={{
+                background:
+                  property.status === 'sale'
+                    ? '#00bf63'
+                    : property.status === 'rent'
+                    ? '#0cc0df'
+                    : 'linear-gradient(90deg, #00bf63 0%, #0cc0df 100%)'
+              }}
+            >
+              {property.status === 'sale' ? 'ขาย' : property.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 flex-1 flex flex-col">
+          {/* Title */}
+          <h3 className="text-base font-semibold text-gray-900 mb-3 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug">
+            <AutoTranslate 
+              thaiText={property.title || property.name} 
+              targetLang="en"
+              fallbackText={property.title || property.name}
+            />
+          </h3>
+          
+          {/* Details Rows */}
+          <div className="space-y-3 mb-4 text-sm">
+            {/* Row 1: Bed, Bath, Floor */}
+            <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-2">
+                <IoBedOutline className="h-4 w-4 text-blue-500" />
+                <span>
+                  <AutoTranslate thaiText="ห้องนอน" targetLang="en" fallbackText="Bedrooms" />: {property.bedrooms || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuBath className="h-4 w-4 text-blue-500" />
+                <span>
+                  <AutoTranslate thaiText="ห้องน้ำ" targetLang="en" fallbackText="Bathrooms" />: {property.bathrooms || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TbStairsUp className="h-4 w-4 text-blue-500" />
+                <span>
+                  <AutoTranslate thaiText="ชั้นที่" targetLang="en" fallbackText="Floor" />: {property.floor || 'N/A'}
+                </span>
+              </div>
+            </div>
+            {/* Row 2: Area and Location */}
+            <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-2">
+                <TbViewportWide className="h-4 w-4 text-blue-500" />
+                <span>
+                  <AutoTranslate thaiText="พื้นที่" targetLang="en" fallbackText="Area" />: {property.area ? `${property.area} ตร.ม.` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <SlLocationPin className="h-4 w-4 text-blue-500" />
+                <span>
+                  <AutoTranslate 
+                    thaiText={property.location || property.address || 'ไม่ระบุที่อยู่'} 
+                    targetLang="en" 
+                    fallbackText={property.location || property.address || 'Address not specified'}
+                  />
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Price Section */}
+          <div className="mt-auto">
+            <div className="flex items-center justify-end mb-4">
+              <div className="text-right">
+                {property.rent_price > 0 && (
+                  <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
+                    {format(convert(property.rent_price))}/<AutoTranslate thaiText="เดือน" targetLang="en" fallbackText="month" />
+                  </div>
+                )}
+                <div className="text-sm text-gray-600 font-medium">
+                  {format(convert(property.price))}
+                </div>
+                <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
+                  <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                  <span>{clickCounts[property.id] || 0} <AutoTranslate thaiText="ครั้ง" targetLang="en" fallbackText="times" /></span>
+                </div>
+              </div>
+            </div>
+            
+            {/* View Details Button with Blue Gradient */}
+            <div className="flex justify-center">
+              <button 
+                className="inline-flex items-center justify-center gap-2 text-white py-3 px-8 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
+                style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
+                onClick={() => {
+                  handleCardClick(property.id, type)
+                  navigate(`/property/${property.id}`)
+                }}
+              >
+                <span className="relative z-10">
+                  <AutoTranslate thaiText="รายละเอียด" targetLang="en" fallbackText="Details" />
+                </span>
+                <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                
+                {/* Button Shimmer Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   const featuredProperties = properties;
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
-
-      
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
@@ -187,7 +425,9 @@ const FeaturedPropertiesSection = () => {
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Hot Deal</span>
+            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">
+              <AutoTranslate thaiText="ดีลร้อน" targetLang="en" fallbackText="Hot Deal" />
+            </span>
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           </motion.div>
           
@@ -225,127 +465,26 @@ const FeaturedPropertiesSection = () => {
             >
               <ArrowRight className="h-6 w-6 text-slate-700" />
             </button>
-          {loading ? (
-            <div className="flex space-x-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="w-96 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
-              ))}
-            </div>
-          ) : featuredProperties.length > 0 ? (
-            featuredProperties.map((property, index) => (
-              <div key={property.id} className="flex-shrink-0 w-96">
-                <motion.div
-                  key={property.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt"
-                  style={{
-                    background: '#ffffff',
-                    border: '3px solid transparent',
-                    borderRadius: '16px',
-                    backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #3b82f6, #6b7280, #f59e0b)',
-                    backgroundOrigin: 'border-box',
-                    backgroundClip: 'content-box, border-box',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59,130,246,0.2)'
-                  }}
-                >
-                  {/* Gradient Border Overlay */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-gray-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-                  
-                  {/* Shimmer Effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
-                  
-                  <div className="relative">
-                    <img
-                      src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
-                      alt={property.title}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    
-                    {/* Enhanced Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
-                    <div className="absolute top-4 left-4">
-                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
-                        {getTypeLabel(property.type)}
-                      </div>
-                    </div>
-                    <div
-                      className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20"
-                      style={getStatusStyle(property.status)}
-                    >
-                      {getStatusLabel(property.status)}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug">{property.title}</h3>
-                    {/* Feature Rows */}
-                    <div className="space-y-3 mb-4">
-                      {/* Row 1: Bed, Bath, Floor */}
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <IoBedOutline className="h-4 w-4 text-blue-500" />
-                          <span>{property.bedrooms ? `${property.bedrooms} ห้องนอน` : 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <LuBath className="h-4 w-4 text-blue-500" />
-                          <span>{property.bathrooms ? `${property.bathrooms} ห้องน้ำ` : 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <TbStairsUp className="h-4 w-4 text-blue-500" />
-                          <span>{property.floor ? `ชั้นที่ ${property.floor}` : 'N/A'}</span>
-                        </div>
-                      </div>
-                      {/* Row 2: Area and Location */}
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <TbViewportWide className="h-4 w-4 text-blue-500" />
-                          <span>{property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <SlLocationPin className="h-4 w-4 text-blue-500" />
-                          <span>{property.location || property.address}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Price and Views */}
-                    <div className="flex items-center justify-end">
-                      <div className="text-right">
-                        {property.rent_price > 0 && (
-                          <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">฿{formatRentPrice(property.rent_price)}/เดือน</div>
-                        )}
-                        <div className="text-sm text-gray-600">฿{formatPrice(property.price)}</div>
-                        <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
-                          <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                          <span>{clickCounts[property.id] || 0} ครั้ง</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                    <button className="mx-auto inline-flex items-center justify-center gap-2 text-white py-3 px-8 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
-                       style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
-                       onClick={() => {
-                         handleCardClick(property.id, property.type)
-                         navigate(`/property/${property.id}`)
-                       }}
-                    >
-                      <span className="relative z-10">Details</span>
-                      <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-                      
-                      {/* Button Shimmer Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    </button>
-                </motion.div>
+            {loading ? (
+              <div className="flex space-x-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-96 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                ))}
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12 w-full">
-              <div className="text-gray-500 text-lg">No properties found</div>
-            </div>
-          )}
-        </div>
+            ) : featuredProperties.length > 0 ? (
+              featuredProperties.map((property, index) => (
+                <div key={property.id} className="flex-shrink-0 w-96">
+                  <PropertyCard property={property} type={property.type} />
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 w-full">
+                <div className="text-gray-500 text-lg">
+                  <AutoTranslate thaiText="ไม่พบทรัพย์สิน" targetLang="en" fallbackText="No properties found" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* View All Button */}
@@ -357,7 +496,7 @@ const FeaturedPropertiesSection = () => {
             className="text-center mt-12"
           >
             <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30">
-              View More Properties
+              <AutoTranslate thaiText="ดูทรัพย์สินเพิ่มเติม" targetLang="en" fallbackText="View More Properties" />
               <ArrowRight className="h-4 w-4" />
             </button>
           </motion.div>

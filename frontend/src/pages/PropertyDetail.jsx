@@ -7,9 +7,11 @@ import { propertyAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { useCurrency } from '../lib/CurrencyContext'
 
 const PropertyDetail = () => {
   const { id } = useParams()
+  const { convert, format } = useCurrency()
   const navigate = useNavigate()
   const [property, setProperty] = useState(null)
   const [contactInfo, setContactInfo] = useState(null)
@@ -245,11 +247,11 @@ const PropertyDetail = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                    ฿{formatPrice(property.price)}
+                    {format(convert(property.price))}
                   </div>
                   {property.rent_price > 0 && (
                     <div className="text-lg text-gray-500">
-                      ฿{formatRentPrice(property.rent_price)}/เดือน
+                      {format(convert(property.rent_price))}/เดือน
                     </div>
                   )}
                 </div>
@@ -325,10 +327,10 @@ const PropertyDetail = () => {
             <div className="bg-white rounded-2xl p-6 shadow-lg mb-6 sticky top-8">
               <div className="text-center mb-6">
                 <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent mb-2">
-                  ฿{formatPrice(property.price)}
+                  {format(convert(property.price))}
                 </div>
                 {property.rent_price > 0 && (
-                  <div className="text-gray-600">฿{formatRentPrice(property.rent_price)}/เดือน</div>
+                  <div className="text-gray-600">{format(convert(property.rent_price))}/เดือน</div>
                 )}
               </div>
 
