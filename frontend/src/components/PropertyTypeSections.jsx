@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, Home, Building2, Eye, Heart, ArrowRight, Bed, Bath, Car, Ruler, Building, Square, Eye as EyeIcon, Star } from 'lucide-react'
+import { ArrowRight, Eye as EyeIcon } from 'lucide-react'
+import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
+import { SlLocationPin } from 'react-icons/sl'
+import { LuBath } from 'react-icons/lu'
+import { IoBedOutline } from 'react-icons/io5'
 import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 
 const PropertyTypeSections = () => {
@@ -184,7 +188,7 @@ const PropertyTypeSections = () => {
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer"
+        className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt"
         style={{
           background: '#ffffff',
           border: '3px solid transparent',
@@ -230,16 +234,19 @@ const PropertyTypeSections = () => {
             </div>
           </div>
           
-          {/* Top Right Price Badge with Gold */}
+          {/* Top Right Status Badge (custom colors) */}
           <div className="absolute top-4 right-4">
-            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
-              ฿{formatPrice(property.price)}
-            </div>
-          </div>
-
-          {/* Bottom Right Status Badge with Gray */}
-          <div className="absolute bottom-4 right-4">
-            <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+            <div
+              className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20"
+              style={{
+                background:
+                  property.status === 'sale'
+                    ? '#00bf63'
+                    : property.status === 'rent'
+                    ? '#0cc0df'
+                    : 'linear-gradient(90deg, #00bf63 0%, #0cc0df 100%)'
+              }}
+            >
               {property.status === 'sale' ? 'ขาย' : property.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
             </div>
           </div>
@@ -248,76 +255,93 @@ const PropertyTypeSections = () => {
         {/* Content */}
         <div className="p-6 flex-1 flex flex-col">
           {/* Title */}
-          <h3 className="text-lg font-bold text-gray-900 mb-3 font-prompt group-hover:text-blue-600 transition-colors duration-300">
+          <h3 className="text-base font-semibold text-gray-900 mb-3 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug">
             {property.title || property.name}
           </h3>
           
-          {/* Location */}
-          <p className="text-gray-600 mb-4 font-prompt flex items-center text-sm">
-            <MapPin className="h-4 w-4 mr-2 text-blue-500" />
-            {property.location || property.address || 'ไม่ระบุที่อยู่'}
-          </p>
-
-          {/* Property Details */}
-          <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Bed className="h-4 w-4 text-blue-500" />
-              <span>{property.bedrooms ? `${property.bedrooms} ห้องนอน` : 'N/A'}</span>
+          {/* Details Rows */}
+          <div className="space-y-3 mb-4 text-sm">
+            {/* Row 1: Bed, Bath, Floor */}
+            <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-2">
+                <IoBedOutline className="h-4 w-4 text-blue-500" />
+                <span>{property.bedrooms ? `${property.bedrooms} ห้องนอน` : 'N/A'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuBath className="h-4 w-4 text-blue-500" />
+                <span>{property.bathrooms ? `${property.bathrooms} ห้องน้ำ` : 'N/A'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TbStairsUp className="h-4 w-4 text-blue-500" />
+                <span>{property.floor ? `ชั้นที่ ${property.floor}` : 'N/A'}</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Bath className="h-4 w-4 text-blue-500" />
-              <span>{property.bathrooms ? `${property.bathrooms} ห้องน้ำ` : 'N/A'}</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Home className="h-4 w-4 text-blue-500" />
-              <span>{property.floor ? `ชั้นที่ ${property.floor}` : 'N/A'}</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Star className="h-4 w-4 text-blue-500" />
-              <span>{property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
+            {/* Row 2: Area and Location */}
+            <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-2">
+                <TbViewportWide className="h-4 w-4 text-blue-500" />
+                <span>{property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <SlLocationPin className="h-4 w-4 text-blue-500" />
+                <span>{property.location || property.address || 'ไม่ระบุที่อยู่'}</span>
+              </div>
             </div>
           </div>
 
           {/* Price Section */}
           <div className="mt-auto">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-end mb-4">
               <div className="text-right">
-                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                  ฿{formatPrice(property.price)}
-                </div>
                 {property.rent_price > 0 && (
-                  <div className="text-sm text-gray-500 font-medium">
+                  <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
                     ฿{formatRentPrice(property.rent_price)}/เดือน
                   </div>
                 )}
-              </div>
-              {/* Click Count */}
-              <div className="flex items-center text-sm text-gray-500">
-                <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                <span>{clickCounts[property.id] || 0} ครั้ง</span>
+                <div className="text-sm text-gray-600 font-medium">
+                  ฿{formatPrice(property.price)}
+                </div>
+                <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
+                  <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                  <span>{clickCounts[property.id] || 0} ครั้ง</span>
+                </div>
               </div>
             </div>
             
             {/* View Details Button with Blue Gradient */}
-            <button 
-              className="w-full text-white py-3 px-4 rounded-xl font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center relative overflow-hidden"
-              style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
-              onClick={() => {
-                handleCardClick(property.id, type)
-                navigate(`/property/${property.id}`)
-              }}
-            >
-              <span className="relative z-10">Details</span>
-              <ArrowRight className="h-4 w-4 ml-2 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-              
-              {/* Button Shimmer Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-          </button>
+            <div className="flex justify-center">
+              <button 
+                className="inline-flex items-center justify-center gap-2 text-white py-3 px-8 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
+                style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
+                onClick={() => {
+                  handleCardClick(property.id, type)
+                  navigate(`/property/${property.id}`)
+                }}
+              >
+                <span className="relative z-10">Details</span>
+                <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                
+                {/* Button Shimmer Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            </button>
+            </div>
           </div>
         </div>
       </motion.div>
     )
   }
+
+    // Combine all property types and sort by latest update time
+    const getUpdatedAt = (item) => item.updated_at || item.updatedAt || item.created_at || item.createdAt || item.date || 0
+    const allLoading = loading.condos || loading.houses || loading.lands || loading.commercials
+    const latestItems = [
+      ...condos.map(p => ({ ...p, __type: 'condo' })),
+      ...houses.map(p => ({ ...p, __type: 'house' })),
+      ...lands.map(p => ({ ...p, __type: 'land' })),
+      ...commercials.map(p => ({ ...p, __type: 'commercial' })),
+    ]
+      .sort((a, b) => new Date(getUpdatedAt(b)) - new Date(getUpdatedAt(a)))
+      .slice(0, 12)
 
     return (
     <div className="py-16 bg-white">
@@ -333,7 +357,7 @@ const PropertyTypeSections = () => {
               className="inline-flex items-center gap-3 mb-4"
             >
               <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-              <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Hot Deal</span>
+              <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Lastest Update</span>
               <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
             </motion.div>
             
@@ -354,13 +378,13 @@ const PropertyTypeSections = () => {
           <div className="flex items-center justify-between mb-8">
             <div className="flex space-x-2">
               <button 
-                onClick={() => document.getElementById('condos-scroll').scrollLeft -= 400}
+                onClick={() => document.getElementById('latest-scroll').scrollLeft -= 400}
                 className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
               >
                 <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
               </button>
               <button 
-                onClick={() => document.getElementById('condos-scroll').scrollLeft += 400}
+                onClick={() => document.getElementById('latest-scroll').scrollLeft += 400}
                 className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
               >
                 <ArrowRight className="h-5 w-5 text-blue-600" />
@@ -369,20 +393,20 @@ const PropertyTypeSections = () => {
           </div>
           
           <div 
-            id="condos-scroll"
+            id="latest-scroll"
             className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {loading.condos ? (
+            {allLoading ? (
               <div className="flex space-x-6">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-80 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
+                  <div key={i} className="w-96 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
                 ))}
               </div>
             ) : (
-              condos.map((condo, index) => (
-                <div key={condo.id} className="flex-shrink-0 w-80">
-                  <PropertyCard property={condo} type="condo" />
+              latestItems.map((item, index) => (
+                <div key={`${item.__type}-${item.id || index}`} className="flex-shrink-0 w-96">
+                  <PropertyCard property={item} type={item.__type} />
                 </div>
               ))
             )}

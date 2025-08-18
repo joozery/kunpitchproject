@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Calendar, Eye, ThumbsUp, ChevronLeft, ChevronRight, Youtube } from 'lucide-react'
+import { Play, Eye, ThumbsUp, ChevronLeft, ChevronRight, Youtube } from 'lucide-react'
 
 const YoutubeSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -13,8 +13,8 @@ const YoutubeSection = () => {
       title: "Top 5 Condos in Bangkok 2024 - Investment Guide",
       thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ", // Example YouTube video ID
-      channel: "Whale Space Property",
-      publishDate: "2024-01-20",
+      channel: "",
+      publishDate: "",
       views: "125K",
       likes: "2.1K",
       duration: "12:45",
@@ -25,8 +25,8 @@ const YoutubeSection = () => {
       title: "Bangkok Real Estate Market Update 2024",
       thumbnail: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ",
-      channel: "Whale Space Property",
-      publishDate: "2024-01-18",
+      channel: "",
+      publishDate: "",
       views: "89K",
       likes: "1.8K",
       duration: "15:30",
@@ -37,8 +37,8 @@ const YoutubeSection = () => {
       title: "First-Time Home Buyer's Guide Thailand",
       thumbnail: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ",
-      channel: "Whale Space Property",
-      publishDate: "2024-01-15",
+      channel: "",
+      publishDate: "",
       views: "156K",
       likes: "3.2K",
       duration: "18:20",
@@ -49,8 +49,8 @@ const YoutubeSection = () => {
       title: "Luxury Properties Tour - Sukhumvit Area",
       thumbnail: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ",
-      channel: "Whale Space Property",
-      publishDate: "2024-01-12",
+      channel: "",
+      publishDate: "",
       views: "203K",
       likes: "4.5K",
       duration: "22:15",
@@ -61,8 +61,8 @@ const YoutubeSection = () => {
       title: "Property Investment Strategies 2024",
       thumbnail: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ",
-      channel: "Whale Space Property",
-      publishDate: "2024-01-10",
+      channel: "",
+      publishDate: "",
       views: "98K",
       likes: "2.7K",
       duration: "16:40",
@@ -73,8 +73,8 @@ const YoutubeSection = () => {
       title: "Bangkok Condo vs House - Which to Choose?",
       thumbnail: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       videoId: "dQw4w9WgXcQ",
-      channel: "Whale Space Property",
-      publishDate: "2024-01-08",
+      channel: "",
+      publishDate: "",
       views: "167K",
       likes: "3.8K",
       duration: "14:25",
@@ -82,14 +82,7 @@ const YoutubeSection = () => {
     }
   ]
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+  // Removed date formatting as date display is not used anymore
 
   const cardsPerView = 3
   const maxSlides = Math.max(0, youtubeVideos.length - cardsPerView)
@@ -241,24 +234,14 @@ const YoutubeSection = () => {
 
                     {/* Content */}
                     <div className="p-5 flex-1 flex flex-col">
-                      {/* Channel & Date */}
-                      <div className="flex items-center justify-between mb-3 text-sm text-slate-500">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-blue-600" />
-                          {formatDate(video.publishDate)}
-                        </div>
-                        <span className="text-blue-600 font-semibold">{video.channel}</span>
-                      </div>
+                      {/* Channel & Date - removed as requested */}
 
                       {/* Title */}
                       <h3 className="text-lg font-bold text-slate-900 mb-3 font-oswald leading-tight group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
                         {video.title}
                       </h3>
 
-                      {/* Description */}
-                      <p className="text-slate-600 text-sm mb-4 leading-relaxed line-clamp-3 flex-1">
-                        {video.description}
-                      </p>
+                      {/* Description removed */}
 
                       {/* Stats */}
                       <div className="flex items-center justify-between mb-4 text-sm text-slate-500">
