@@ -119,7 +119,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     seoTags: commercial?.seoTags || '',
     
     // YouTube
-    youtubeUrl: commercial?.youtubeUrl || '',
+    youtubeUrl: commercial?.youtube_url || commercial?.youtubeUrl || '',
     
     // Project Facilities
     facilities: commercial?.facilities || [],

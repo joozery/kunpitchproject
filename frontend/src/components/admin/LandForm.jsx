@@ -62,7 +62,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     seoTags: land?.seoTags || '',
     
     // YouTube
-    youtubeUrl: land?.youtubeUrl || '',
+    youtubeUrl: land?.youtube_url || land?.youtubeUrl || '',
     
     // Timestamps
     createdAt: land?.createdAt || new Date().toISOString(),
