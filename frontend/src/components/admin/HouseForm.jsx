@@ -219,7 +219,11 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               const parsed = JSON.parse(initialData.floor_plan)
               return parsed
             } catch (e) {
-              return initialData.floor_plan || null
+              // ถ้าเป็น string ที่ไม่ใช่ JSON ให้ถือว่าเป็น URL
+              return initialData.floor_plan ? {
+                url: initialData.floor_plan,
+                public_id: initialData.floor_plan_public_id || null
+              } : null
             }
           }
           return initialData.floor_plan || null
@@ -681,7 +685,15 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         amenities: selectedAmenities,
         special_features: formData.specialFeatures, // เพิ่ม Special Features
         youtube_url: formData.youtubeUrl, // เพิ่ม YouTube URL
-        floor_plan: formData.floorPlan, // เพิ่ม Floor Plan
+        floor_plan: (() => {
+          if (typeof formData.floorPlan === 'object' && formData.floorPlan !== null) {
+            return {
+              url: formData.floorPlan.url,
+              public_id: formData.floorPlan.public_id
+            }
+          }
+          return formData.floorPlan
+        })(), // เพิ่ม Floor Plan
         images: images.map(img => ({ 
           url: img.url, 
           public_id: img.public_id || null 
