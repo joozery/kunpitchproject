@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { 
   Menu, 
   X, 
-  Search,
+  Search, 
   ChevronDown
 } from 'lucide-react'
 import whaleLogo from '../assets/icon2.png'
@@ -119,7 +119,7 @@ const Header = () => {
                 </Link>
               ))}
             </nav>
-          </div>
+              </div>
 
           {/* Right Side - Language, Currency & CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -208,17 +208,17 @@ const Header = () => {
                         <div className="flex-1 text-left">
                           <div className="font-medium font-taviraj">{curr.name}</div>
                           <div className="text-xs text-gray-500">{curr.code}</div>
-                        </div>
+            </div>
                       </button>
                     ))}
                   </motion.div>
                 )}
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
-              <Link
+                <Link
                 to="/list-property"
                 className="text-white px-8 py-2 rounded-full font-semibold transition-colors duration-300 font-taviraj"
                 style={{ 
@@ -227,7 +227,7 @@ const Header = () => {
                 }}
               >
                 List Your Property
-              </Link>
+                </Link>
               <Link
                 to="/consult"
                 className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-8 py-2 rounded-full font-semibold transition-colors duration-300 font-taviraj"
@@ -250,34 +250,34 @@ const Header = () => {
         </div>
       </div>
 
-                  {/* Mobile Navigation */}
-            <motion.div
+      {/* Mobile Navigation */}
+      <motion.div
               className={`md:hidden backdrop-blur-sm`}
               style={{
                 backgroundColor: isScrolled ? '#051d40' : 'transparent'
               }}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ 
-                opacity: isOpen ? 1 : 0, 
-                height: isOpen ? 'auto' : 0 
-              }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="px-6 py-4 space-y-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setIsOpen(false)}
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ 
+          opacity: isOpen ? 1 : 0, 
+          height: isOpen ? 'auto' : 0 
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="px-6 py-4 space-y-4">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              onClick={() => setIsOpen(false)}
                     className={`block font-normal transition-colors duration-300 font-taviraj text-lg ${
-                      location.pathname === item.href
-                        ? 'text-blue-600'
-                        : 'text-gray-700 hover:text-blue-600'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+                location.pathname === item.href
+                  ? 'text-blue-600'
+                  : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
                 
                 {/* Mobile Language & Currency Selectors */}
                 <div className="pt-4 border-t border-gray-200 space-y-3">
@@ -381,16 +381,16 @@ const Header = () => {
                   >
                     List Your Property
                   </Link>
-                  <Link
+            <Link
                     to="/consult"
-                    onClick={() => setIsOpen(false)}
+              onClick={() => setIsOpen(false)}
                     className="block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-taviraj"
-                  >
+            >
                     Consult us
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+            </Link>
+          </div>
+        </div>
+      </motion.div>
     </motion.header>
   )
 }

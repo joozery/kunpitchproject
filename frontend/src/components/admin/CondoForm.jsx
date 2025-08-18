@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Swal from 'sweetalert2'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
@@ -21,13 +22,14 @@ import {
   Calendar,
   Calculator,
   Bath,
-  Bed
+  Bed,
+  User
 } from 'lucide-react'
 // Additional icon packs for amenities
 import { 
   FaTv, FaWineBottle, FaCouch, FaUtensils, FaSnowflake, FaBath, FaLock, FaWifi, FaCar, FaSwimmingPool, FaSeedling, FaTshirt,
   FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaVideo, FaDumbbell, FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaUsers,
-  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding
+  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding, FaGlobe, FaStar, FaFileAlt
 } from 'react-icons/fa'
 import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md'
 import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri'
@@ -43,6 +45,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     status: condo?.status || 'sale', // สถานะ: ขาย/เช่า
     price: condo?.price?.toString() || '', // ราคา (บาท)
     rentPrice: condo?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
+    announcerStatus: condo?.announcerStatus || 'agent', // สถานะผู้ประกาศ: เจ้าของ/นายหน้า
     
     // โลเคชั่น
     location: condo?.location || '', // สถานที่
@@ -73,6 +76,20 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     // สิ่งอำนวยความสะดวกภายในห้อง (Amenities)
     amenities: [],
     
+    // Special Features
+    specialFeatures: {
+      shortTerm: condo?.specialFeatures?.shortTerm || false,
+      allowPet: condo?.specialFeatures?.allowPet || false,
+      allowCompanyRegistration: condo?.specialFeatures?.allowCompanyRegistration || false,
+      foreignQuota: condo?.specialFeatures?.foreignQuota || false,
+      penthouse: condo?.specialFeatures?.penthouse || false,
+      luckyNumber: condo?.specialFeatures?.luckyNumber || false
+    },
+    
+    // Media
+    youtubeUrl: condo?.youtubeUrl || '', // ลิงก์ YouTube
+    floorPlan: condo?.floorPlan || null, // ภาพแปลน
+    
     // Timestamps
     createdAt: condo?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -92,6 +109,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const [selectedAmenities, setSelectedAmenities] = useState([])
 
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [apiStatus, setApiStatus] = useState('checking') // checking, online, offline
 
   // รายการสิ่งอำนวยความสะดวกภายในห้อง (Amenities)
   const [amenitiesList] = useState([
@@ -215,14 +233,44 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   };
 
   const listingTypes = [
-    { value: 'sale', label: 'ขาย', icon: DollarSign },
-    { value: 'rent', label: 'เช่า', icon: Calendar },
-    { value: 'both', label: 'ขาย/เช่า', icon: Building }
+    { value: 'sale', label: 'ขาย', icon: DollarSign, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50' },
+    { value: 'rent', label: 'เช่า', icon: Calendar, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50' },
+    { value: 'both', label: 'ขายและเช่า', icon: Building, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50' }
   ]
 
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   useEffect(() => {
     if (isEditing && condo) {
+      console.log('🔍 Editing condo data:', condo)
+      console.log('📅 Available date:', condo.available_date)
+      console.log('⭐ Special features:', condo.special_features)
+      console.log('⭐ Special features type:', typeof condo.special_features)
+      console.log('⭐ Special features raw value:', JSON.stringify(condo.special_features))
+      if (condo.special_features && typeof condo.special_features === 'string') {
+        try {
+          const parsed = JSON.parse(condo.special_features);
+          console.log('⭐ Parsed special features:', parsed);
+        } catch (error) {
+          console.error('❌ Error parsing special features:', error);
+        }
+      } else if (condo.special_features && typeof condo.special_features === 'object') {
+        console.log('⭐ Special features object:', condo.special_features);
+      }
+      console.log('📺 YouTube URL:', condo.youtube_url)
+      console.log('📋 Floor plan:', condo.floor_plan)
+      console.log('📋 Floor plan public_id:', condo.floor_plan_public_id)
+      console.log('📋 Floor plan type:', typeof condo.floor_plan)
+      if (condo.floor_plan && typeof condo.floor_plan === 'string' && condo.floor_plan.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(condo.floor_plan);
+          console.log('📋 Parsed floor plan:', parsed);
+        } catch (error) {
+          console.error('❌ Error parsing floor plan:', error);
+        }
+      }
+      console.log('🖼️ Images from API:', condo.images)
+      console.log('🖼️ Cover image from API:', condo.cover_image)
+      console.log('🖼️ Cover public_id from API:', condo.cover_public_id)
       setFormData(prev => ({
         ...prev,
         title: condo.title || '',
@@ -230,6 +278,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         status: condo.status || 'sale',
         price: condo.price !== undefined && condo.price !== null ? String(condo.price) : '',
         rentPrice: condo.rent_price !== undefined && condo.rent_price !== null ? String(condo.rent_price) : '',
+        announcerStatus: condo.announcer_status || 'agent', // เพิ่มการ map ข้อมูลสถานะผู้ประกาศ
         location: condo.location || '',
         googleMapUrl: condo.google_map_url || '',
         nearbyTransport: condo.nearby_transport || '',
@@ -243,11 +292,109 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         rentPricePerSqm: condo.rent_price_per_sqm !== undefined && condo.rent_price_per_sqm !== null ? String(condo.rent_price_per_sqm) : '',
         seoTags: condo.seo_tags || '',
         selectedProject: condo.selected_project || '',
-        availableDate: condo.available_date || '',
+        availableDate: condo.available_date ? condo.available_date.split('T')[0] : '',
         amenities: condo.amenities || [],
+        specialFeatures: (() => {
+          try {
+            let features = {};
+            
+            // ถ้าเป็น JSON string ให้ parse
+            if (condo.special_features && typeof condo.special_features === 'string') {
+              features = JSON.parse(condo.special_features);
+            } else if (condo.special_features && typeof condo.special_features === 'object') {
+              features = condo.special_features;
+            }
+            
+            return {
+              shortTerm: features.shortTerm || features.short_term || false,
+              allowPet: features.allowPet || features.allow_pet || false,
+              allowCompanyRegistration: features.allowCompanyRegistration || features.allow_company_registration || false,
+              foreignQuota: features.foreignQuota || features.foreign_quota || false,
+              penthouse: features.penthouse || false,
+              luckyNumber: features.luckyNumber || features.lucky_number || false
+            };
+          } catch (error) {
+            console.error('Error parsing special features:', error);
+            return {
+              shortTerm: false,
+              allowPet: false,
+              allowCompanyRegistration: false,
+              foreignQuota: false,
+              penthouse: false,
+              luckyNumber: false
+            };
+          }
+        })(),
+        youtubeUrl: condo.youtube_url || '',
+        floorPlan: condo.floor_plan ? (() => {
+          try {
+            // ถ้าเป็น JSON string ให้ parse
+            if (typeof condo.floor_plan === 'string' && condo.floor_plan.startsWith('{')) {
+              const parsed = JSON.parse(condo.floor_plan);
+              return {
+                url: parsed.url || condo.floor_plan,
+                public_id: condo.floor_plan_public_id || parsed.public_id || undefined,
+                preview: parsed.url || condo.floor_plan
+              };
+            }
+            // ถ้าเป็น URL ปกติ
+            return {
+              url: condo.floor_plan,
+              public_id: condo.floor_plan_public_id || undefined,
+              preview: condo.floor_plan
+            };
+          } catch (error) {
+            console.error('Error parsing floor_plan:', error);
+            // ถ้า parse ไม่ได้ ให้ใช้เป็น URL ปกติ
+            return {
+              url: condo.floor_plan,
+              public_id: condo.floor_plan_public_id || undefined,
+              preview: condo.floor_plan
+            };
+          }
+        })() : null,
         createdAt: condo.created_at || prev.createdAt,
         updatedAt: condo.updated_at || new Date().toISOString()
       }))
+
+      const finalSpecialFeatures = (() => {
+        try {
+          let features = {};
+          if (condo.special_features && typeof condo.special_features === 'string') {
+            features = JSON.parse(condo.special_features);
+          } else if (condo.special_features && typeof condo.special_features === 'object') {
+            features = condo.special_features;
+          }
+          return {
+            shortTerm: features.shortTerm || features.short_term || false,
+            allowPet: features.allowPet || features.allow_pet || false,
+            allowCompanyRegistration: features.allowCompanyRegistration || features.allow_company_registration || false,
+            foreignQuota: features.foreignQuota || features.foreign_quota || false,
+            penthouse: features.penthouse || false,
+            luckyNumber: features.luckyNumber || features.lucky_number || false
+          };
+        } catch (error) {
+          return {
+            shortTerm: false,
+            allowPet: false,
+            allowCompanyRegistration: false,
+            foreignQuota: false,
+            penthouse: false,
+            luckyNumber: false
+          };
+        }
+      })();
+
+      console.log('✅ Form data set:', {
+        availableDate: condo.available_date ? condo.available_date.split('T')[0] : '',
+        specialFeatures: finalSpecialFeatures,
+        youtubeUrl: condo.youtube_url || '',
+        floorPlan: condo.floor_plan ? {
+          url: condo.floor_plan,
+          public_id: condo.floor_plan_public_id || undefined,
+          preview: condo.floor_plan
+        } : null
+      })
 
       // Set cover image
       const coverUrl = condo.cover_image || null
@@ -264,16 +411,30 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
 
       // Set gallery images (exclude cover if duplicated)
-      const urls = Array.isArray(condo.images) ? condo.images : []
-      const filtered = coverUrl ? urls.filter(u => u !== coverUrl) : urls
-      const mappedImages = filtered.map((url, idx) => ({
-        id: `img-${Date.now()}-${idx}`,
-        preview: url,
-        url,
-        public_id: undefined,
-        uploading: false
-      }))
+      const imageData = Array.isArray(condo.images) ? condo.images : []
+      console.log('🖼️ Image data from API:', imageData)
+      
+      // Filter out cover image if it exists in gallery
+      const filteredImages = coverUrl ? imageData.filter(img => {
+        const imgUrl = typeof img === 'object' ? img.url : img
+        return imgUrl !== coverUrl
+      }) : imageData
+      
+      const mappedImages = filteredImages.map((img, idx) => {
+        const imgUrl = typeof img === 'object' ? img.url : img
+        const imgPublicId = typeof img === 'object' ? img.public_id : undefined
+        return {
+          id: `img-${Date.now()}-${idx}`,
+          preview: imgUrl,
+          url: imgUrl,
+          public_id: imgPublicId,
+          uploading: false
+        }
+      })
       setImages(mappedImages)
+      console.log('🖼️ Mapped images set:', mappedImages)
+
+      // Floor Plan is already set in formData above
 
       // จัดการ amenities
       console.log('Condo amenities from API:', condo.amenities)
@@ -424,6 +585,26 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     }
   }, [selectedAmenities]);
 
+  // Check API status on component mount
+  useEffect(() => {
+    const checkInitialApiStatus = async () => {
+      try {
+        setApiStatus('checking')
+        const response = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/health', {
+          method: 'GET',
+          timeout: 10000
+        })
+        setApiStatus(response.ok ? 'online' : 'offline')
+        console.log('API status check:', response.ok ? 'online' : 'offline')
+      } catch (error) {
+        setApiStatus('offline')
+        console.error('API health check failed:', error)
+      }
+    }
+    
+    checkInitialApiStatus()
+  }, [])
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ 
@@ -444,24 +625,150 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       setUploading(true)
       setUploadProgress(0)
       
-      const totalFiles = files.length
+      const fileArray = Array.from(files)
+      const totalFiles = fileArray.length
       let uploadedCount = 0
+      let failedCount = 0
+      const failedFiles = []
       
-      for (const file of files) {
-        try {
-          await handleImageUpload(file, false)
-          uploadedCount++
-          setUploadProgress((uploadedCount / totalFiles) * 100)
-        } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error)
-          // Continue with other files
+      console.log(`🔄 เริ่มอัพโหลด ${totalFiles} ไฟล์`)
+      
+      // Validate all files first
+      const validFiles = []
+      for (const file of fileArray) {
+        if (!file.type.startsWith('image/')) {
+          console.warn(`⚠️ ข้าม ${file.name}: ไม่ใช่ไฟล์รูปภาพ`)
+          failedFiles.push(`${file.name} (ไม่ใช่รูปภาพ)`)
+          failedCount++
+          continue
         }
+        
+        if (file.size > 10 * 1024 * 1024) {
+          console.warn(`⚠️ ข้าม ${file.name}: ไฟล์ใหญ่เกินไป (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+          failedFiles.push(`${file.name} (ขนาดใหญ่เกิน 10MB)`)
+          failedCount++
+          continue
+        }
+        
+        validFiles.push(file)
+      }
+      
+      if (validFiles.length === 0) {
+        Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีไฟล์ที่สามารถอัพโหลดได้',
+        text: 'กรุณาเลือกไฟล์รูปภาพที่มีขนาดไม่เกิน 10MB',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f39c12'
+      })
+        return
+      }
+      
+      console.log(`✅ ไฟล์ที่ผ่านการตรวจสอบ: ${validFiles.length}/${totalFiles}`)
+      
+      // Upload valid files one by one
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i]
+        try {
+          console.log(`🔄 อัพโหลดไฟล์ ${i + 1}/${validFiles.length}: ${file.name}`)
+          
+          // Create temporary preview
+          const tempImageData = {
+            id: `temp-${Date.now()}-${i}`,
+            preview: URL.createObjectURL(file),
+            url: null,
+            public_id: null,
+            uploading: true
+          }
+          setImages(prev => [...prev, tempImageData])
+          
+          // Upload to server
+          const response = await uploadAPI.uploadSingle(file)
+          
+          if (response && response.success && response.data) {
+            const imageData = {
+              id: Date.now().toString() + '-' + i,
+              preview: response.data.url,
+              url: response.data.url,
+              public_id: response.data.public_id,
+              uploading: false
+            }
+            
+            // Replace temp image with real image
+            setImages(prev => prev.map(img => 
+              img.id === tempImageData.id ? imageData : img
+            ))
+            
+            uploadedCount++
+            console.log(`✅ อัพโหลดสำเร็จ ${uploadedCount}/${validFiles.length}: ${file.name}`)
+          } else {
+            throw new Error(response?.message || 'ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์')
+          }
+          
+        } catch (error) {
+          console.error(`❌ อัพโหลดล้มเหลว ${file.name}:`, error)
+          failedFiles.push(`${file.name} (${error.message})`)
+          failedCount++
+          
+          // Remove temp image on error
+          setImages(prev => prev.filter(img => !img.uploading))
+        }
+        
+        // Update progress
+        setUploadProgress(((i + 1) / validFiles.length) * 100)
       }
       
       setUploadProgress(100)
-      setTimeout(() => setUploadProgress(0), 2000) // Hide progress after 2 seconds
+      
+      // Show summary
+      let summaryMessage = ''
+      if (uploadedCount > 0) {
+        summaryMessage += `✅ อัพโหลดสำเร็จ: ${uploadedCount} ไฟล์`
+      }
+      if (failedCount > 0) {
+        summaryMessage += `\n❌ อัพโหลดล้มเหลว: ${failedCount} ไฟล์`
+        if (failedFiles.length > 0) {
+          summaryMessage += `\n\nรายละเอียด:\n${failedFiles.join('\n')}`
+        }
+      }
+      
+      if (summaryMessage) {
+        Swal.fire({
+          icon: uploadedCount > 0 ? 'success' : 'error',
+          title: uploadedCount > 0 ? 'อัพโหลดสำเร็จ' : 'อัพโหลดล้มเหลว',
+          html: summaryMessage.replace(/\n/g, '<br>'),
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: uploadedCount > 0 ? '#3085d6' : '#d33'
+        })
+      }
+      
+      setTimeout(() => setUploadProgress(0), 3000) // Hide progress after 3 seconds
     } catch (error) {
-      console.error('Error uploading multiple images:', error)
+      console.error('❌ Error uploading multiple images:', error)
+      
+      // More detailed error messages for multiple upload
+      let errorMessage = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ'
+      let errorDetails = ''
+      
+      if (error.response && error.response.data) {
+        const responseData = error.response.data
+        errorMessage = responseData.message || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ'
+        errorDetails = responseData.details || responseData.error || ''
+      } else if (error.message.includes('Network Error')) {
+        errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+        errorDetails = 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'
+      } else {
+        errorDetails = error.message
+      }
+      
+      const fullErrorMessage = errorDetails ? `${errorMessage}\n\nรายละเอียด: ${errorDetails}` : errorMessage
+      Swal.fire({
+        icon: 'error',
+        title: 'อัปโหลดรูปภาพไม่สำเร็จ',
+        html: fullErrorMessage.replace(/\n/g, '<br>'),
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#d33'
+      })
     } finally {
       setUploading(false)
     }
@@ -471,13 +778,47 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     try {
       setUploading(true)
       
-      // Upload to Cloudinary first
-      const formData = new FormData()
-      formData.append('image', file)
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('กรุณาเลือกไฟล์รูปภาพเท่านั้น (JPG, PNG, WebP)')
+      }
       
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        throw new Error('ขนาดไฟล์ต้องไม่เกิน 10MB')
+      }
+      
+      console.log('🔄 เริ่มอัพโหลดไฟล์:', file.name, 'ขนาด:', (file.size / 1024 / 1024).toFixed(2), 'MB')
+      console.log('📁 ไฟล์ข้อมูล:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified
+      })
+      
+      // Create temporary image preview while uploading
+      const tempImageData = {
+        id: `temp-${Date.now()}`,
+        preview: URL.createObjectURL(file),
+        url: null,
+        public_id: null,
+        uploading: true
+      }
+
+      if (isCover) {
+        setCoverImage(tempImageData)
+      } else {
+        setImages(prev => [...prev, tempImageData])
+      }
+      
+      // Call uploadAPI.uploadSingle
+      console.log('📤 เรียกใช้ uploadAPI.uploadSingle...')
       const response = await uploadAPI.uploadSingle(file)
       
-      if (response.success) {
+      console.log('✅ Upload response:', response)
+      
+      if (response && response.success && response.data) {
         const imageData = {
           id: Date.now().toString(),
           preview: response.data.url,
@@ -489,25 +830,114 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         if (isCover) {
           setCoverImage(imageData)
         } else {
-          setImages(prev => [...prev, imageData])
+          setImages(prev => prev.map(img => 
+            img.id === tempImageData.id ? imageData : img
+          ))
         }
+        
+        console.log('✅ รูปภาพอัพโหลดสำเร็จ:', imageData.url)
+        
+        // Show success notification
+        const successMsg = isCover ? 'อัพโหลดรูปหน้าปกสำเร็จ!' : 'อัพโหลดรูปภาพสำเร็จ!'
+        // You can replace alert with a better notification system
+        setTimeout(() => {
+          console.log('✅', successMsg)
+        }, 100)
+        
       } else {
-        throw new Error(response.message || 'Failed to upload image')
+        throw new Error(response?.message || 'ไม่ได้รับข้อมูลการอัปโหลดจากเซิร์ฟเวอร์')
       }
     } catch (error) {
-      console.error('Error uploading image:', error)
-      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
+      console.error('❌ Error uploading image:', error)
+      
+      // Remove temporary image on error
+      if (isCover) {
+        setCoverImage(null)
+      } else {
+        setImages(prev => prev.filter(img => !img.uploading))
+      }
+      
+      // More detailed error messages
+      let errorMessage = 'อัปโหลดรูปภาพไม่สำเร็จ'
+      let errorDetails = ''
+      
+      // Check for specific error types from backend
+      if (error.response && error.response.data) {
+        const responseData = error.response.data
+        errorMessage = responseData.message || 'อัปโหลดรูปภาพไม่สำเร็จ'
+        errorDetails = responseData.details || responseData.error || ''
+        
+        console.log('🔍 Backend error details:', responseData)
+        console.log('🔍 Error response status:', error.response.status)
+        console.log('🔍 Error response headers:', error.response.headers)
+      } else if (error.message.includes('Network Error') || error.message.includes('ไม่สามารถเชื่อมต่อ')) {
+        errorMessage = '🌐 ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+        errorDetails = 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'
+      } else if (error.message.includes('timeout')) {
+        errorMessage = '⏱️ การอัปโหลดใช้เวลานานเกินไป'
+        errorDetails = 'กรุณาลองใหม่อีกครั้ง'
+      } else if (error.message.includes('413') || error.message.includes('ขนาดใหญ่')) {
+        errorMessage = '📏 ไฟล์มีขนาดใหญ่เกินไป'
+        errorDetails = 'กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 10MB'
+      } else if (error.message.includes('415') || error.message.includes('ประเภทไฟล์')) {
+        errorMessage = '🖼️ ประเภทไฟล์ไม่ถูกต้อง'
+        errorDetails = 'กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP)'
+      } else if (error.message.includes('Cloudinary')) {
+        errorMessage = '☁️ เกิดข้อผิดพลาดในระบบจัดเก็บรูปภาพ'
+        errorDetails = 'กรุณาลองใหม่อีกครั้ง'
+      } else {
+        errorMessage = `❌ อัปโหลดรูปภาพไม่สำเร็จ`
+        errorDetails = error.message
+      }
+      
+      // Show detailed error message
+      const fullErrorMessage = errorDetails ? `${errorMessage}\n\nรายละเอียด: ${errorDetails}` : errorMessage
+      Swal.fire({
+        icon: 'error',
+        title: 'อัปโหลดรูปภาพไม่สำเร็จ',
+        html: fullErrorMessage.replace(/\n/g, '<br>'),
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#d33'
+      })
+      
+      // Log error for debugging
+      console.error('❌ Upload error details:', {
+        message: errorMessage,
+        details: errorDetails,
+        originalError: error
+      })
     } finally {
       setUploading(false)
     }
   }
 
   const handleRemoveImage = (imageId, isCover = false) => {
-    if (isCover) {
-      setCoverImage(null)
-    } else {
-      setImages(prev => prev.filter(img => img.id !== imageId))
-    }
+    const imageType = isCover ? 'รูปภาพหน้าปก' : 'รูปภาพเพิ่มเติม'
+    
+    Swal.fire({
+      title: 'ยืนยันการลบ',
+      text: `คุณต้องการลบ${imageType}นี้หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (isCover) {
+          setCoverImage(null)
+        } else {
+          setImages(prev => prev.filter(img => img.id !== imageId))
+        }
+        
+        Swal.fire(
+          'ลบแล้ว!',
+          `${imageType}ถูกลบเรียบร้อยแล้ว`,
+          'success'
+        )
+      }
+    })
   }
 
   const validateForm = () => {
@@ -537,6 +967,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         status: formData.status,
         price: parseFloat(formData.price) || 0,
         rent_price: parseFloat(formData.rentPrice) || 0,
+        announcer_status: formData.announcerStatus, // เพิ่มการส่งข้อมูลสถานะผู้ประกาศ
         location: formData.location,
         google_map_url: formData.googleMapUrl,
         nearby_transport: formData.nearbyTransport,
@@ -556,7 +987,10 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           public_id: img.public_id
         })),
         cover_image: coverImage?.url || null,
-        amenities: selectedAmenities // ส่งสิ่งอำนวยความสะดวกภายในห้อง
+        amenities: selectedAmenities,
+        special_features: formData.specialFeatures,
+        youtube_url: formData.youtubeUrl,
+        floor_plan: formData.floorPlan,
       }
 
       console.log('ข้อมูลที่จะส่งไปยัง backend:', condoData)
@@ -564,6 +998,18 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       console.log('ราคาเช่าต่อตารางเมตรที่คำนวณได้:', formData.rentPricePerSqm)
       console.log('Amenities ที่จะส่งไป:', selectedAmenities)
       console.log('formData.amenities:', formData.amenities)
+      console.log('📅 Available date ที่จะส่ง:', formData.availableDate)
+      console.log('⭐ Special features ที่จะส่ง:', formData.specialFeatures)
+      console.log('📺 YouTube URL ที่จะส่ง:', formData.youtubeUrl)
+      console.log('📋 Floor plan ที่จะส่ง:', formData.floorPlan)
+      console.log('📋 Floor plan URL ที่จะส่ง:', formData.floorPlan?.url || null)
+      console.log('🖼️ Images ที่จะส่ง:', images.map(img => ({
+        url: img.url,
+        public_id: img.public_id
+      })))
+      console.log('🖼️ Cover image ที่จะส่ง:', coverImage?.url || null)
+      console.log('⭐ Special features ที่จะส่ง:', formData.specialFeatures)
+      console.log('⭐ Special features JSON ที่จะส่ง:', JSON.stringify(formData.specialFeatures))
 
       let response
       
@@ -579,7 +1025,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         console.log('Condo saved successfully:', response)
         
         // Show success message
-        alert(isEditing ? 'แก้ไขข้อมูลคอนโดสำเร็จ!' : 'เพิ่มคอนโดใหม่สำเร็จ!')
+        Swal.fire({
+          icon: 'success',
+          title: 'สำเร็จ!',
+          text: isEditing ? 'แก้ไขข้อมูลคอนโดสำเร็จ!' : 'เพิ่มคอนโดใหม่สำเร็จ!',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#3085d6'
+        })
         
         if (onSave) {
           onSave(response.data)
@@ -594,12 +1046,89 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
     } catch (error) {
       console.error('Error saving condo:', error)
-      alert(`เกิดข้อผิดพลาด: ${error.message}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด!',
+        text: error.message,
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#d33'
+      })
     } finally {
       setLoading(false)
       setUploading(false)
     }
   }
+
+  // ฟังก์ชันสำหรับจัดการ Special Features
+  const handleSpecialFeatureChange = (featureId, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      specialFeatures: {
+        ...prev.specialFeatures,
+        [featureId]: checked
+      }
+    }));
+  };
+
+  // ฟังก์ชันสำหรับอัพโหลด Floor Plan
+  const handleFloorPlanUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 10 * 1024 * 1024) {
+          alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 10MB');
+          return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+          alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+          return;
+        }
+
+        try {
+          setUploading(true);
+          
+          // ส่ง file โดยตรงไปยัง uploadAPI.uploadSingle
+          const response = await uploadAPI.uploadSingle(file);
+          
+          if (response.success) {
+            setFormData(prev => ({
+              ...prev,
+              floorPlan: {
+                url: response.data.url,
+                public_id: response.data.public_id,
+                preview: URL.createObjectURL(file)
+              }
+            }));
+            console.log('✅ อัพโหลด Floor Plan สำเร็จ:', response.data);
+          } else {
+            Swal.fire({
+          icon: 'error',
+          title: 'อัพโหลด Floor Plan ไม่สำเร็จ',
+          text: response.message || 'เกิดข้อผิดพลาด',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        });
+          }
+        } catch (error) {
+          console.error('❌ อัพโหลด Floor Plan error:', error);
+          Swal.fire({
+          icon: 'error',
+          title: 'อัพโหลด Floor Plan ไม่สำเร็จ',
+          text: error.message,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        });
+        } finally {
+          setUploading(false);
+        }
+      }
+    };
+    input.click();
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -625,8 +1154,90 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      {/* API Status Indicator */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${
+              apiStatus === 'online' ? 'bg-green-500' : 
+              apiStatus === 'offline' ? 'bg-red-500' : 
+              'bg-yellow-500 animate-pulse'
+            }`}></div>
+            <span className="text-sm font-medium text-gray-700">
+              สถานะ API: {
+                apiStatus === 'online' ? '🟢 เชื่อมต่อแล้ว' : 
+                apiStatus === 'offline' ? '🔴 ไม่สามารถเชื่อมต่อได้' : 
+                '🟡 กำลังตรวจสอบ...'
+              }
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  setApiStatus('checking')
+                  const response = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/health', {
+                    timeout: 10000
+                  })
+                  setApiStatus(response.ok ? 'online' : 'offline')
+                  if (response.ok) {
+                    console.log('✅ API เชื่อมต่อสำเร็จ')
+                  } else {
+                    console.log('❌ API ไม่พร้อมใช้งาน')
+                  }
+                } catch (error) {
+                  console.error('❌ API connection failed:', error)
+                  setApiStatus('offline')
+                }
+              }}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium px-3 py-1 border border-blue-200 rounded hover:bg-blue-50"
+            >
+              🔄 ทดสอบการเชื่อมต่อ
+            </button>
+            <span className="text-xs text-gray-500">
+              อัปเดตล่าสุด: {new Date().toLocaleTimeString('th-TH')}
+            </span>
+          </div>
+        </div>
+        
+        {/* Status Details */}
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div className={`p-2 rounded ${
+            apiStatus === 'online' ? 'bg-green-100 text-green-700' : 
+            apiStatus === 'offline' ? 'bg-red-100 text-red-700' : 
+            'bg-yellow-100 text-yellow-700'
+          }`}>
+            <span className="font-medium">🌐 Backend:</span> {
+              apiStatus === 'online' ? 'พร้อมใช้งาน' : 
+              apiStatus === 'offline' ? 'ไม่พร้อมใช้งาน' : 
+              'กำลังตรวจสอบ'
+            }
+          </div>
+          <div className="p-2 rounded bg-blue-100 text-blue-700">
+            <span className="font-medium">☁️ Cloudinary:</span> พร้อมใช้งาน
+          </div>
+          <div className="p-2 rounded bg-purple-100 text-purple-700">
+            <span className="font-medium">📤 Upload:</span> พร้อมใช้งาน
+          </div>
+        </div>
+        
+        {apiStatus === 'offline' && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <span className="text-red-500 text-lg">⚠️</span>
+              <div>
+                <p className="text-sm text-red-700 font-medium">ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้</p>
+                <p className="text-xs text-red-600 mt-1">
+                  การอัปโหลดรูปภาพอาจไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
+      <form onSubmit={handleSubmit} className="space-y-8">
 
         {/* ข้อมูลพื้นฐาน */}
         <Card className="p-6">
@@ -663,8 +1274,6 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               />
             </div>
 
-
-
             {/* สร้างเมื่อ - แก้ไขล่าสุด */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
@@ -677,39 +1286,132 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               />
             </div>
 
+            {/* สถานะผู้ประกาศ */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt flex items-center">
+                <User className="h-5 w-5 mr-2 text-red-500" />
+                สถานะผู้ประกาศ *
+              </label>
+              <div className="grid grid-cols-2 gap-3 max-w-md">
+                {[
+                  { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
+                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('announcerStatus', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.announcerStatus === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.announcerStatus === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <User className={`h-4 w-4 ${
+                          formData.announcerStatus === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.announcerStatus === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-2 font-prompt">
+                เลือกสถานะของผู้ประกาศ: เจ้าของคอนโด หรือ นายหน้าอสังหาริมทรัพย์
+              </p>
+            </div>
+
             {/* สถานะ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
                 สถานะ * (เลือกประเภท เช่า หรือ ขาย)
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300`}
-              >
-                <option value="sale">ขาย</option>
-                <option value="rent">เช่า</option>
-                <option value="both">ขาย/เช่า</option>
-              </select>
-              
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'sale', label: 'ขาย', icon: DollarSign, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' },
+                  { value: 'rent', label: 'เช่า', icon: Calendar, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'both', label: 'ขายและเช่า', icon: Building, color: 'from-purple-500 to-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('status', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.status === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.status === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.status === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.status === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* ประเภท */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ประเภท
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+                ประเภทประกาศ *
               </label>
-              <select
-                value={formData.listingType}
-                onChange={(e) => handleInputChange('listingType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {listingTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
+              <div className="grid grid-cols-3 gap-3">
+                {listingTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => handleInputChange('listingType', type.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.listingType === type.value
+                        ? `border-${type.color.split('-')[1]}-500 bg-gradient-to-r ${type.color} text-white shadow-lg transform scale-105`
+                        : `${type.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.listingType === type.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <type.icon className={`h-4 w-4 ${
+                          formData.listingType === type.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{type.label}</span>
+                    </div>
+                    {formData.listingType === type.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             {/* ราคา (บาท) */}
@@ -1176,6 +1878,122 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           </div>
         </Card>
 
+        {/* Special Features */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+            Special Features
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { id: 'shortTerm', label: 'Short-term', icon: Calendar },
+              { id: 'allowPet', label: 'Allow Pet', icon: FaPaw },
+              { id: 'allowCompanyRegistration', label: 'Allow Company Registration', icon: FaBuilding },
+              { id: 'foreignQuota', label: 'Foreign Quota', icon: FaGlobe },
+              { id: 'penthouse', label: 'Penthouse', icon: FaHome },
+              { id: 'luckyNumber', label: 'Lucky Number', icon: FaStar }
+            ].map((feature) => (
+              <label key={feature.id} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.specialFeatures[feature.id]}
+                  onChange={(e) => handleSpecialFeatureChange(feature.id, e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <feature.icon className="h-5 w-5 text-gray-600" />
+                <span className="text-sm text-gray-700 font-prompt">{feature.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* YouTube URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+            ลิงก์ YouTube
+          </label>
+          <div className="relative">
+            <Input
+              type="url"
+              value={formData.youtubeUrl}
+              onChange={(e) => handleInputChange('youtubeUrl', e.target.value)}
+              placeholder="เช่น https://www.youtube.com/watch?v=..."
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              <FaVideo className="h-5 w-5 text-red-500" />
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">ลิงก์ YouTube สำหรับแสดงวิดีโอของคอนโด</p>
+        </div>
+
+        {/* Floor Plan */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+            ภาพแปลน (Floor Plan)
+          </label>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+            {formData.floorPlan ? (
+              <div className="space-y-3">
+                <img 
+                  src={formData.floorPlan.preview || formData.floorPlan.url} 
+                  alt="Floor Plan" 
+                  className="mx-auto max-h-64 rounded-lg shadow-md"
+                />
+                <div className="flex items-center justify-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleFloorPlanUpload()}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                  >
+                    เปลี่ยนภาพ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      Swal.fire({
+                        title: 'ยืนยันการลบ',
+                        text: 'คุณต้องการลบภาพแปลนนี้หรือไม่?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'ลบ',
+                        cancelButtonText: 'ยกเลิก'
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          setFormData(prev => ({ ...prev, floorPlan: null }))
+                          Swal.fire(
+                            'ลบแล้ว!',
+                            'ภาพแปลนถูกลบเรียบร้อยแล้ว',
+                            'success'
+                          )
+                        }
+                      })
+                    }}
+                    className="text-red-600 hover:text-red-700 font-medium text-sm"
+                  >
+                    ลบ
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <FaFileAlt className="text-gray-400 text-4xl mx-auto" />
+                <div className="text-gray-600 font-prompt">
+                  <p className="font-medium">อัพโหลดภาพแปลน</p>
+                  <p className="text-sm">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleFloorPlanUpload()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  เลือกไฟล์
+                </button>
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">รองรับไฟล์ JPG, PNG, WebP ขนาดไม่เกิน 10MB</p>
+        </div>
 
         {/* รูปภาพ */}
         <Card className="p-6">
@@ -1205,12 +2023,29 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   >
                     <X className="h-5 w-5" />
                   </button>
+                  
+                  {/* Upload Status Indicator */}
+                  {coverImage.uploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                      <div className="text-center text-white">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-2"></div>
+                        <p className="font-prompt">กำลังอัพโหลด...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Success Badge */}
+                  {!coverImage.uploading && coverImage.url && (
+                    <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      ✅ อัพโหลดสำเร็จ
+                    </div>
+                  )}
                 </div>
               ) : (
                 <label className="cursor-pointer block text-center hover:bg-gray-50 rounded-lg p-4 transition-colors">
                   <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <span className="text-gray-600 font-prompt font-medium">คลิกเพื่อเลือกรูปภาพหน้าปก</span>
-                  <p className="text-sm text-gray-500 mt-2">รองรับไฟล์ JPG, PNG, WebP</p>
+                  <p className="text-sm text-gray-500 mt-2">รองรับไฟล์ JPG, PNG, WebP ขนาดไม่เกิน 10MB</p>
                   <input
                     type="file"
                     accept="image/*"
@@ -1283,9 +2118,28 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                     >
                       <X className="h-4 w-4" />
                     </button>
+                    
+                    {/* Upload Status Indicator */}
                     {image.uploading && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <div className="text-center text-white">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-1"></div>
+                          <p className="text-xs font-prompt">อัพโหลด...</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Success Badge */}
+                    {!image.uploading && image.url && (
+                      <div className="absolute top-2 left-2 bg-green-500 text-white px-1 py-0.5 rounded-full text-xs font-medium">
+                        ✅
+                      </div>
+                    )}
+                    
+                    {/* Error Badge */}
+                    {!image.uploading && !image.url && image.preview && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white px-1 py-0.5 rounded-full text-xs font-medium">
+                        ❌
                       </div>
                     )}
                   </div>
@@ -1298,12 +2152,31 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           <div className="flex items-center justify-between text-sm mt-4">
             <div className="flex items-center space-x-4">
               <span className="text-gray-600 font-prompt">
-                อัปโหลดแล้ว {images.length}/100 รูป
+                อัปโหลดแล้ว {images.filter(img => img.url && !img.uploading).length}/100 รูป
               </span>
               {uploading && (
                 <div className="flex items-center space-x-2 text-blue-600">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                   <span className="font-prompt">กำลังอัปโหลด...</span>
+                </div>
+              )}
+              
+              {/* Upload Count Summary */}
+              {images.length > 0 && (
+                <div className="flex items-center space-x-2 text-xs">
+                  <span className="text-green-600">
+                    ✅ สำเร็จ: {images.filter(img => img.url && !img.uploading).length}
+                  </span>
+                  {images.filter(img => img.uploading).length > 0 && (
+                    <span className="text-blue-600">
+                      🔄 กำลังอัพโหลด: {images.filter(img => img.uploading).length}
+                    </span>
+                  )}
+                  {images.filter(img => !img.url && !img.uploading).length > 0 && (
+                    <span className="text-red-600">
+                      ❌ ล้มเหลว: {images.filter(img => !img.url && !img.uploading).length}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -1327,19 +2200,129 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           
           {/* Progress Bar */}
           {uploadProgress > 0 && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span className="font-prompt">ความคืบหน้าการอัพโหลด</span>
+                <span className="font-medium">{Math.round(uploadProgress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              {uploadProgress === 100 && (
+                <div className="text-center text-green-600 text-sm mt-2 font-prompt">
+                  ✅ อัพโหลดเสร็จสิ้น!
+                </div>
+              )}
             </div>
           )}
           
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 font-prompt">
-              <span className="font-medium">💡 คำแนะนำ:</span> รูปภาพหน้าปกจะแสดงเป็นรูปหลักในรายการ 
-              รูปภาพเพิ่มเติมจะแสดงในแกลลอรี่ของประกาศ สามารถอัปโหลดได้สูงสุด 100 รูป
-            </p>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 font-prompt mb-2">
+                  <span className="font-medium">💡 คำแนะนำ:</span> รูปภาพหน้าปกจะแสดงเป็นรูปหลักในรายการ 
+                  รูปภาพเพิ่มเติมจะแสดงในแกลลอรี่ของประกาศ สามารถอัปโหลดได้สูงสุด 100 รูป
+                </p>
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <span>📱 รองรับ: JPG, PNG, WebP</span>
+                  <span>📏 ขนาดสูงสุด: 10MB</span>
+                  <span>🖼️ จำนวนสูงสุด: 100 รูป</span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      console.log('🧪 ทดสอบ Upload API...')
+                      setApiStatus('checking')
+                      const testResponse = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/upload/test', {
+                        method: 'GET',
+                        timeout: 10000
+                      })
+                      if (testResponse.ok) {
+                        const result = await testResponse.json()
+                        Swal.fire({
+          icon: 'success',
+          title: 'Upload API พร้อมใช้งาน',
+          html: `📊 สถานะ: ${result.message}<br>☁️ Cloudinary: ${result.cloudinary.configured ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน'}`,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#3085d6'
+        })
+                        setApiStatus('online')
+                      } else {
+                        Swal.fire({
+          icon: 'error',
+          title: 'Upload API ไม่พร้อมใช้งาน',
+          text: 'ไม่สามารถเชื่อมต่อกับ Upload API ได้',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        })
+                        setApiStatus('offline')
+                      }
+                    } catch (error) {
+                      console.error('❌ Upload API test failed:', error)
+                      Swal.fire({
+          icon: 'error',
+          title: 'ไม่สามารถเชื่อมต่อ Upload API ได้',
+          text: 'รายละเอียด: ' + error.message,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        })
+                      setApiStatus('offline')
+                    }
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
+                >
+                  🧪 ทดสอบ API
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      console.log('☁️ ทดสอบ Cloudinary...')
+                      const testResponse = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/health/cloudinary', {
+                        method: 'GET',
+                        timeout: 10000
+                      })
+                      if (testResponse.ok) {
+                        const result = await testResponse.json()
+                        Swal.fire({
+          icon: 'success',
+          title: 'Cloudinary พร้อมใช้งาน',
+          html: `📊 สถานะ: ${result.cloudinary.status}<br>☁️ Cloud Name: ${result.cloudinary.cloud_name}`,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#3085d6'
+        })
+                      } else {
+                        Swal.fire({
+          icon: 'error',
+          title: 'Cloudinary ไม่พร้อมใช้งาน',
+          text: 'ไม่สามารถเชื่อมต่อกับ Cloudinary ได้',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        })
+                      }
+                    } catch (error) {
+                      console.error('❌ Cloudinary test failed:', error)
+                      Swal.fire({
+          icon: 'error',
+          title: 'ไม่สามารถเชื่อมต่อ Cloudinary ได้',
+          text: 'รายละเอียด: ' + error.message,
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#d33'
+        })
+                    }
+                  }}
+                  className="text-xs text-green-600 hover:text-green-700 font-medium px-2 py-1 border border-green-200 rounded hover:bg-green-50"
+                >
+                  ☁️ ทดสอบ Cloudinary
+                </button>
+              </div>
+            </div>
           </div>
         </Card>
 

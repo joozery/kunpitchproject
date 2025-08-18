@@ -33,20 +33,67 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    console.error('API call failed:', error);
+    console.error('❌ API call failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        timeout: error.config?.timeout,
+        headers: error.config?.headers
+      }
+    });
     
     // Handle different types of errors
     if (error.response) {
       // Server responded with error status
-      const errorMessage = error.response.data?.message || `HTTP error! status: ${error.response.status}`;
-      throw new Error(errorMessage);
+      const responseData = error.response.data;
+      const errorMessage = responseData?.message || `HTTP error! status: ${error.response.status}`;
+      
+      // Create enhanced error with response data
+      const enhancedError = new Error(errorMessage);
+      enhancedError.response = error.response;
+      enhancedError.status = error.response.status;
+      enhancedError.statusText = error.response.statusText;
+      
+      throw enhancedError;
     } else if (error.request) {
       // Request was made but no response received
-      throw new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      const networkError = new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      networkError.code = 'NETWORK_ERROR';
+      networkError.originalError = error;
+      throw networkError;
     } else {
       // Something else happened
-      throw new Error(error.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+      const unknownError = new Error(error.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+      unknownError.originalError = error;
+      throw unknownError;
     }
+  }
+);
+
+// Request interceptor - Skip for FormData uploads
+api.interceptors.request.use(
+  (config) => {
+    // Skip transformation for FormData uploads
+    if (config.data instanceof FormData) {
+      console.log('📤 FormData upload detected, skipping transformation');
+      // Ensure proper headers for FormData
+      delete config.headers['Content-Type']; // Let browser set it with boundary
+      config.transformRequest = []; // Disable transformation
+      return config;
+    }
+    
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
 );
 
@@ -254,27 +301,42 @@ export const commercialAPI = {
 export const uploadAPI = {
   // Upload single image
   uploadSingle: (file) => {
+    console.log('📤 Creating FormData for single upload:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+    
     const formData = new FormData();
     formData.append('image', file);
     
+    // Log FormData contents for debugging
+    for (let [key, value] of formData.entries()) {
+      console.log(`📋 FormData entry: ${key} =`, value);
+    }
+    
     return api.post('/upload/single', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      timeout: 60000, // 60 seconds for upload
+      // Let axios and browser handle Content-Type automatically
     });
   },
   
   // Upload multiple images
   uploadMultiple: (files) => {
+    console.log('📤 Creating FormData for multiple upload:', {
+      fileCount: files.length,
+      files: files.map(f => ({ name: f.name, size: f.size, type: f.type }))
+    });
+    
     const formData = new FormData();
-    files.forEach(file => {
+    files.forEach((file, index) => {
       formData.append('images', file);
+      console.log(`📋 Added file ${index + 1}: ${file.name}`);
     });
     
     return api.post('/upload/multiple', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      timeout: 120000, // 120 seconds for multiple uploads
+      // Let axios and browser handle Content-Type automatically
     });
   },
   

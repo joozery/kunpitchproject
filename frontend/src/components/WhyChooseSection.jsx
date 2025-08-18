@@ -50,11 +50,6 @@ const WhyChooseSection = () => {
               experience. We don't just help you buy, sell, rent, or invest — we help you make the right decision with confidence.
             </p>
             
-            <p style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7)' }}>
-              With an extensive network of trusted partners and exclusive property listings, we provide access to opportunities you won't 
-              find anywhere else. At every stage, our dedicated team is committed to delivering results that exceed your expectations.
-            </p>
-            
             <p className="font-semibold text-xl md:text-2xl" style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.8)' }}>
               Choose us, and let us help you turn your property dreams into reality — with professionalism, integrity, and care.
             </p>

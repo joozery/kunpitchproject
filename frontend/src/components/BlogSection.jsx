@@ -214,7 +214,7 @@ const BlogSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-slate-600 text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            Stay updated with the latest insights, tips, and expert advice on real estate
+            
           </motion.p>
         </div>
 
