@@ -16,7 +16,8 @@ import {
   Calendar,
   Calculator,
   Bath,
-  Bed
+  Bed,
+  User
 } from 'lucide-react'
 import { houseAPI, uploadAPI } from '../../lib/api'
 import { projectApi } from '../../lib/projectApi'
@@ -24,7 +25,7 @@ import { projectApi } from '../../lib/projectApi'
 import { 
   FaTv, FaWineBottle, FaCouch, FaUtensils, FaSnowflake, FaBath, FaLock, FaWifi, FaCar, FaSwimmingPool, FaSeedling, FaTshirt,
   FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaVideo, FaDumbbell, FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaUsers,
-  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding
+  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding, FaGlobe, FaStar, FaFileAlt
 } from 'react-icons/fa'
 import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md'
 import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri'
@@ -40,6 +41,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     status: initialData?.status || 'sale', // สถานะ: ขาย/เช่า
     price: initialData?.price?.toString() || '', // ราคา (บาท)
     rentPrice: initialData?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
+    announcerStatus: initialData?.announcerStatus || 'agent', // สถานะผู้ประกาศ: เจ้าของ/นายหน้า
     
     // โลเคชั่น
     location: initialData?.location || '', // สถานที่
@@ -72,6 +74,20 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     
     // สิ่งอำนวยความสะดวกภายในห้อง (Amenities)
     amenities: [],
+    
+    // Special Features
+    specialFeatures: {
+      shortTerm: initialData?.specialFeatures?.shortTerm || false,
+      allowPet: initialData?.specialFeatures?.allowPet || false,
+      allowCompanyRegistration: initialData?.specialFeatures?.allowCompanyRegistration || false,
+      foreignQuota: initialData?.specialFeatures?.foreignQuota || false,
+      penthouse: initialData?.specialFeatures?.penthouse || false,
+      luckyNumber: initialData?.specialFeatures?.luckyNumber || false
+    },
+    
+    // Media
+    youtubeUrl: initialData?.youtubeUrl || '', // ลิงก์ YouTube
+    floorPlan: initialData?.floorPlan || null, // ภาพแปลน
     
     // Timestamps
     createdAt: initialData?.createdAt || new Date().toISOString(),
@@ -171,6 +187,44 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         availableDate: initialData.available_date || '',
         amenities: parsedAmenities,
         
+        // เพิ่มฟิลด์ใหม่ที่เพิ่มเข้ามา
+        specialFeatures: (() => {
+          if (typeof initialData.special_features === 'string') {
+            try {
+              return JSON.parse(initialData.special_features)
+            } catch (e) {
+              return {
+                shortTerm: false,
+                allowPet: false,
+                allowCompanyRegistration: false,
+                foreignQuota: false,
+                penthouse: false,
+                luckyNumber: false
+              }
+            }
+          }
+          return initialData.special_features || {
+            shortTerm: false,
+            allowPet: false,
+            allowCompanyRegistration: false,
+            foreignQuota: false,
+            penthouse: false,
+            luckyNumber: false
+          }
+        })(),
+        youtubeUrl: initialData.youtube_url || '',
+        floorPlan: (() => {
+          if (typeof initialData.floor_plan === 'string') {
+            try {
+              const parsed = JSON.parse(initialData.floor_plan)
+              return parsed
+            } catch (e) {
+              return initialData.floor_plan || null
+            }
+          }
+          return initialData.floor_plan || null
+        })(),
+        
         createdAt: initialData.created_at || prev.createdAt,
         updatedAt: initialData.updated_at || new Date().toISOString()
       }))
@@ -199,7 +253,6 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       setImages(mappedImages)
 
       // จัดการ amenities
-      console.log('House amenities from API (normalized):', parsedAmenities)
       setSelectedAmenities(parsedAmenities)
     }
   }, [isEditing, initialData])
@@ -399,21 +452,11 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
 
   // อัปเดต formData.amenities เมื่อ selectedAmenities เปลี่ยน
   useEffect(() => {
-    console.log('selectedAmenities changed:', selectedAmenities)
-    console.log('formData before update:', formData)
-    console.log('selectedAmenities length:', selectedAmenities ? selectedAmenities.length : 0)
-    console.log('selectedAmenities type:', typeof selectedAmenities)
-    console.log('formData.amenities before update:', formData.amenities)
     if (selectedAmenities && Array.isArray(selectedAmenities)) {
-      setFormData(prev => {
-        const updated = {
-          ...prev,
-          amenities: selectedAmenities
-        }
-        console.log('Updated formData:', updated)
-        return updated
-      })
-      console.log('Updated formData.amenities:', selectedAmenities)
+      setFormData(prev => ({
+        ...prev,
+        amenities: selectedAmenities
+      }))
     }
   }, [selectedAmenities])
 
@@ -429,6 +472,65 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
   }
+
+  // ฟังก์ชันสำหรับจัดการ Special Features
+  const handleSpecialFeatureChange = (featureId, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      specialFeatures: {
+        ...(prev.specialFeatures || {}),
+        [featureId]: checked
+      }
+    }));
+  };
+
+  // ฟังก์ชันสำหรับอัพโหลด Floor Plan
+  const handleFloorPlanUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 10 * 1024 * 1024) {
+          alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 10MB');
+          return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+          alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+          return;
+        }
+
+        try {
+          setUploading(true);
+          
+          // ส่ง file โดยตรงไปยัง uploadAPI.uploadSingle
+          const response = await uploadAPI.uploadSingle(file);
+          
+          if (response.success) {
+            setFormData(prev => ({
+              ...prev,
+              floorPlan: {
+                url: response.data.url,
+                public_id: response.data.public_id,
+                preview: URL.createObjectURL(file)
+              }
+            }));
+            console.log('✅ อัพโหลด Floor Plan สำเร็จ:', response.data);
+          } else {
+            alert('อัพโหลด Floor Plan ไม่สำเร็จ: ' + response.message);
+          }
+        } catch (error) {
+          console.error('❌ อัพโหลด Floor Plan error:', error);
+          alert('อัพโหลด Floor Plan ไม่สำเร็จ: ' + error.message);
+        } finally {
+          setUploading(false);
+        }
+      }
+    };
+    input.click();
+  };
 
 
 
@@ -556,6 +658,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         status: formData.status,
         price: parseFloat(formData.price) || 0,
         rent_price: parseFloat(formData.rentPrice) || 0,
+        announcer_status: formData.announcerStatus, // เพิ่มฟิลด์ announcer_status
         location: formData.location,
         google_map_url: formData.googleMapUrl,
         nearby_transport: formData.nearbyTransport,
@@ -576,6 +679,9 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         selected_project: formData.selectedProject,
         available_date: formData.availableDate,
         amenities: selectedAmenities,
+        special_features: formData.specialFeatures, // เพิ่ม Special Features
+        youtube_url: formData.youtubeUrl, // เพิ่ม YouTube URL
+        floor_plan: formData.floorPlan, // เพิ่ม Floor Plan
         images: images.map(img => ({ 
           url: img.url, 
           public_id: img.public_id || null 
@@ -583,22 +689,17 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         cover_image: coverImage?.url || null
       }
 
-      console.log('ส่งข้อมูลไป API:', houseData)
-      console.log('Amenities ที่จะส่งไป:', selectedAmenities)
-      console.log('formData.amenities:', formData.amenities)
-      console.log('selectedAmenities type:', typeof selectedAmenities)
-      console.log('selectedAmenities isArray:', Array.isArray(selectedAmenities))
-      console.log('selectedAmenities length:', selectedAmenities ? selectedAmenities.length : 0)
+
 
       if (isEditing) {
         // แก้ไขบ้าน
         const result = await houseAPI.update(initialData.id, houseData)
-        console.log('แก้ไขบ้านสำเร็จ:', result)
+
         alert('แก้ไขประกาศบ้านสำเร็จ!')
       } else {
         // สร้างบ้านใหม่
         const result = await houseAPI.create(houseData)
-        console.log('สร้างบ้านสำเร็จ:', result)
+
         alert('เพิ่มประกาศบ้านสำเร็จ!')
       }
 
@@ -691,39 +792,137 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               />
             </div>
 
+            {/* สถานะผู้ประกาศ */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt flex items-center">
+                <User className="h-5 w-5 mr-2 text-red-500" />
+                สถานะผู้ประกาศ *
+              </label>
+              <div className="grid grid-cols-2 gap-3 max-w-md">
+                {[
+                  { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
+                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('announcerStatus', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.announcerStatus === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.announcerStatus === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <User className={`h-4 w-4 ${
+                          formData.announcerStatus === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.announcerStatus === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-2 font-prompt">
+                เลือกสถานะของผู้ประกาศ: เจ้าของบ้าน หรือ นายหน้าอสังหาริมทรัพย์
+              </p>
+            </div>
+
             {/* สถานะ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
                 สถานะ * (เลือกประเภท เช่า หรือ ขาย)
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.status ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="sale">ขาย</option>
-                <option value="rent">เช่า</option>
-                <option value="both">ขาย/เช่า</option>
-              </select>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'sale', label: 'ขาย', icon: DollarSign, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' },
+                  { value: 'rent', label: 'เช่า', icon: Calendar, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'both', label: 'ขายและเช่า', icon: Building, color: 'from-purple-500 to-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('status', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.status === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.status === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.status === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.status === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
               {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
             </div>
 
             {/* ประเภททรัพย์ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ประเภททรัพย์
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+                ประเภททรัพย์ *
               </label>
-              <select
-                value={formData.propertyType}
-                onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {propertyTypes.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'house', label: 'บ้านเดี่ยว', icon: Building, color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
+                  { value: 'townhouse', label: 'ทาวน์เฮาส์', icon: Building, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'apartment', label: 'อพาร์ตเมนต์', icon: Building, color: 'from-purple-500 to-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('propertyType', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.propertyType === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.propertyType === option.value 
+                          ? 'bg-white/80 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.propertyType === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.propertyType === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             {/* ราคา (บาท) */}
@@ -1232,9 +1431,126 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
             <Input
               value={formData.seoTags}
               onChange={(e) => handleInputChange('seoTags', e.target.value)}
-              placeholder="เช่น คอนโด, รามคำแหง, ลุมพินี, ขาย, เช่า"
+              placeholder="เช่น บ้าน, รามคำแหง, ลุมพินี, ขาย, เช่า"
             />
             <p className="text-sm text-gray-500 mt-1">ช่องให้กรอก tag สำหรับ SEO (แยกแท็กด้วยเครื่องหมายจุลภาค)</p>
+          </div>
+        </Card>
+
+        {/* Special Features */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <Star className="h-6 w-6 mr-3 text-blue-600" />
+            Special Features
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { id: 'shortTerm', label: 'Short-term', icon: Calendar },
+              { id: 'allowPet', label: 'Allow Pet', icon: FaPaw },
+              { id: 'allowCompanyRegistration', label: 'Allow Company Registration', icon: FaBuilding },
+              { id: 'foreignQuota', label: 'Foreign Quota', icon: FaGlobe },
+              { id: 'penthouse', label: 'Penthouse', icon: FaHome },
+              { id: 'luckyNumber', label: 'Lucky Number', icon: FaStar }
+            ].map((feature) => (
+              <label key={feature.id} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.specialFeatures && formData.specialFeatures[feature.id] ? true : false}
+                  onChange={(e) => handleSpecialFeatureChange(feature.id, e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <feature.icon className="h-5 w-5 text-gray-600" />
+                <span className="text-sm text-gray-700 font-prompt">{feature.label}</span>
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        {/* YouTube URL */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <FaVideo className="h-6 w-6 mr-3 text-red-500" />
+            ลิงก์ YouTube
+          </h2>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+              ลิงก์ YouTube
+            </label>
+            <div className="relative">
+              <Input
+                type="url"
+                value={formData.youtubeUrl}
+                onChange={(e) => handleInputChange('youtubeUrl', e.target.value)}
+                placeholder="เช่น https://www.youtube.com/watch?v=..."
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <FaVideo className="h-5 w-5 text-red-500" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">ลิงก์ YouTube สำหรับแสดงวิดีโอของบ้าน</p>
+          </div>
+        </Card>
+
+        {/* Floor Plan */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <FaFileAlt className="h-6 w-6 mr-3 text-blue-600" />
+            ภาพแปลน (Floor Plan)
+          </h2>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+              ภาพแปลน (Floor Plan)
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+              {formData.floorPlan ? (
+                <div className="space-y-3">
+                  <img 
+                    src={typeof formData.floorPlan === 'string' ? formData.floorPlan : (formData.floorPlan.preview || formData.floorPlan.url)} 
+                    alt="Floor Plan" 
+                    className="mx-auto max-h-64 rounded-lg shadow-md"
+                  />
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFloorPlanUpload()}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                    >
+                      เปลี่ยนภาพ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm('คุณต้องการลบภาพแปลนนี้หรือไม่?')) {
+                          setFormData(prev => ({ ...prev, floorPlan: null }))
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-700 font-medium text-sm"
+                    >
+                      ลบ
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <FaFileAlt className="text-gray-400 text-4xl mx-auto" />
+                  <div className="text-gray-600 font-prompt">
+                    <p className="font-medium">อัพโหลดภาพแปลน</p>
+                    <p className="text-sm">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleFloorPlanUpload()}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    เลือกไฟล์
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">รองรับไฟล์ JPG, PNG, WebP ขนาดไม่เกิน 10MB</p>
           </div>
         </Card>
 
@@ -1266,14 +1582,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
             สิ่งอำนวยความสะดวกภายในห้อง
           </h2>
           
-          {/* Debug Info */}
-          <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
-            <p className="text-sm text-yellow-700 font-prompt">
-              <span className="font-medium">🐛 Debug:</span> 
-              selectedAmenities: {JSON.stringify(selectedAmenities)} | 
-              formData.amenities: {JSON.stringify(formData.amenities)}
-            </p>
-          </div>
+
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {amenitiesList.map((amenity) => (
