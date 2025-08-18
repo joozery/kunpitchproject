@@ -20,7 +20,8 @@ import {
   Calendar,
   Calculator,
   Store,
-  Home
+  Home,
+  User
 } from 'lucide-react'
 // New icons for facilities
 import { FaCar } from 'react-icons/fa'
@@ -64,11 +65,12 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     // ข้อมูลพื้นฐาน
     title: commercial?.title || '', // ชื่อโครงการ
     projectCode: commercial?.projectCode || generateProjectCode(), // รหัสโครงการ (อัตโนมัติ)
+    announcerStatus: commercial?.announcerStatus || 'agent', // สถานะผู้ประกาศ: เจ้าของ/นายหน้า
     status: commercial?.status || 'sale', // สถานะ: ขาย/เช่า
     price: commercial?.price?.toString() || '', // ราคา (บาท)
     rentPrice: commercial?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
     
-    // ประเภทโฮมออฟฟิศ/ตึกแถว
+    // ประเภททรัพย์
     propertyType: commercial?.propertyType || 'shop_house', // โฮมออฟฟิศ/ตึกแถว
     buildingType: commercial?.buildingType || 'shop_house', // ประเภทอาคาร
 
@@ -150,6 +152,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
         ...prev,
         title: commercial.title || '',
         projectCode: commercial.project_code || commercial.projectCode || '',
+        announcerStatus: commercial.announcer_status || commercial.announcerStatus || 'agent',
         status: commercial.status || 'sale',
         price: commercial.price !== undefined && commercial.price !== null ? String(commercial.price) : '',
         rentPrice: commercial.rent_price !== undefined && commercial.rent_price !== null ? String(commercial.rent_price) : '',
@@ -562,6 +565,52 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
             </div>
 
+            {/* สถานะผู้ประกาศ */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt flex items-center">
+                <User className="h-5 w-5 mr-2 text-red-500" />
+                สถานะผู้ประกาศ *
+              </label>
+              <div className="grid grid-cols-2 gap-3 max-w-md">
+                {[
+                  { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
+                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('announcerStatus', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.announcerStatus === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.announcerStatus === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <User className={`h-4 w-4 ${
+                          formData.announcerStatus === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.announcerStatus === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-2 font-prompt">
+                เลือกสถานะของผู้ประกาศ: เจ้าของโฮมออฟฟิศ หรือ นายหน้าอสังหาริมทรัพย์
+              </p>
+            </div>
+
             {/* รหัสโครงการ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
@@ -589,41 +638,91 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
 
             {/* สถานะ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                สถานะ (เลือกประเภท เช่า หรือ ขาย)
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+                สถานะ * (เลือกประเภท เช่า หรือ ขาย)
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.status ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="sale">ขาย</option>
-                <option value="rent">เช่า</option>
-                <option value="both">ขาย/เช่า</option>
-              </select>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'sale', label: 'ขาย', icon: DollarSign, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' },
+                  { value: 'rent', label: 'เช่า', icon: Calendar, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'both', label: 'ขายและเช่า', icon: Building, color: 'from-purple-500 to-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('status', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.status === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.status === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.status === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.status === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
               {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
             </div>
 
-            {/* ประเภทอสังหาริมทรัพย์ */}
+            {/* ประเภททรัพย์ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ประเภทอสังหาริมทรัพย์
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+                ประเภททรัพย์ *
               </label>
-              <select
-                value={formData.propertyType}
-                onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.propertyType ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="shop_house">โฮมออฟฟิศ (Shop House)</option>
-                <option value="shophouse">ตึกแถว (Shophouse)</option>
-                <option value="commercial_building">อาคารพาณิชย์</option>
-                <option value="office_building">อาคารสำนักงาน</option>
-                <option value="mixed_use">อาคารผสมผสาน</option>
-              </select>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: 'shop_house', label: 'โฮมออฟฟิศ', icon: Building, color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
+                  { value: 'shophouse', label: 'ตึกแถว', icon: Building, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'commercial_building', label: 'อาคารพาณิชย์', icon: Building, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' },
+                  { value: 'office_building', label: 'อาคารสำนักงาน', icon: Building, color: 'from-purple-500 to-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50' },
+                  { value: 'mixed_use', label: 'อาคารผสมผสาน', icon: Building, color: 'from-indigo-500 to-indigo-600', borderColor: 'border-indigo-500', bgColor: 'bg-indigo-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('propertyType', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.propertyType === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.propertyType === option.value 
+                          ? 'bg-white/80 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.propertyType === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.propertyType === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
               {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>}
             </div>
 
