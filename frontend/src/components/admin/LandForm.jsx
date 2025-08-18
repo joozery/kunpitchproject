@@ -83,6 +83,8 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   React.useEffect(() => {
     if (isEditing && land) {
+      console.log('LandForm - Prefilling data for editing:', land) // Debug log
+      console.log('LandForm - youtube_url from API:', land.youtube_url) // Debug log
       setFormData(prev => ({
         ...prev,
         title: land.title || '',
@@ -107,11 +109,13 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
         view: land.view || '',
         unitNumber: land.unit_number || '',
         seoTags: land.seo_tags || '',
-        youtubeUrl: land.youtube_url || '',
+        youtubeUrl: land.youtube_url || land.youtubeUrl || '',
 
         createdAt: land.created_at || prev.createdAt,
         updatedAt: land.updated_at || new Date().toISOString()
       }))
+      
+      console.log('LandForm - formData.youtubeUrl after prefill:', formData.youtubeUrl) // Debug log
 
       // Set cover image
       const coverUrl = land.cover_image || null

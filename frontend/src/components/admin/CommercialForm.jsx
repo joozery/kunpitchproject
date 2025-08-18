@@ -147,6 +147,8 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   useEffect(() => {
     if (isEditing && commercial) {
+      console.log('CommercialForm - Prefilling data for editing:', commercial) // Debug log
+      console.log('CommercialForm - youtube_url from API:', commercial.youtube_url) // Debug log
       const mappedFacilities = Array.isArray(commercial.facilities)
         ? commercial.facilities.map(f => (typeof f === 'string' ? f : f.id)).filter(Boolean)
         : []
@@ -187,6 +189,8 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
         createdAt: commercial.created_at || commercial.createdAt || prev.createdAt,
         updatedAt: commercial.updated_at || commercial.updatedAt || new Date().toISOString()
       }))
+      
+      console.log('CommercialForm - formData.youtubeUrl after prefill:', formData.youtubeUrl) // Debug log
 
       // Set cover image
       const coverUrl = commercial.cover_image || commercial.coverImage?.url || null
