@@ -118,6 +118,9 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     // SEO
     seoTags: commercial?.seoTags || '',
     
+    // YouTube
+    youtubeUrl: commercial?.youtubeUrl || '',
+    
     // Project Facilities
     facilities: commercial?.facilities || [],
     
@@ -179,6 +182,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
         buildingAge: commercial.building_age !== undefined && commercial.building_age !== null ? String(commercial.building_age) : '',
         pricePerSqm: commercial.price_per_sqm !== undefined && commercial.price_per_sqm !== null ? String(commercial.price_per_sqm) : '',
         seoTags: commercial.seo_tags || commercial.seoTags || '',
+        youtubeUrl: commercial.youtube_url || commercial.youtubeUrl || '',
         facilities: mappedFacilities,
         createdAt: commercial.created_at || commercial.createdAt || prev.createdAt,
         updatedAt: commercial.updated_at || commercial.updatedAt || new Date().toISOString()
@@ -1405,23 +1409,43 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
           </div>
         </Card>
 
-        {/* SEO Tag */}
+        {/* SEO Tag และ YouTube */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
             <Search className="h-6 w-6 mr-3 text-blue-600" />
-            SEO Tag
+            SEO Tag และ YouTube
           </h2>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-              SEO Tag
-            </label>
-            <Input
-              value={formData.seoTags}
-              onChange={(e) => handleInputChange('seoTags', e.target.value)}
-              placeholder="เช่น โฮมออฟฟิศ, ตึกแถว, พาณิชยกรรม, สุขุมวิท, สีลม, ขาย, เช่า"
-            />
-            <p className="text-sm text-gray-500 mt-1">ช่องให้กรอก tag สำหรับ SEO (แยกแท็กด้วยเครื่องหมายจุลภาค)</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* SEO Tag */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                SEO Tag
+              </label>
+              <Input
+                value={formData.seoTags}
+                onChange={(e) => handleInputChange('seoTags', e.target.value)}
+                placeholder="เช่น โฮมออฟฟิศ, ตึกแถว, พาณิชยกรรม, สุขุมวิท, สีลม, ขาย, เช่า"
+              />
+              <p className="text-sm text-gray-500 mt-1">ช่องให้กรอก tag สำหรับ SEO (แยกแท็กด้วยเครื่องหมายจุลภาค)</p>
+            </div>
+
+            {/* ลิงก์ YouTube */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt flex items-center">
+                <svg className="h-5 w-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                ลิงก์ YouTube
+              </label>
+              <Input
+                value={formData.youtubeUrl}
+                onChange={(e) => handleInputChange('youtubeUrl', e.target.value)}
+                placeholder="เช่น https://www.youtube.com/watch?v=..."
+                className="focus:ring-red-500 focus:border-red-500"
+              />
+              <p className="text-sm text-gray-500 mt-1">ลิงก์วิดีโอ YouTube สำหรับแสดงในหน้ารายละเอียด</p>
+            </div>
           </div>
         </Card>
 
