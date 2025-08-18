@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
+import Swal from 'sweetalert2'
 import {
   ArrowLeft,
   Building,
@@ -497,12 +498,24 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       const file = e.target.files[0];
       if (file) {
         if (file.size > 10 * 1024 * 1024) {
-          alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 10MB');
+          Swal.fire({
+            icon: 'error',
+            title: 'ไฟล์ใหญ่เกินไป',
+            text: 'กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 10MB',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#ef4444'
+          });
           return;
         }
         
         if (!file.type.startsWith('image/')) {
-          alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+          Swal.fire({
+            icon: 'error',
+            title: 'ไฟล์ไม่ถูกต้อง',
+            text: 'กรุณาเลือกไฟล์รูปภาพเท่านั้น',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#ef4444'
+          });
           return;
         }
 
@@ -522,12 +535,31 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               }
             }));
             console.log('✅ อัพโหลด Floor Plan สำเร็จ:', response.data);
+            Swal.fire({
+              icon: 'success',
+              title: 'อัพโหลดสำเร็จ!',
+              text: 'อัพโหลดภาพแปลนเรียบร้อยแล้ว',
+              timer: 2000,
+              showConfirmButton: false
+            });
           } else {
-            alert('อัพโหลด Floor Plan ไม่สำเร็จ: ' + response.message);
+            Swal.fire({
+              icon: 'error',
+              title: 'อัพโหลดไม่สำเร็จ',
+              text: 'อัพโหลด Floor Plan ไม่สำเร็จ: ' + response.message,
+              confirmButtonText: 'ตกลง',
+              confirmButtonColor: '#ef4444'
+            });
           }
         } catch (error) {
           console.error('❌ อัพโหลด Floor Plan error:', error);
-          alert('อัพโหลด Floor Plan ไม่สำเร็จ: ' + error.message);
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'อัพโหลด Floor Plan ไม่สำเร็จ: ' + error.message,
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#ef4444'
+          });
         } finally {
           setUploading(false);
         }
@@ -597,7 +629,13 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       console.log('อัพโหลดรูปภาพสำเร็จ:', uploaded)
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'อัพโหลดไม่สำเร็จ',
+        text: `อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`,
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setUploading(false)
     }
@@ -650,6 +688,13 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     e.preventDefault()
     
     if (!validateForm()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ข้อมูลไม่ครบถ้วน',
+        text: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#ef4444'
+      });
       return
     }
 
@@ -707,12 +752,24 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         // แก้ไขบ้าน
         const result = await houseAPI.update(initialData.id, houseData)
 
-        alert('แก้ไขประกาศบ้านสำเร็จ!')
+        Swal.fire({
+          icon: 'success',
+          title: 'แก้ไขสำเร็จ!',
+          text: 'แก้ไขประกาศบ้านเรียบร้อยแล้ว',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
         // สร้างบ้านใหม่
         const result = await houseAPI.create(houseData)
 
-        alert('เพิ่มประกาศบ้านสำเร็จ!')
+        Swal.fire({
+          icon: 'success',
+          title: 'เพิ่มสำเร็จ!',
+          text: 'เพิ่มประกาศบ้านเรียบร้อยแล้ว',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
 
       if (onSave) {
@@ -724,7 +781,13 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       }
     } catch (error) {
       console.error('Error saving house:', error)
-      alert(`เกิดข้อผิดพลาด: ${error.message}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: `เกิดข้อผิดพลาด: ${error.message}`,
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setLoading(false)
     }
@@ -737,7 +800,22 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
-            onClick={onBack}
+            onClick={async () => {
+              const result = await Swal.fire({
+                title: 'ยืนยันการกลับ',
+                text: 'คุณต้องการกลับไปหน้าจัดการบ้านหรือไม่? ข้อมูลที่กรอกจะหายไป',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'กลับ',
+                cancelButtonText: 'ทำงานต่อ'
+              });
+
+              if (result.isConfirmed) {
+                onBack();
+              }
+            }}
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -1534,10 +1612,28 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (window.confirm('คุณต้องการลบภาพแปลนนี้หรือไม่?')) {
-                          setFormData(prev => ({ ...prev, floorPlan: null }))
-                        }
+                                            onClick={async () => {
+                        const result = await Swal.fire({
+          title: 'ยืนยันการลบ',
+          text: 'คุณต้องการลบภาพแปลนนี้หรือไม่?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#ef4444',
+          cancelButtonColor: '#6b7280',
+          confirmButtonText: 'ลบ',
+          cancelButtonText: 'ยกเลิก'
+        });
+
+        if (result.isConfirmed) {
+          setFormData(prev => ({ ...prev, floorPlan: null }))
+          Swal.fire({
+            icon: 'success',
+            title: 'ลบสำเร็จ!',
+            text: 'ลบภาพแปลนเรียบร้อยแล้ว',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
                       }}
                       className="text-red-600 hover:text-red-700 font-medium text-sm"
                     >
@@ -1772,11 +1868,29 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm('คุณต้องการลบรูปภาพทั้งหมดใช่หรือไม่?')) {
-                      setImages([])
-                    }
-                  }}
+                                  onClick={async () => {
+                  const result = await Swal.fire({
+                    title: 'ยืนยันการลบ',
+                    text: 'คุณต้องการลบรูปภาพทั้งหมดใช่หรือไม่?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'ลบทั้งหมด',
+                    cancelButtonText: 'ยกเลิก'
+                  });
+
+                  if (result.isConfirmed) {
+                    setImages([])
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'ลบสำเร็จ!',
+                      text: 'ลบรูปภาพทั้งหมดเรียบร้อยแล้ว',
+                      timer: 1500,
+                      showConfirmButton: false
+                    });
+                  }
+                }}
                   className="text-red-600 hover:text-red-700 font-prompt text-sm transition-colors"
                 >
                   ลบทั้งหมด
@@ -1808,7 +1922,22 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
           <Button
             type="button"
             variant="outline"
-            onClick={onBack}
+            onClick={async () => {
+              const result = await Swal.fire({
+                title: 'ยืนยันการยกเลิก',
+                text: 'คุณต้องการยกเลิกการทำงานนี้หรือไม่? ข้อมูลที่กรอกจะหายไป',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'ยกเลิก',
+                cancelButtonText: 'กลับไปทำงานต่อ'
+              });
+
+              if (result.isConfirmed) {
+                onBack();
+              }
+            }}
             disabled={uploading}
           >
             ยกเลิก

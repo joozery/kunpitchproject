@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import Swal from 'sweetalert2'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { 
@@ -83,6 +84,13 @@ const HouseManagement = () => {
     } catch (e) {
       console.error('Failed to load house details:', e)
       setEditingHouse(house)
+      Swal.fire({
+        icon: 'warning',
+        title: 'โหลดข้อมูลไม่สมบูรณ์',
+        text: 'ไม่สามารถโหลดข้อมูลรายละเอียดได้ แต่สามารถแก้ไขข้อมูลพื้นฐานได้',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f59e0b'
+      });
     }
   }
   const refreshList = async () => {
@@ -105,6 +113,42 @@ const HouseManagement = () => {
     await refreshList()
   }
 
+  const handleDelete = async (houseId) => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการลบ',
+      text: 'คุณต้องการลบบ้านนี้หรือไม่? การดำเนินการนี้ไม่สามารถยกเลิกได้',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await houseAPI.delete(houseId)
+        await refreshList()
+        Swal.fire({
+          icon: 'success',
+          title: 'ลบสำเร็จ!',
+          text: 'ลบบ้านเรียบร้อยแล้ว',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('Delete failed:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'ลบไม่สำเร็จ',
+          text: 'ไม่สามารถลบบ้านได้: ' + (error.message || 'เกิดข้อผิดพลาด'),
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
+  }
+
   const handleStatusChange = async (house, newStatus) => {
     if (!newStatus || newStatus === house.status) return
     try {
@@ -113,7 +157,13 @@ const HouseManagement = () => {
       setHouses(prev => prev.map(h => h.id === house.id ? { ...h, status: newStatus } : h))
     } catch (err) {
       console.error('Update status failed:', err)
-      alert('อัปเดตสถานะไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'))
+      Swal.fire({
+        icon: 'error',
+        title: 'อัปเดตไม่สำเร็จ',
+        text: 'อัปเดตสถานะไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'),
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setUpdatingStatusId(null)
     }
@@ -398,7 +448,7 @@ const HouseManagement = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -486,7 +536,7 @@ const HouseManagement = () => {
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
