@@ -19,6 +19,10 @@ const PropertyDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [clickCount, setClickCount] = useState(0)
 
+  // Derived values for UI meta
+  const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
+  const rentPerSqm = property && property.area && (property.rent_price || 0) > 0 ? Math.round((property.rent_price || 0) / (property.area || 1)) : null
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -207,32 +211,67 @@ const PropertyDetail = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Image Gallery */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg mb-8">
-              <div className="relative">
-                <img
-                  src={property.images && property.images.length > 0 ? property.images[currentImageIndex] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
-                  alt={property.title}
-                  className="w-full h-96 object-cover"
-                />
-                
-                {/* Image Navigation */}
-                {property.images && property.images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {property.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
+          {/* Top meta bar */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-2xl p-4 shadow-lg mb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="text-gray-800 font-medium">Property ID:</div>
+                <div className="font-semibold text-gray-900">{`WS${property?.id || ''}`}</div>
+                <span className="ml-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">Available</span>
+              </div>
+              <div className="text-right space-y-1">
+                {rentPerSqm !== null && (
+                  <div className="text-gray-700">
+                    Renting Price per sq.m: <span className="font-semibold">{format(convert(rentPerSqm))}</span>
+                  </div>
+                )}
+                {pricePerSqm !== null && (
+                  <div className="text-gray-700">
+                    Selling Price per sq.m: <span className="font-semibold">{format(convert(pricePerSqm))}</span>
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Image Gallery - collage layout */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg mb-8 p-3">
+              {property.images && property.images.length > 0 ? (
+                <div className="grid grid-cols-3 grid-rows-2 gap-3 h-[520px]">
+                  {/* Main image */}
+                  <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden">
+                    <img
+                      src={property.images[0]}
+                      alt={property.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {property.images.length > 1 && (
+                      <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
+                        {property.images.length} รูป
+                      </div>
+                    )}
+                  </div>
+                  {/* Side images */}
+                  <div className="rounded-xl overflow-hidden">
+                    <img src={property.images[1] || property.images[0]} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <img src={property.images[2] || property.images[0]} alt="" className="w-full h-full object-cover" />
+                    {property.images.length > 3 && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white font-semibold">ดูรูปอีก {property.images.length - 3} รูป</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
+                  alt={property.title}
+                  className="w-full h-96 object-cover rounded-xl"
+                />
+              )}
             </div>
 
             {/* Property Details */}

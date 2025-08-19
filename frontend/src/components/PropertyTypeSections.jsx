@@ -282,15 +282,15 @@ const PropertyTypeSections = () => {
                 <span className="truncate">ห้องน้ำ: {property.bathrooms || 'N/A'}</span>
               </div>
             </div>
-            {/* Row 2: Floor, Area */}
+            {/* Row 2: Area, Floor */}
             <div className="grid grid-cols-2 gap-4 text-gray-600">
-              <div className="flex items-center gap-2 whitespace-nowrap">
-                <TbStairsUp className="h-4 w-4 text-blue-500" />
-                <span className="truncate">ชั้นที่: {property.floor || 'N/A'}</span>
-              </div>
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <TbViewportWide className="h-4 w-4 text-blue-500" />
                 <span className="truncate">พื้นที่: {property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
+              </div>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <TbStairsUp className="h-4 w-4 text-blue-500" />
+                <span className="truncate">ชั้นที่: {property.floor || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -381,15 +381,40 @@ const PropertyTypeSections = () => {
             </motion.h2>
           </div>
 
-          {/* Grid like Hot Deals */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Slider like Hot Deals layout */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => document.getElementById('latest-scroll').scrollLeft -= 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+              </button>
+              <button 
+                onClick={() => document.getElementById('latest-scroll').scrollLeft += 400}
+                className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </button>
+            </div>
+          </div>
+
+          <div 
+            id="latest-scroll"
+            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {allLoading ? (
-              [...Array(8)].map((_, i) => (
-                <div key={i} className="h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
-              ))
+              <div className="flex space-x-6 w-full">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4 h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
+                ))}
+              </div>
             ) : (
               latestItems.map((item, index) => (
-                <PropertyCard key={`${item.__type}-${item.id || index}`} property={item} type={item.__type} />
+                <div key={`${item.__type}-${item.id || index}`} className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4">
+                  <PropertyCard property={item} type={item.__type} />
+                </div>
               ))
             )}
           </div>

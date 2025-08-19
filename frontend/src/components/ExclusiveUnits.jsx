@@ -125,32 +125,49 @@ const ExclusiveUnits = () => {
           </motion.h2>
         </div>
 
-        {/* Grid like Hot Deals */}
+        {/* Slider like Hot Deals layout */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => document.getElementById('exclusive-scroll').scrollLeft -= 400}
+              className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+            >
+              <ArrowRight className="h-5 w-5 text-blue-600 rotate-180" />
+            </button>
+            <button
+              onClick={() => document.getElementById('exclusive-scroll').scrollLeft += 400}
+              className="p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+            >
+              <ArrowRight className="h-5 w-5 text-blue-600" />
+            </button>
+          </div>
+        </div>
+
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
+          <div className="flex space-x-6 w-full">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4 h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div id="exclusive-scroll" className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {items.map((property, index) => (
-              <motion.div
-                key={`${property.__type}-${property.id || index}`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.05 }}
-                className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt"
-                style={{
-                  background: '#ffffff',
-                  border: '3px solid transparent',
-                  borderRadius: '16px',
-                  backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #3b82f6, #6b7280, #f59e0b)',
-                  backgroundOrigin: 'border-box',
-                  backgroundClip: 'content-box, border-box',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59,130,246,0.2)'
-                }}
-              >
+              <div key={`${property.__type}-${property.id || index}`} className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.05 }}
+                  className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt"
+                  style={{
+                    background: '#ffffff',
+                    border: '3px solid transparent',
+                    borderRadius: '16px',
+                    backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #3b82f6, #6b7280, #f59e0b)',
+                    backgroundOrigin: 'border-box',
+                    backgroundClip: 'content-box, border-box',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59,130,246,0.2)'
+                  }}
+                >
                 {/* Gradient Border Overlay */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-gray-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
                 {/* Shimmer Effect */}
@@ -204,15 +221,15 @@ const ExclusiveUnits = () => {
                         <span className="truncate">ห้องน้ำ: {property.bathrooms || 'N/A'}</span>
                       </div>
                     </div>
-                    {/* Row 2: Floor, Area */}
+                    {/* Row 2: Area, Floor */}
                     <div className="grid grid-cols-2 gap-4 text-gray-600">
-                      <div className="flex items-center gap-2 whitespace-nowrap">
-                        <TbStairsUp className="h-4 w-4 text-blue-500" />
-                        <span className="truncate">ชั้นที่: {property.floor || 'N/A'}</span>
-                      </div>
                       <div className="flex items-center gap-2 whitespace-nowrap">
                         <TbViewportWide className="h-4 w-4 text-blue-500" />
                         <span className="truncate">พื้นที่: {property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+                        <TbStairsUp className="h-4 w-4 text-blue-500" />
+                        <span className="truncate">ชั้นที่: {property.floor || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -246,7 +263,8 @@ const ExclusiveUnits = () => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+                </motion.div>
+              </div>
             ))}
           </div>
         )}

@@ -1,15 +1,31 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:1991/api';
+const API_BASE_URL =
+  import.meta.env.VITE_YOUTUBE_API_URL ||
+  import.meta.env.VITE_API_URL ||
+  'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
+
+const parseApiJson = async (response) => {
+  const json = await response.json();
+  if (json && typeof json === 'object' && 'success' in json) {
+    if (!json.success) {
+      throw new Error(json.message || 'Request failed');
+    }
+    return json.data;
+  }
+  return json;
+};
 
 // YouTube API service
 export const youtubeApi = {
   // Get all active YouTube videos
   async getAllVideos() {
     try {
-      const response = await fetch(`${API_BASE_URL}/youtube`);
+      const response = await fetch(`${API_BASE_URL}/youtube`, {
+        headers: { Accept: 'application/json' },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch videos');
       }
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error fetching YouTube videos:', error);
       throw error;
@@ -19,11 +35,13 @@ export const youtubeApi = {
   // Get all videos for admin (including inactive)
   async getAllVideosForAdmin() {
     try {
-      const response = await fetch(`${API_BASE_URL}/youtube/admin/all`);
+      const response = await fetch(`${API_BASE_URL}/youtube/admin/all`, {
+        headers: { Accept: 'application/json' },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch all videos');
       }
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error fetching all YouTube videos:', error);
       throw error;
@@ -33,11 +51,13 @@ export const youtubeApi = {
   // Get video by ID
   async getVideoById(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/youtube/${id}`);
+      const response = await fetch(`${API_BASE_URL}/youtube/${id}`, {
+        headers: { Accept: 'application/json' },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch video');
       }
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error fetching YouTube video:', error);
       throw error;
@@ -51,16 +71,17 @@ export const youtubeApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(videoData),
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to create video');
       }
       
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error creating YouTube video:', error);
       throw error;
@@ -74,16 +95,17 @@ export const youtubeApi = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(videoData),
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to update video');
       }
       
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error updating YouTube video:', error);
       throw error;
@@ -95,14 +117,15 @@ export const youtubeApi = {
     try {
       const response = await fetch(`${API_BASE_URL}/youtube/${id}`, {
         method: 'DELETE',
+        headers: { Accept: 'application/json' },
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to delete video');
       }
       
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error deleting YouTube video:', error);
       throw error;
@@ -114,14 +137,15 @@ export const youtubeApi = {
     try {
       const response = await fetch(`${API_BASE_URL}/youtube/${id}/hard`, {
         method: 'DELETE',
+        headers: { Accept: 'application/json' },
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to hard delete video');
       }
       
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error hard deleting YouTube video:', error);
       throw error;
@@ -135,16 +159,17 @@ export const youtubeApi = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify({ videos }),
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to update sort order');
       }
       
-      return await response.json();
+      return await parseApiJson(response);
     } catch (error) {
       console.error('Error updating sort order:', error);
       throw error;

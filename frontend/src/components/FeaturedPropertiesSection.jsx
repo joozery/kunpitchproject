@@ -352,18 +352,18 @@ const FeaturedPropertiesSection = () => {
                 </span>
               </div>
             </div>
-            {/* Row 2: Floor, Area */}
+            {/* Row 2: Area, Floor */}
             <div className="grid grid-cols-2 gap-4 text-gray-600">
-              <div className="flex items-center gap-2 whitespace-nowrap">
-                <TbStairsUp className="h-4 w-4 text-blue-500" />
-                <span className="truncate">
-                  <AutoTranslate thaiText="ชั้นที่" targetLang="en" fallbackText="Floor" />: {property.floor || 'N/A'}
-                </span>
-              </div>
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <TbViewportWide className="h-4 w-4 text-blue-500" />
                 <span className="truncate">
                   <AutoTranslate thaiText="พื้นที่" targetLang="en" fallbackText="Area" />: {property.area ? `${property.area} ตร.ม.` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <TbStairsUp className="h-4 w-4 text-blue-500" />
+                <span className="truncate">
+                  <AutoTranslate thaiText="ชั้นที่" targetLang="en" fallbackText="Floor" />: {property.floor || 'N/A'}
                 </span>
               </div>
             </div>
