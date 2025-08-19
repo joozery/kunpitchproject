@@ -1,88 +1,62 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Eye, ThumbsUp, ChevronLeft, ChevronRight, Youtube } from 'lucide-react'
+import { youtubeApi } from '../lib/youtubeApi'
 
 const YoutubeSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [youtubeVideos, setYoutubeVideos] = useState([])
+  const [loading, setLoading] = useState(true)
   const sliderRef = useRef(null)
 
-  // Mock YouTube video data
-  const youtubeVideos = [
-    {
-      id: 1,
-      title: "Top 5 Condos in Bangkok 2024 - Investment Guide",
-      thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ", // Example YouTube video ID
-      channel: "",
-      publishDate: "",
-      views: "125K",
-      likes: "2.1K",
-      duration: "12:45",
-      description: "Discover the best condo investments in Bangkok with our comprehensive guide covering location, pricing, and ROI analysis."
-    },
-    {
-      id: 2,
-      title: "Bangkok Real Estate Market Update 2024",
-      thumbnail: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ",
-      channel: "",
-      publishDate: "",
-      views: "89K",
-      likes: "1.8K",
-      duration: "15:30",
-      description: "Latest trends and insights into Bangkok's real estate market with expert analysis and future predictions."
-    },
-    {
-      id: 3,
-      title: "First-Time Home Buyer's Guide Thailand",
-      thumbnail: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ",
-      channel: "",
-      publishDate: "",
-      views: "156K",
-      likes: "3.2K",
-      duration: "18:20",
-      description: "Complete guide for first-time home buyers in Thailand covering legal requirements, financing, and tips."
-    },
-    {
-      id: 4,
-      title: "Luxury Properties Tour - Sukhumvit Area",
-      thumbnail: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ",
-      channel: "",
-      publishDate: "",
-      views: "203K",
-      likes: "4.5K",
-      duration: "22:15",
-      description: "Exclusive tour of luxury properties in the prestigious Sukhumvit area with detailed reviews and pricing."
-    },
-    {
-      id: 5,
-      title: "Property Investment Strategies 2024",
-      thumbnail: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ",
-      channel: "",
-      publishDate: "",
-      views: "98K",
-      likes: "2.7K",
-      duration: "16:40",
-      description: "Learn effective property investment strategies for maximizing returns in the Thai real estate market."
-    },
-    {
-      id: 6,
-      title: "Bangkok Condo vs House - Which to Choose?",
-      thumbnail: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      videoId: "dQw4w9WgXcQ",
-      channel: "",
-      publishDate: "",
-      views: "167K",
-      likes: "3.8K",
-      duration: "14:25",
-      description: "Comprehensive comparison between condos and houses in Bangkok to help you make the right choice."
+  // Fetch YouTube videos from API
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true)
+        const data = await youtubeApi.getAllVideos()
+        setYoutubeVideos(data)
+      } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการดึงข้อมูล YouTube videos:', error)
+        // Fallback to empty array if API fails
+        setYoutubeVideos([])
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
 
-  // Removed date formatting as date display is not used anymore
+    fetchVideos()
+  }, [])
+
+  // Show loading state if no videos yet
+  if (loading) {
+    return (
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+              <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">Video Content</span>
+              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+            </div>
+            
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-slate-800">
+              Recommended Youtube
+            </h2>
+          </div>
+          
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Don't render if no videos
+  if (youtubeVideos.length === 0) {
+    return null
+  }
 
   const cardsPerView = 3
   const maxSlides = Math.max(0, youtubeVideos.length - cardsPerView)
@@ -204,7 +178,7 @@ const YoutubeSection = () => {
                     {/* Video Thumbnail */}
                     <div className="relative overflow-hidden h-48 flex-shrink-0">
                       <img 
-                        src={video.thumbnail} 
+                        src={video.thumbnail_url || youtubeApi.getThumbnailUrl(video.video_id, 'medium')} 
                         alt={video.title}
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                       />
@@ -248,11 +222,11 @@ const YoutubeSection = () => {
                         <div className="flex items-center gap-3">
                           <span className="flex items-center">
                             <Eye className="h-4 w-4 mr-1 text-blue-600" />
-                            {video.views}
+                            {video.views_count || '0'}
                           </span>
                           <span className="flex items-center">
                             <ThumbsUp className="h-4 w-4 mr-1 text-blue-600" />
-                            {video.likes}
+                            {video.likes_count || '0'}
                           </span>
                         </div>
                       </div>

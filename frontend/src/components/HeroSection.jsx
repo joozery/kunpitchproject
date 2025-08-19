@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Search, ChevronDown } from 'lucide-react'
-import bannerVideo from '@/assets/banner (1).mp4'
+import b1 from '@/assets/banner/1.png'
+import b2 from '@/assets/banner/2.png'
+import b3 from '@/assets/banner/3.png'
+import b4 from '@/assets/banner/4.png'
+import b5 from '@/assets/banner/5.png'
+import b6 from '@/assets/banner/6.png'
+import b7 from '@/assets/banner/7.png'
 
 const HeroSection = () => {
   const [typingDone, setTypingDone] = useState(false)
+  const [current, setCurrent] = useState(0)
+  const images = [b1, b2, b3, b4, b5, b6, b7]
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -13,20 +21,48 @@ const HeroSection = () => {
     return () => clearTimeout(timer)
   }, [])
 
-  return (
-    <section className="relative h-[75vh] overflow-hidden">
-      {/* Video Background */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover"
-        src={bannerVideo}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      />
+  // Auto slide background images
+  useEffect(() => {
+    if (images.length <= 1) return
+    const id = setInterval(() => {
+      setCurrent(prev => (prev + 1) % images.length)
+    }, 5000)
+    return () => clearInterval(id)
+  }, [images.length])
 
-      <div className="relative z-10 container mx-auto px-6 pt-32 pb-16">
+  // Preload images
+  useEffect(() => {
+    images.forEach(src => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [])
+
+  return (
+    <section className="relative h-[55vh] overflow-hidden">
+      {/* Background Continuous Strip */}
+      <div className="absolute inset-0 overflow-hidden">
+        <style>{`
+          @keyframes hero-scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+          .hero-marquee { display: flex; width: 200%; height: 100%; animation: hero-scroll-left 40s linear infinite; }
+          .hero-track { display: flex; width: 50%; height: 100%; }
+          .hero-img { height: 100%; width: auto; object-fit: cover; flex: 0 0 auto; }
+        `}</style>
+        <div className="hero-marquee">
+          <div className="hero-track">
+            {images.map((src, idx) => (
+              <img key={`hero-a-${idx}`} src={src} alt="Hero banner" className="hero-img" />
+            ))}
+          </div>
+          <div className="hero-track" aria-hidden>
+            {images.map((src, idx) => (
+              <img key={`hero-b-${idx}`} src={src} alt="" className="hero-img" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-6 pt-20 pb-12">
         {/* Centered Title */}
         <div className="text-center mb-8 text-white">
 
@@ -34,7 +70,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-xl md:text-2xl font-bold text-white mb-3 font-oswald mt-8 md:mt-12"
+            className="text-xl md:text-2xl font-bold text-white mb-3 font-oswald mt-0 md:mt-2"
             style={{
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
             }}

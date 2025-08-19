@@ -1,36 +1,53 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import bannerImage from '../assets/braner.png'
-import bannerImage2 from '../assets/braner2.png'
+import { bannerApi } from '../lib/bannerApi'
 
 const BannerSlide = () => {
+  const [slides, setSlides] = useState([])
+  const [settings, setSettings] = useState({
+    auto_slide: true,
+    slide_interval: 5000,
+    slide_height: 300,
+    show_navigation: true,
+    show_dots: true
+  })
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Banner slides data - you can add more slides here
-  const slides = [
-    {
-      id: 1,
-      image: bannerImage,
-      alt: "Banner Image 1"
-    },
-    {
-      id: 2,
-      image: bannerImage2,
-      alt: "Banner Image 2"
-    }
-  ]
-
-  // Auto-slide functionality
   useEffect(() => {
-    if (slides.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
-      }, 5000) // Change slide every 5 seconds
+    loadData()
+  }, [])
 
-      return () => clearInterval(interval)
+  const loadData = async () => {
+    try {
+      const [slidesData, settingsData] = await Promise.all([
+        bannerApi.getSlides(),
+        bannerApi.getSettings()
+      ])
+      
+      // Filter only active slides
+      const activeSlides = slidesData.filter(slide => slide.is_active)
+      setSlides(activeSlides)
+      setSettings(settingsData)
+    } catch (error) {
+      console.error('Error loading banner data:', error)
+      setError(error.message)
+    } finally {
+      setIsLoading(false)
     }
-  }, [slides.length])
+  }
+
+  useEffect(() => {
+    if (!settings.auto_slide || slides.length <= 1) return
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, settings.slide_interval)
+
+    return () => clearInterval(interval)
+  }, [slides.length, settings.auto_slide, settings.slide_interval])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
@@ -44,69 +61,104 @@ const BannerSlide = () => {
     setCurrentSlide(index)
   }
 
+  // Fallback image when no image is provided
+  const getImageUrl = (slide) => {
+    if (slide?.image_url && slide.image_url.trim() !== '') {
+      return slide.image_url
+    }
+    // Return a placeholder gradient background with 4.67:1 aspect ratio
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwMCIgaGVpZ2h0PSIzMDAiIHZpZXdCb3g9IjAgMCAxNDAwIDMwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMzY2ZmYxO3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxZTRhNzE7c3RvcC1vcGFjaXR5OjEiIC8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+'
+  }
+
+  if (isLoading) {
+    return (
+      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div 
+            className="w-full bg-gray-200 animate-pulse rounded-xl md:rounded-2xl"
+            style={{ 
+              height: '300px'
+            }}
+          />
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    console.error('BannerSlide error:', error)
+    return null
+  }
+
+  if (slides.length === 0) {
+    return null
+  }
+
   return (
-    <section className="py-16 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        {/* Slides Container */}
-        <div className="relative w-full h-[200px] md:h-[250px] lg:h-[300px] overflow-hidden rounded-2xl shadow-xl">
-          {slides.map((slide, index) => (
+    <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        <div 
+          className="relative w-full overflow-hidden rounded-xl md:rounded-2xl shadow-lg md:shadow-xl"
+          style={{ 
+            height: '300px', // Fixed height for all screen sizes
+            borderRadius: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}
+        >
+          <AnimatePresence mode="wait">
             <motion.div
-              key={slide.id}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
-              }`}
+              key={currentSlide}
               initial={{ opacity: 0 }}
-              animate={{ opacity: index === currentSlide ? 1 : 0 }}
-              transition={{ duration: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0"
             >
-              {/* Image with proper cover fit */}
-              <img 
-                src={slide.image} 
-                alt={slide.alt}
-                className="w-full h-full object-cover object-center rounded-2xl"
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: 'center center'
-                }}
-              />
+              <a href={slides[currentSlide]?.link || '#'} className="block w-full h-full">
+                <img
+                  src={getImageUrl(slides[currentSlide])}
+                  alt={slides[currentSlide]?.alt_text || 'Banner'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = getImageUrl(null) // Use fallback on error
+                  }}
+                />
+              </a>
             </motion.div>
-          ))}
-          
-          {/* Navigation Arrows - Only show if more than 1 slide */}
-          {slides.length > 1 && (
+          </AnimatePresence>
+
+          {/* Navigation Arrows */}
+          {settings.show_navigation && slides.length > 1 && (
             <>
               <button
                 onClick={prevSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 hover:bg-white/30"
+                className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                <ChevronLeft className="h-6 w-6 text-white" />
+                <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
               </button>
-              
               <button
                 onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 hover:bg-white/30"
+                className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                <ChevronRight className="h-6 w-6 text-white" />
+                <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
               </button>
             </>
           )}
 
-          {/* Dots Indicator - Only show if more than 1 slide */}
-          {slides.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="flex gap-3">
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      currentSlide === index
-                        ? 'bg-white scale-125 shadow-lg'
-                        : 'bg-white/50 hover:bg-white/75'
-                    }`}
-                  />
-                ))}
-              </div>
+          {/* Dots */}
+          {settings.show_dots && slides.length > 1 && (
+            <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 md:space-x-3">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-200 shadow-lg ${
+                    index === currentSlide
+                      ? 'bg-white scale-125'
+                      : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                  }`}
+                />
+              ))}
             </div>
           )}
         </div>

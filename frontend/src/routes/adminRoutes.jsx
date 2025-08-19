@@ -8,8 +8,10 @@ import CommercialManagement from '../components/admin/CommercialManagement'
 import { CommercialFormWrapper } from '../components/admin/CommercialForm'
 import CommercialDemo from '../pages/CommercialDemo'
 import ContactSettings from '../components/admin/ContactSettings'
+import BannerSlideManagement from '../components/admin/BannerSlideManagement'
 import ProjectManagement from '../components/admin/ProjectManagement'
 import UserManagement from '../components/admin/UserManagement'
+import YouTubeManagement from '../components/admin/YouTubeManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
@@ -141,6 +143,30 @@ export const adminRoutes = [
     breadcrumb: ['ระบบ', 'การติดต่อ'],
     icon: 'MessageCircle',
     component: ContactSettings
+  },
+  
+  // Banner Slide Management Category
+  {
+    path: '/admin/banner-slides',
+    name: 'banner-slides',
+    title: 'จัดการ Banner Slides',
+    description: 'จัดการ slides สำหรับ BannerSlide component',
+    category: 'system',
+    breadcrumb: ['ระบบ', 'จัดการ Banner Slides'],
+    icon: 'Image',
+    component: BannerSlideManagement
+  },
+  
+  // YouTube Management Category
+  {
+    path: '/admin/youtube',
+    name: 'youtube',
+    title: 'จัดการ YouTube',
+    description: 'จัดการ YouTube videos ในหน้า home',
+    category: 'system',
+    breadcrumb: ['ระบบ', 'จัดการ YouTube'],
+    icon: 'Youtube',
+    component: YouTubeManagement
   },
   
   {

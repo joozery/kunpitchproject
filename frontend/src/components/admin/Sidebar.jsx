@@ -15,7 +15,9 @@ import {
   TreePine,
   Briefcase,
   MessageCircle,
-  FolderOpen
+  FolderOpen,
+  Image,
+  Youtube
 } from 'lucide-react'
 
 const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
@@ -85,6 +87,20 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       description: 'ตั้งค่าข้อมูลการติดต่อและโซเชียลมีเดีย',
       path: '/admin/contact',
       icon: MessageCircle
+    },
+    {
+      id: 'banner-slides',
+      title: 'จัดการ Banner Slides',
+      description: 'จัดการ slides สำหรับ BannerSlide component',
+      path: '/admin/banner-slides',
+      icon: Image
+    },
+    {
+      id: 'youtube',
+      title: 'จัดการ YouTube',
+      description: 'จัดการ YouTube videos ในหน้า home',
+      path: '/admin/youtube',
+      icon: Youtube
     },
     {
       id: 'settings',

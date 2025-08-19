@@ -315,53 +315,55 @@ const FeaturedPropertiesSection = () => {
         {/* Content */}
         <div className="p-6 flex-1 flex flex-col">
           {/* Title */}
-          <h3 className="text-base font-semibold text-gray-900 mb-3 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug">
+          <h3 className="text-base font-semibold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug line-clamp-2">
             <AutoTranslate 
               thaiText={property.title || property.name} 
               targetLang="en"
               fallbackText={property.title || property.name}
             />
           </h3>
-          
+
+          {/* Location placed under title */}
+          <div className="flex items-center gap-2 text-gray-500 text-xs mb-2 min-w-0">
+            <SlLocationPin className="h-4 w-4 text-blue-500" />
+            <span className="truncate" title={property.location || property.address || 'ไม่ระบุที่อยู่'}>
+              <AutoTranslate 
+                thaiText={property.location || property.address || 'ไม่ระบุที่อยู่'} 
+                targetLang="en" 
+                fallbackText={property.location || property.address || 'Address not specified'}
+              />
+            </span>
+          </div>
+
           {/* Details Rows */}
           <div className="space-y-3 mb-4 text-sm">
-            {/* Row 1: Bed, Bath, Floor */}
-            <div className="flex items-center gap-4 text-gray-600">
-              <div className="flex items-center gap-2">
+            {/* Row 1: Bed, Bath */}
+            <div className="grid grid-cols-2 gap-4 text-gray-600">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 <IoBedOutline className="h-4 w-4 text-blue-500" />
-                <span>
+                <span className="truncate">
                   <AutoTranslate thaiText="ห้องนอน" targetLang="en" fallbackText="Bedrooms" />: {property.bedrooms || 'N/A'}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 <LuBath className="h-4 w-4 text-blue-500" />
-                <span>
+                <span className="truncate">
                   <AutoTranslate thaiText="ห้องน้ำ" targetLang="en" fallbackText="Bathrooms" />: {property.bathrooms || 'N/A'}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+            </div>
+            {/* Row 2: Floor, Area */}
+            <div className="grid grid-cols-2 gap-4 text-gray-600">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 <TbStairsUp className="h-4 w-4 text-blue-500" />
-                <span>
+                <span className="truncate">
                   <AutoTranslate thaiText="ชั้นที่" targetLang="en" fallbackText="Floor" />: {property.floor || 'N/A'}
                 </span>
               </div>
-            </div>
-            {/* Row 2: Area and Location */}
-            <div className="flex items-center gap-4 text-gray-600">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 <TbViewportWide className="h-4 w-4 text-blue-500" />
-                <span>
+                <span className="truncate">
                   <AutoTranslate thaiText="พื้นที่" targetLang="en" fallbackText="Area" />: {property.area ? `${property.area} ตร.ม.` : 'N/A'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <SlLocationPin className="h-4 w-4 text-blue-500" />
-                <span>
-                  <AutoTranslate 
-                    thaiText={property.location || property.address || 'ไม่ระบุที่อยู่'} 
-                    targetLang="en" 
-                    fallbackText={property.location || property.address || 'Address not specified'}
-                  />
                 </span>
               </div>
             </div>
@@ -445,46 +447,25 @@ const FeaturedPropertiesSection = () => {
           </motion.h2>
         </div>
 
-        {/* Properties Slider */}
-        <div className="relative">
-          <div 
-            id="featured-scroll"
-            className="flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {/* Navigation Arrows */}
-            <button 
-              onClick={() => document.getElementById('featured-scroll').scrollLeft -= 400}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
-            >
-              <ArrowRight className="h-6 w-6 text-slate-700 rotate-180" />
-            </button>
-            <button 
-              onClick={() => document.getElementById('featured-scroll').scrollLeft += 400}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
-            >
-              <ArrowRight className="h-6 w-6 text-slate-700" />
-            </button>
-            {loading ? (
-              <div className="flex space-x-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-96 h-96 bg-gray-200 rounded-2xl animate-pulse flex-shrink-0"></div>
-                ))}
+        {/* Properties Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {loading ? (
+            [...Array(8)].map((_, i) => (
+              <div key={i} className="h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
+            ))
+          ) : featuredProperties.length > 0 ? (
+            featuredProperties.map((property) => (
+              <div key={property.id}>
+                <PropertyCard property={property} type={property.type} />
               </div>
-            ) : featuredProperties.length > 0 ? (
-              featuredProperties.map((property, index) => (
-                <div key={property.id} className="flex-shrink-0 w-96">
-                  <PropertyCard property={property} type={property.type} />
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-12 w-full">
-                <div className="text-gray-500 text-lg">
-                  <AutoTranslate thaiText="ไม่พบทรัพย์สิน" targetLang="en" fallbackText="No properties found" />
-                </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="text-gray-500 text-lg">
+                <AutoTranslate thaiText="ไม่พบทรัพย์สิน" targetLang="en" fallbackText="No properties found" />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* View All Button */}
