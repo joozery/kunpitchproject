@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronDown } from 'lucide-react'
-import bannerVideo from '../assets/banner.mp4'
+import bannerVideo from '@/assets/banner.mp4'
 
 const HeroSection = () => {
   const [typingDone, setTypingDone] = useState(false)
