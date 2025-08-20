@@ -29,13 +29,19 @@ import {
 import { 
   FaTv, FaWineBottle, FaCouch, FaUtensils, FaSnowflake, FaBath, FaLock, FaWifi, FaCar, FaSwimmingPool, FaSeedling, FaTshirt,
   FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaVideo, FaDumbbell, FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaUsers,
-  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding, FaGlobe, FaStar, FaFileAlt
+  FaLaptop, FaHamburger, FaCoffee, FaDoorOpen, FaHome, FaStore, FaBook, FaBuilding, FaGlobe, FaStar, FaFileAlt, FaWineGlassAlt
 } from 'react-icons/fa'
-import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md'
-import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri'
+import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator, MdOutlineWifiPassword } from 'react-icons/md'
+import { RiHomeWifiLine, RiFilterLine, RiRemoteControlLine } from 'react-icons/ri'
 import { PiCookingPot, PiThermometerHot, PiOven } from 'react-icons/pi'
-import { TbAirConditioning } from 'react-icons/tb'
-import { LuFan } from 'react-icons/lu'
+import { TbAirConditioning, TbAlarmSmoke } from 'react-icons/tb'
+import { LuFan, LuMicrowave } from 'react-icons/lu'
+import { CgSmartHomeRefrigerator } from 'react-icons/cg'
+import { GiWashingMachine, GiLockedDoor, GiHomeGarage } from 'react-icons/gi'
+import { LiaBathSolid } from 'react-icons/lia'
+import { BiCloset } from 'react-icons/bi'
+import { IoIosWater } from 'react-icons/io'
+import { ImLeaf } from 'react-icons/im'
 
 const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -188,33 +194,33 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       'library': <FaBook className="w-5 h-5" />,
       'laundry': <FaTshirt className="w-5 h-5" />,
       'garden-common': <FaSeedling className="w-5 h-5" />,
-      'wifi': <FaWifi className="w-5 h-5" />,
+      'wifi': <MdOutlineWifiPassword className="w-5 h-5" />,
       
-      // Amenities (more accurate icons)
-      'furniture': <FaCouch className="w-5 h-5" />,                 // Fully Furnished
+      // Amenities (updated icons as requested)
+      'furniture': <img src="https://img.icons8.com/pulsar-line/48/furniture.png" alt="Fully Furnished" className="w-5 h-5" />,                 // Fully Furnished
       'ac': <TbAirConditioning className="w-5 h-5" />,               // Air Conditioner
-      'tv': <FaTv className="w-5 h-5" />,                            // Television
-      'fridge': <MdKitchen className="w-5 h-5" />,                   // Refrigerator
-      'microwave': <MdMicrowave className="w-5 h-5" />,              // Microwave
-      'stove': <PiCookingPot className="w-5 h-5" />,                 // Electric Stove
-      'hood': <LuFan className="w-5 h-5" />,                         // Range Hood
-      'washing': <MdLocalLaundryService className="w-5 h-5" />,      // Washing Machine
-      'heater': <PiThermometerHot className="w-5 h-5" />,           // Water Heater
+      'tv': <img src="https://img.icons8.com/ios/50/tv.png" alt="Television" className="w-5 h-5" />,                            // Television
+      'fridge': <CgSmartHomeRefrigerator className="w-5 h-5" />,     // Refrigerator
+      'microwave': <LuMicrowave className="w-5 h-5" />,              // Microwave
+      'stove': <img src="https://img.icons8.com/ios/50/electric-stovetop.png" alt="Electric Stove" className="w-5 h-5" />,                 // Electric Stove
+      'hood': <TbAlarmSmoke className="w-5 h-5" />,                  // Range Hood
+      'washing': <GiWashingMachine className="w-5 h-5" />,           // Washing Machine
+      'heater': <img src="https://img.icons8.com/ios/50/water-heater.png" alt="Water Heater" className="w-5 h-5" />,           // Water Heater
       'oven': <PiOven className="w-5 h-5" />,                        // Oven
       'bathtub': <FaBath className="w-5 h-5" />,                     // Bathtub
-      'lock': <FaLock className="w-5 h-5" />,                        // Digital Door Lock
-      'garage': <FaCar className="w-5 h-5" />,                       // Garage
-      'smart': <RiHomeWifiLine className="w-5 h-5" />,               // Smart Home System
-      'jacuzzi': <MdHotTub className="w-5 h-5" />,                   // Jacuzzi
+      'lock': <GiLockedDoor className="w-5 h-5" />,                  // Digital Door Lock
+      'garage': <GiHomeGarage className="w-5 h-5" />,                // Garage
+      'smart': <RiRemoteControlLine className="w-5 h-5" />,          // Smart Home System
+      'jacuzzi': <LiaBathSolid className="w-5 h-5" />,               // Jacuzzi
       'parking': <FaCar className="w-5 h-5" />,                      // Parking
-      'balcony': <MdBalcony className="w-5 h-5" />,                  // Balcony
-      'dishwasher': <FaUtensils className="w-5 h-5" />,              // Dishwasher
-      'closet': <MdCheckroom className="w-5 h-5" />,                 // Walk-in Closet
-      'elevator': <MdElevator className="w-5 h-5" />,                // Private Elevator
-      'filter': <RiFilterLine className="w-5 h-5" />,                // Water Filtration System
-      'garden': <FaSeedling className="w-5 h-5" />,                  // Private Garden
-      'wine': <FaWineBottle className="w-5 h-5" />,                  // Wine Cooler / Cellar
-      'wardrobe': <MdCheckroom className="w-5 h-5" />                // Built-in Wardrobe
+      'balcony': <img src="https://img.icons8.com/ios-glyphs/30/balcony.png" alt="Balcony" className="w-5 h-5" />,                  // Balcony
+      'dishwasher': <img src="https://img.icons8.com/windows/32/washing.png" alt="Dishwasher" className="w-5 h-5" />,              // Dishwasher
+      'closet': <BiCloset className="w-5 h-5" />,                    // Walk-in Closet
+      'elevator': <img src="https://img.icons8.com/serif/32/elevator-doors.png" alt="Private Elevator" className="w-5 h-5" />,                // Private Elevator
+      'filter': <IoIosWater className="w-5 h-5" />,                  // Water Filtration System
+      'garden': <ImLeaf className="w-5 h-5" />,                      // Private Garden
+      'wine': <FaWineGlassAlt className="w-5 h-5" />,                // Wine Cooler / Cellar
+      'wardrobe': <img src="https://img.icons8.com/ios/50/wardrobe--v2.png" alt="Built-in Wardrobe" className="w-5 h-5" />                   // Built-in Wardrobe
     };
     
     return iconMap[iconName] || <FaBuilding className="w-5 h-5" />;

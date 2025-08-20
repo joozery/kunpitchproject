@@ -7,18 +7,19 @@ import { Textarea } from '../ui/textarea';
 import Swal from 'sweetalert2';
 import { 
   FaBuilding, FaCar, FaShieldAlt, FaHeart, FaBriefcase, FaUtensils, 
-  FaArrowUp, FaLock, FaMotorcycle, FaShuttleVan, FaBolt,
+  FaArrowUp, FaLock, FaShuttleVan, FaBolt,
   FaVideo, FaUsers, FaDumbbell, FaSwimmingPool, FaBath,
   FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaTv, FaWineBottle,
   FaHandshake, FaLaptop, FaHamburger, FaCoffee,
-  FaDoorOpen, FaCouch, FaHome, FaStore, FaBook, FaTshirt, FaSeedling, FaWifi
+  FaDoorOpen, FaCouch, FaHome, FaStore, FaBook, FaTshirt, FaSeedling, FaWifi, FaSubway
 } from 'react-icons/fa';
 
-import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator } from 'react-icons/md';
+import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator, MdLocalDining, MdSportsTennis } from 'react-icons/md';
 import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri';
 import { PiCookingPot, PiThermometerHot, PiOven } from 'react-icons/pi';
 import { TbAirConditioning } from 'react-icons/tb';
 import { LuFan } from 'react-icons/lu';
+import { GiGolfTee } from 'react-icons/gi';
 
 const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -38,11 +39,17 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     
     // ที่ตั้ง
     nearby_bts: '',
+    selected_stations: [],
     address: '',
-    district: '',
-    province: '',
-    postal_code: '',
     google_map_embed: '',
+    
+    // ประเภทอาคาร (สำหรับคอนโด/อพาร์ตเมนท์)
+    building_type: [],
+    
+    // SEO
+    seo_title: '',
+    seo_description: '',
+    seo_keywords: '',
     
     // จุดเด่น
     location_highlights: '',
@@ -54,7 +61,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     
     // สื่อ
     video_review: '',
+    video_review_2: '',
     official_website: '',
+    official_website_2: '',
     
     // รูปภาพ
     cover_image: null,
@@ -64,26 +73,21 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   const [facilitiesList, setFacilitiesList] = useState([
     // Transport
     { id: 'passengerLift', label: 'Passenger Lift', category: 'transport', icon: 'lift' },
-    { id: 'privateLift', label: 'Private Lift', category: 'transport', icon: 'private-lift' },
     { id: 'parking', label: 'Parking', category: 'transport', icon: 'parking' },
-    { id: 'motorcycleParking', label: 'Motorcycle Parking', category: 'transport', icon: 'motorcycle' },
     { id: 'shuttleService', label: 'Shuttle Service', category: 'transport', icon: 'shuttle' },
     { id: 'evCharger', label: 'EV Charger', category: 'transport', icon: 'ev-charger' },
     
     // Security
     { id: 'security24h', label: '24-hour security with CCTV', category: 'security', icon: 'cctv' },
-    { id: 'accessControl', label: 'Access control (Fingerprint / Keycard)', category: 'security', icon: 'access-control' },
+    { id: 'accessControl', label: 'Access control System', category: 'security', icon: 'access-control' },
     
     // Recreation
     { id: 'fitness', label: 'Fitness / Gym', category: 'recreation', icon: 'gym' },
     { id: 'swimmingPool', label: 'Swimming Pool', category: 'recreation', icon: 'pool' },
-    { id: 'privatePool', label: 'Private Pool', category: 'recreation', icon: 'private-pool' },
     { id: 'sauna', label: 'Sauna', category: 'recreation', icon: 'sauna' },
     { id: 'steamRoom', label: 'Steam Room', category: 'recreation', icon: 'steam' },
-    { id: 'jacuzzi', label: 'Jacuzzi', category: 'recreation', icon: 'jacuzzi' },
     { id: 'sportArea', label: 'Sport Area', category: 'recreation', icon: 'sport' },
     { id: 'golfSimulator', label: 'Golf simulator', category: 'recreation', icon: 'golf' },
-    { id: 'stadium', label: 'Stadium', category: 'recreation', icon: 'stadium' },
     { id: 'kidsPlayground', label: 'Kids Playground', category: 'recreation', icon: 'playground' },
     { id: 'cinemaRoom', label: 'Cinema Room / Theatre', category: 'recreation', icon: 'cinema' },
     
@@ -112,14 +116,97 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
+  // ข้อมูลสถานีรถไฟฟ้า
+  const btsStations = [
+    { id: 'sukhumvit', name: 'สุขุมวิท', line: 'BTS สีลม' },
+    { id: 'asok', name: 'อโศก', line: 'BTS สีลม' },
+    { id: 'phrom_phong', name: 'พร้อมพงษ์', line: 'BTS สีลม' },
+    { id: 'thong_lor', name: 'ทองหล่อ', line: 'BTS สีลม' },
+    { id: 'ekkamai', name: 'เอกมัย', line: 'BTS สีลม' },
+    { id: 'phra_khanong', name: 'พระโขนง', line: 'BTS สีลม' },
+    { id: 'on_nut', name: 'อ่อนนุช', line: 'BTS สีลม' },
+    { id: 'bang_chak', name: 'บางจาก', line: 'BTS สีลม' },
+    { id: 'punnawithi', name: 'ปุณณวิถี', line: 'BTS สีลม' },
+    { id: 'udom_suk', name: 'อุดมสุข', line: 'BTS สีลม' },
+    { id: 'bang_na', name: 'บางนา', line: 'BTS สีลม' },
+    { id: 'bearing', name: 'แบริ่ง', line: 'BTS สีลม' },
+    { id: 'samrong', name: 'สำโรง', line: 'BTS สีลม' },
+    { id: 'pu_chao', name: 'ปู่เจ้า', line: 'BTS สีลม' },
+    { id: 'chang_erawan', name: 'ช้างเอราวัณ', line: 'BTS สีลม' },
+    { id: 'royal_thai_naval_academy', name: 'โรงเรียนนายเรือ', line: 'BTS สีลม' },
+    { id: 'pak_nam', name: 'ปากน้ำ', line: 'BTS สีลม' },
+    { id: 'sri_utthaya', name: 'ศรีอุทัย', line: 'BTS สีลม' },
+    { id: 'kheha', name: 'เคหะฯ', line: 'BTS สีลม' },
+    { id: 'national_stadium', name: 'สนามกีฬาแห่งชาติ', line: 'BTS สนามกีฬา' },
+    { id: 'ratchadamri', name: 'ราชดำริ', line: 'BTS สนามกีฬา' },
+    { id: 'sala_daeng', name: 'ศาลาแดง', line: 'BTS สนามกีฬา' },
+    { id: 'chong_nonsi', name: 'ช่องนนทรี', line: 'BTS สนามกีฬา' },
+    { id: 'surasak', name: 'สุรศักดิ์', line: 'BTS สนามกีฬา' },
+    { id: 'saphan_taksin', name: 'สะพานตากสิน', line: 'BTS สนามกีฬา' },
+    { id: 'krung_thon_buri', name: 'กรุงธนบุรี', line: 'BTS สนามกีฬา' },
+    { id: 'wongwian_yai', name: 'วงเวียนใหญ่', line: 'BTS สนามกีฬา' },
+    { id: 'pho_nimit', name: 'โพธิ์นิมิตร', line: 'BTS สนามกีฬา' },
+    { id: 'talat_phlu', name: 'ตลาดพลู', line: 'BTS สนามกีฬา' },
+    { id: 'wutthakat', name: 'วุฒากาศ', line: 'BTS สนามกีฬา' },
+    { id: 'bang_wa', name: 'บางหว้า', line: 'BTS สนามกีฬา' },
+    { id: 'siam', name: 'สยาม', line: 'BTS สนามกีฬา' },
+    { id: 'chit_lom', name: 'ชิดลม', line: 'BTS สนามกีฬา' },
+    { id: 'ploen_chit', name: 'เพลินจิต', line: 'BTS สนามกีฬา' },
+    { id: 'nana', name: 'นานา', line: 'BTS สนามกีฬา' },
+    { id: 'on_nut_bts', name: 'อ่อนนุช', line: 'BTS สนามกีฬา' },
+    { id: 'bang_chak_bts', name: 'บางจาก', line: 'BTS สนามกีฬา' },
+    { id: 'punnawithi_bts', name: 'ปุณณวิถี', line: 'BTS สนามกีฬา' },
+    { id: 'udom_suk_bts', name: 'อุดมสุข', line: 'BTS สนามกีฬา' },
+    { id: 'bang_na_bts', name: 'บางนา', line: 'BTS สนามกีฬา' },
+    { id: 'bearing_bts', name: 'แบริ่ง', line: 'BTS สนามกีฬา' },
+    { id: 'samrong_bts', name: 'สำโรง', line: 'BTS สนามกีฬา' },
+    { id: 'pu_chao_bts', name: 'ปู่เจ้า', line: 'BTS สนามกีฬา' },
+    { id: 'chang_erawan_bts', name: 'ช้างเอราวัณ', line: 'BTS สนามกีฬา' },
+    { id: 'royal_thai_naval_academy_bts', name: 'โรงเรียนนายเรือ', line: 'BTS สนามกีฬา' },
+    { id: 'pak_nam_bts', name: 'ปากน้ำ', line: 'BTS สนามกีฬา' },
+    { id: 'sri_utthaya_bts', name: 'ศรีอุทัย', line: 'BTS สนามกีฬา' },
+    { id: 'kheha_bts', name: 'เคหะฯ', line: 'BTS สนามกีฬา' }
+  ];
+
+  const mrtStations = [
+    { id: 'hua_lamphong', name: 'หัวลำโพง', line: 'MRT สีน้ำเงิน' },
+    { id: 'sam_yan', name: 'สามย่าน', line: 'MRT สีน้ำเงิน' },
+    { id: 'silom', name: 'สีลม', line: 'MRT สีน้ำเงิน' },
+    { id: 'lumphini', name: 'ลุมพินี', line: 'MRT สีน้ำเงิน' },
+    { id: 'klong_toei', name: 'คลองเตย', line: 'MRT สีน้ำเงิน' },
+    { id: 'queen_sirikit_national_convention_center', name: 'ศูนย์การประชุมแห่งชาติสิริกิติ์', line: 'MRT สีน้ำเงิน' },
+    { id: 'sukhumvit', name: 'สุขุมวิท', line: 'MRT สีน้ำเงิน' },
+    { id: 'phetchaburi', name: 'เพชรบุรี', line: 'MRT สีน้ำเงิน' },
+    { id: 'phra_ram_9', name: 'พระราม 9', line: 'MRT สีน้ำเงิน' },
+    { id: 'thailand_cultural_center', name: 'ศูนย์วัฒนธรรมแห่งประเทศไทย', line: 'MRT สีน้ำเงิน' },
+    { id: 'huai_kwang', name: 'ห้วยขวาง', line: 'MRT สีน้ำเงิน' },
+    { id: 'sutthisan', name: 'สุทธิสาร', line: 'MRT สีน้ำเงิน' },
+    { id: 'ratchadaphisek', name: 'รัชดาภิเษก', line: 'MRT สีน้ำเงิน' },
+    { id: 'lat_phrao', name: 'ลาดพร้าว', line: 'MRT สีน้ำเงิน' },
+    { id: 'phahon_yothin', name: 'พหลโยธิน', line: 'MRT สีน้ำเงิน' },
+    { id: 'chatuchak_park', name: 'สวนจตุจักร', line: 'MRT สีน้ำเงิน' },
+    { id: 'kamphaeng_phet', name: 'กำแพงเพชร', line: 'MRT สีน้ำเงิน' },
+    { id: 'bang_sue', name: 'บางซื่อ', line: 'MRT สีน้ำเงิน' },
+    { id: 'tao_poon', name: 'เตาปูน', line: 'MRT สีน้ำเงิน' }
+  ];
+
+  const arlStations = [
+    { id: 'phaya_thai', name: 'พญาไท', line: 'ARL' },
+    { id: 'ratchaprarop', name: 'ราชปรารภ', line: 'ARL' },
+    { id: 'makkasan', name: 'มักกะสัน', line: 'ARL' },
+    { id: 'ramkhamhaeng', name: 'รามคำแหง', line: 'ARL' },
+    { id: 'huamark', name: 'หัวหมาก', line: 'ARL' },
+    { id: 'ban_thap_chang', name: 'บ้านทับช้าง', line: 'ARL' },
+    { id: 'lat_krabang', name: 'ลาดกระบัง', line: 'ARL' },
+    { id: 'suvarnabhumi', name: 'สุวรรณภูมิ', line: 'ARL' }
+  ];
+
   // ฟังก์ชันสำหรับแสดง React Icons
   const getFacilityIcon = (iconName) => {
     const iconMap = {
       // Transport
-      'lift': <FaArrowUp className="w-5 h-5" />,
-      'private-lift': <FaLock className="w-5 h-5" />,
+      'lift': <img src="https://img.icons8.com/dotty/80/elevator-doors.png" alt="Passenger Lift" className="w-5 h-5" />,
       'parking': <FaCar className="w-5 h-5" />,
-      'motorcycle': <FaMotorcycle className="w-5 h-5" />,
       'shuttle': <FaShuttleVan className="w-5 h-5" />,
       'ev-charger': <FaBolt className="w-5 h-5" />,
       
@@ -130,13 +217,10 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       // Recreation
       'gym': <FaDumbbell className="w-5 h-5" />,
       'pool': <FaSwimmingPool className="w-5 h-5" />,
-      'private-pool': <FaBath className="w-5 h-5" />,
-      'sauna': <FaBath className="w-5 h-5" />,
+      'sauna': <img src="https://img.icons8.com/ios-glyphs/30/sauna.png" alt="Sauna" className="w-5 h-5" />,
       'steam': <FaBath className="w-5 h-5" />,
-      'jacuzzi': <FaBath className="w-5 h-5" />,
-      'sport': <FaFutbol className="w-5 h-5" />,
-      'golf': <FaTrophy className="w-5 h-5" />,
-      'stadium': <FaTrophy className="w-5 h-5" />,
+      'sport': <MdSportsTennis className="w-5 h-5" />,
+      'golf': <GiGolfTee className="w-5 h-5" />,
       'playground': <FaChild className="w-5 h-5" />,
       'cinema': <FaFilm className="w-5 h-5" />,
       
@@ -148,7 +232,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       // Dining
       'restaurant': <FaHamburger className="w-5 h-5" />,
       'cafe': <FaCoffee className="w-5 h-5" />,
-      'dining-room': <FaCoffee className="w-5 h-5" />,
+      'dining-room': <MdLocalDining className="w-5 h-5" />,
       'kitchen': <FaUtensils className="w-5 h-5" />,
       
       // Common
@@ -172,6 +256,13 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     if (project) {
       setFormData({
         ...project,
+        video_review_2: project.video_review_2 || '',
+        official_website_2: project.official_website_2 || '',
+        selected_stations: project.selected_stations || [],
+        building_type: project.building_type || [],
+        seo_title: project.seo_title || '',
+        seo_description: project.seo_description || '',
+        seo_keywords: project.seo_keywords || '',
         project_images: project.project_images || [],
         cover_image: project.cover_image || null,
         facilities: project.facilities || []
@@ -230,6 +321,95 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       }
     });
   };
+
+  // ฟังก์ชันจัดการการเลือกสถานี
+  const handleStationToggle = (stationId) => {
+    setFormData(prev => {
+      const currentStations = prev.selected_stations && Array.isArray(prev.selected_stations) ? prev.selected_stations : [];
+      
+      if (currentStations.includes(stationId)) {
+        return {
+          ...prev,
+          selected_stations: currentStations.filter(id => id !== stationId)
+        };
+      } else {
+        return {
+          ...prev,
+          selected_stations: [...currentStations, stationId]
+        };
+      }
+    });
+  };
+
+  // ฟังก์ชันตรวจสอบสถานีที่เลือก
+  const isStationSelected = (stationId) => {
+    return formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.includes(stationId);
+  };
+
+  // ฟังก์ชันจัดการการเลือกประเภทอาคาร
+  const handleBuildingTypeToggle = (type) => {
+    setFormData(prev => {
+      const currentTypes = prev.building_type && Array.isArray(prev.building_type) ? prev.building_type : [];
+      
+      if (currentTypes.includes(type)) {
+        return {
+          ...prev,
+          building_type: currentTypes.filter(t => t !== type)
+        };
+      } else {
+        return {
+          ...prev,
+          building_type: [...currentTypes, type]
+        };
+      }
+    });
+  };
+
+  // ฟังก์ชันตรวจสอบประเภทอาคารที่เลือก
+  const isBuildingTypeSelected = (type) => {
+    return formData.building_type && Array.isArray(formData.building_type) && formData.building_type.includes(type);
+  };
+
+  // ฟังก์ชันตรวจสอบว่าควรแสดงประเภทอาคารหรือไม่
+  const shouldShowBuildingType = () => {
+    return formData.project_type === 'คอนโดมิเนียม' || formData.project_type === 'อพาร์ตเมนท์';
+  };
+
+  // State สำหรับการค้นหาสถานี
+  const [stationSearchTerm, setStationSearchTerm] = useState('');
+  const [showStationDropdown, setShowStationDropdown] = useState(false);
+
+  // ฟังก์ชันกรองสถานีตามคำค้นหา
+  const filteredStations = () => {
+    const allStations = [...btsStations, ...mrtStations, ...arlStations];
+    if (!stationSearchTerm) return allStations;
+    
+    return allStations.filter(station => 
+      station.name.toLowerCase().includes(stationSearchTerm.toLowerCase()) ||
+      station.line.toLowerCase().includes(stationSearchTerm.toLowerCase())
+    );
+  };
+
+  // ฟังก์ชันเลือกสถานีจาก dropdown
+  const handleStationSelect = (station) => {
+    handleStationToggle(station.id);
+    setStationSearchTerm('');
+    setShowStationDropdown(false);
+  };
+
+  // ฟังก์ชันปิด dropdown เมื่อคลิกนอกช่องค้นหา
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.station-search-container')) {
+        setShowStationDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
 
 
@@ -338,15 +518,38 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     formDataToSend.append('total_units', formData.total_units || '');
     formDataToSend.append('total_buildings', formData.total_buildings || '');
     formDataToSend.append('floors_info', formData.floors_info || '');
-    formDataToSend.append('nearby_bts', formData.nearby_bts || '');
     formDataToSend.append('address', formData.address || '');
-    formDataToSend.append('district', formData.district || '');
-    formDataToSend.append('province', formData.province || '');
-    formDataToSend.append('postal_code', formData.postal_code || '');
     formDataToSend.append('google_map_embed', formData.google_map_embed || '');
     formDataToSend.append('location_highlights', formData.location_highlights || '');
     formDataToSend.append('video_review', formData.video_review || '');
+    formDataToSend.append('video_review_2', formData.video_review_2 || '');
     formDataToSend.append('official_website', formData.official_website || '');
+    formDataToSend.append('official_website_2', formData.official_website_2 || '');
+    
+    // เพิ่มสถานีที่เลือก
+    if (formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.length > 0) {
+      formData.selected_stations.forEach(station => {
+        formDataToSend.append('selected_stations', station);
+      });
+    } else {
+      // ส่ง array ว่างถ้าไม่มีสถานีที่เลือก
+      formDataToSend.append('selected_stations', '[]');
+    }
+    
+    // เพิ่มประเภทอาคาร
+    if (formData.building_type && Array.isArray(formData.building_type) && formData.building_type.length > 0) {
+      formData.building_type.forEach(type => {
+        formDataToSend.append('building_type', type);
+      });
+    } else {
+      // ส่ง array ว่างถ้าไม่มีประเภทอาคาร
+      formDataToSend.append('building_type', '[]');
+    }
+    
+    // เพิ่ม SEO
+    formDataToSend.append('seo_title', formData.seo_title || '');
+    formDataToSend.append('seo_description', formData.seo_description || '');
+    formDataToSend.append('seo_keywords', formData.seo_keywords || '');
     
     // เพิ่ม facilities
     if (selectedFacilities && Array.isArray(selectedFacilities) && selectedFacilities.length > 0) {
@@ -522,6 +725,75 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
             </div>
 
+            {/* ประเภทอาคาร (แสดงเฉพาะคอนโด/อพาร์ตเมนท์) */}
+            {shouldShowBuildingType() && (
+              <div className="space-y-3">
+                <Label>ประเภทอาคาร</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleBuildingTypeToggle('High-rise')}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      isBuildingTypeSelected('High-rise')
+                        ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <svg className="w-8 h-8 mx-auto mb-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M6 8a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="font-medium">High-rise</div>
+                      <div className="text-xs opacity-75">อาคารสูง</div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => handleBuildingTypeToggle('Low-rise')}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      isBuildingTypeSelected('Low-rise')
+                        ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <svg className="w-8 h-8 mx-auto mb-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="font-medium">Low-rise</div>
+                      <div className="text-xs opacity-75">อาคารต่ำ</div>
+                    </div>
+                  </button>
+                </div>
+                
+                {/* แสดงประเภทที่เลือก */}
+                {formData.building_type && formData.building_type.length > 0 && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm font-medium text-blue-700 mb-2">ประเภทอาคารที่เลือก:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.building_type.map((type) => (
+                        <span
+                          key={type}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                        >
+                          {type}
+                          <button
+                            type="button"
+                            onClick={() => handleBuildingTypeToggle(type)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ขนาดและจำนวน */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -572,46 +844,114 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* ที่ตั้ง */}
-            <div className="space-y-2">
-              <Label htmlFor="nearby_bts">ที่ตั้งรถไฟฟ้า</Label>
-              <Input
-                id="nearby_bts"
-                value={formData.nearby_bts}
-                onChange={(e) => handleInputChange('nearby_bts', e.target.value)}
-                placeholder="BTS อโศก, MRT สุขุมวิท"
-              />
-            </div>
+            {/* ที่ตั้งรถไฟฟ้า */}
+            <div className="space-y-4">
+              <Label>ที่ตั้งรถไฟฟ้า</Label>
+              
+              {/* ช่องค้นหาสถานี */}
+              <div className="relative station-search-container">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={stationSearchTerm}
+                    onChange={(e) => {
+                      setStationSearchTerm(e.target.value);
+                      setShowStationDropdown(true);
+                    }}
+                    onFocus={() => setShowStationDropdown(true)}
+                    placeholder="ค้นหาสถานีรถไฟฟ้า เช่น อโศก, สุขุมวิท, MRT..."
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="district">เขต</Label>
-                <Input
-                  id="district"
-                  value={formData.district}
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  placeholder="วัฒนา"
-                />
+                {/* Dropdown ผลการค้นหา */}
+                {showStationDropdown && (stationSearchTerm || filteredStations().length > 0) && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredStations().length > 0 ? (
+                      <div className="py-2">
+                        {filteredStations().map((station) => (
+                          <button
+                            key={station.id}
+                            type="button"
+                            onClick={() => handleStationSelect(station)}
+                            className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${
+                              isStationSelected(station.id) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-medium">{station.name}</div>
+                              <div className="text-sm text-gray-500">{station.line}</div>
+                            </div>
+                            {isStationSelected(station.id) && (
+                              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500 text-center">
+                        ไม่พบสถานีที่ค้นหา
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="province">จังหวัด</Label>
-                <Input
-                  id="province"
-                  value={formData.province}
-                  onChange={(e) => handleInputChange('province', e.target.value)}
-                  placeholder="กรุงเทพมหานคร"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="postal_code">รหัสไปรษณีย์</Label>
-                <Input
-                  id="postal_code"
-                  value={formData.postal_code}
-                  onChange={(e) => handleInputChange('postal_code', e.target.value)}
-                  placeholder="10110"
-                />
+
+              {/* แสดงสถานีที่เลือก */}
+              {formData.selected_stations && formData.selected_stations.length > 0 && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-blue-700">
+                      สถานีที่เลือก ({formData.selected_stations.length} สถานี)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, selected_stations: [] }));
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      ลบทั้งหมด
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.selected_stations.map((stationId) => {
+                      const allStations = [...btsStations, ...mrtStations, ...arlStations];
+                      const station = allStations.find(s => s.id === stationId);
+                      return station ? (
+                        <span
+                          key={stationId}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                        >
+                          <FaSubway className="w-4 h-4 mr-1" />
+                          {station.name}
+                          <button
+                            type="button"
+                            onClick={() => handleStationToggle(stationId)}
+                            className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* คำแนะนำ */}
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>พิมพ์ชื่อสถานีหรือสายรถไฟฟ้าเพื่อค้นหา เช่น "อโศก", "BTS", "MRT"</span>
               </div>
             </div>
 
@@ -665,6 +1005,95 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                 placeholder="ใกล้อะไรบ้าง เช่น ห้าง, โรงเรียน, โรงพยาบาล"
                 rows={3}
               />
+            </div>
+
+            {/* SEO สำหรับ Google */}
+            <div className="space-y-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <Label className="text-lg font-semibold text-blue-800">SEO สำหรับ Google</Label>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="seo_title" className="text-blue-700 font-medium">
+                    SEO Title (ชื่อที่แสดงใน Google) *
+                  </Label>
+                  <Input
+                    id="seo_title"
+                    value={formData.seo_title}
+                    onChange={(e) => handleInputChange('seo_title', e.target.value)}
+                    placeholder="คอนโดหรูใจกลางสุขุมวิท ใกล้ BTS อโศก - Park Origin Thonglor"
+                    className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center space-x-2 text-sm text-blue-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span>ควรมีชื่อโครงการและคำสำคัญที่คนค้นหา</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seo_description" className="text-blue-700 font-medium">
+                    SEO Description (คำอธิบายใน Google) *
+                  </Label>
+                  <Textarea
+                    id="seo_description"
+                    value={formData.seo_description}
+                    onChange={(e) => handleInputChange('seo_description', e.target.value)}
+                    placeholder="คอนโดหรูใจกลางสุขุมวิท ใกล้ BTS อโศก พร้อมสิ่งอำนวยความสะดวกครบครัน เริ่มต้น 2.5 ล้านบาท"
+                    rows={3}
+                    className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center space-x-2 text-sm text-blue-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span>อธิบายจุดเด่นของโครงการใน 150-160 ตัวอักษร</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seo_keywords" className="text-blue-700 font-medium">
+                    SEO Keywords (คำค้นหา) *
+                  </Label>
+                  <Textarea
+                    id="seo_keywords"
+                    value={formData.seo_keywords}
+                    onChange={(e) => handleInputChange('seo_keywords', e.target.value)}
+                    placeholder="คอนโดสุขุมวิท, คอนโดอโศก, คอนโดทองหล่อ, คอนโดหรู, คอนโดใกล้รถไฟฟ้า, Park Origin"
+                    rows={2}
+                    className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center space-x-2 text-sm text-blue-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span>ใส่คำค้นหาที่คนมักใช้ คั่นด้วยเครื่องหมายจุลภาค (,)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="mt-4 p-4 bg-white border border-blue-200 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-700 mb-3">ตัวอย่างการแสดงผลใน Google:</h4>
+                <div className="space-y-2">
+                  <div className="text-blue-600 font-medium text-sm">
+                    {formData.seo_title || 'ชื่อโครงการจะแสดงที่นี่'}
+                  </div>
+                  <div className="text-green-600 text-sm">
+                    {formData.seo_title ? window.location.origin + '/project/...' : 'URL จะแสดงที่นี่'}
+                  </div>
+                  <div className="text-gray-600 text-sm">
+                    {formData.seo_description || 'คำอธิบายโครงการจะแสดงที่นี่'}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* สิ่งอำนวยความสะดวก - แบบ Card Selection */}
@@ -767,7 +1196,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
             {/* สื่อ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="video_review">วิดีโอรีวิวโครงการ (YouTube)</Label>
+                <Label htmlFor="video_review">วิดีโอรีวิวโครงการ (YouTube) - ช่องที่ 1</Label>
                 <Input
                   id="video_review"
                   value={formData.video_review}
@@ -777,11 +1206,33 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="official_website">เว็บไซต์อย่างเป็นทางการ</Label>
+                <Label htmlFor="video_review_2">วิดีโอรีวิวโครงการ (YouTube) - ช่องที่ 2</Label>
+                <Input
+                  id="video_review_2"
+                  value={formData.video_review_2}
+                  onChange={(e) => handleInputChange('video_review_2', e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="official_website">เว็บไซต์อย่างเป็นทางการ - ช่องที่ 1</Label>
                 <Input
                   id="official_website"
                   value={formData.official_website}
                   onChange={(e) => handleInputChange('official_website', e.target.value)}
+                  placeholder="https://www.project-official.com"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="official_website_2">เว็บไซต์อย่างเป็นทางการ - ช่องที่ 2</Label>
+                <Input
+                  id="official_website_2"
+                  value={formData.official_website_2}
+                  onChange={(e) => handleInputChange('official_website_2', e.target.value)}
                   placeholder="https://www.project-official.com"
                 />
               </div>
