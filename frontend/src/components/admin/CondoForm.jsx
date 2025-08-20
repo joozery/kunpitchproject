@@ -48,6 +48,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     // ข้อมูลพื้นฐาน
     title: condo?.title || '', // ชื่อโครงการ
     projectCode: condo?.projectCode || '', // รหัสโครงการ (อัตโนมัติ)
+    propertyType: condo?.propertyType || 'condo', // ประเภททรัพย์: คอนโด/อพาร์ตเมนท์
     status: condo?.status || 'sale', // สถานะ: ขาย/เช่า
     price: condo?.price?.toString() || '', // ราคา (บาท)
     rentPrice: condo?.rentPrice?.toString() || '', // ราคาเช่า (บาท/เดือน)
@@ -57,6 +58,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     location: condo?.location || '', // สถานที่
     googleMapUrl: condo?.googleMapUrl || '', // Google Map URL
     nearbyTransport: condo?.nearbyTransport || '', // BTS/MRT/APL/SRT
+    selectedStations: condo?.selectedStations || [], // สถานีรถไฟฟ้าที่เลือก
     
     // ประเภท
     listingType: condo?.listingType || 'sale', // ขาย/เช่า
@@ -116,6 +118,151 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
 
   const [uploadProgress, setUploadProgress] = useState(0)
   const [apiStatus, setApiStatus] = useState('checking') // checking, online, offline
+
+  // State สำหรับการค้นหาสถานี
+  const [stationSearchTerm, setStationSearchTerm] = useState('');
+  const [showStationDropdown, setShowStationDropdown] = useState(false);
+
+  // ข้อมูลสถานีรถไฟฟ้า
+  const btsStations = [
+    { id: 'sukhumvit', name: 'สุขุมวิท', line: 'BTS' },
+    { id: 'asok', name: 'อโศก', line: 'BTS' },
+    { id: 'phrom_phong', name: 'พร้อมพงษ์', line: 'BTS' },
+    { id: 'thong_lor', name: 'ทองหล่อ', line: 'BTS' },
+    { id: 'ekkamai', name: 'เอกมัย', line: 'BTS' },
+    { id: 'phra_khanong', name: 'พระโขนง', line: 'BTS' },
+    { id: 'on_nut', name: 'อ่อนนุช', line: 'BTS' },
+    { id: 'bang_chak', name: 'บางจาก', line: 'BTS' },
+    { id: 'punnawithi', name: 'ปุณณวิถี', line: 'BTS' },
+    { id: 'udom_suk', name: 'อุดมสุข', line: 'BTS' },
+    { id: 'bang_na', name: 'บางนา', line: 'BTS' },
+    { id: 'bearing', name: 'แบริ่ง', line: 'BTS' },
+    { id: 'samrong', name: 'สำโรง', line: 'BTS' },
+    { id: 'pu_chao', name: 'ปู่เจ้า', line: 'BTS' },
+    { id: 'chang_erawan', name: 'ช้างเอราวัณ', line: 'BTS' },
+    { id: 'royal_thai_naval_academy', name: 'โรงเรียนนายเรือ', line: 'BTS' },
+    { id: 'pak_nam', name: 'ปากน้ำ', line: 'BTS' },
+    { id: 'sri_utthaya', name: 'ศรีอุทัย', line: 'BTS' },
+    { id: 'kheha', name: 'เคหะฯ', line: 'BTS' },
+    { id: 'national_stadium', name: 'สนามกีฬาแห่งชาติ', line: 'BTS' },
+    { id: 'ratchadamri', name: 'ราชดำริ', line: 'BTS' },
+    { id: 'sala_daeng', name: 'ศาลาแดง', line: 'BTS' },
+    { id: 'chong_nonsi', name: 'ช่องนนทรี', line: 'BTS' },
+    { id: 'surasak', name: 'สุรศักดิ์', line: 'BTS' },
+    { id: 'saphan_taksin', name: 'สะพานตากสิน', line: 'BTS' },
+    { id: 'krung_thon_buri', name: 'กรุงธนบุรี', line: 'BTS' },
+    { id: 'wongwian_yai', name: 'วงเวียนใหญ่', line: 'BTS' },
+    { id: 'pho_nimit', name: 'โพธิ์นิมิตร', line: 'BTS' },
+    { id: 'talat_phlu', name: 'ตลาดพลู', line: 'BTS' },
+    { id: 'wutthakat', name: 'วุฒากาศ', line: 'BTS' },
+    { id: 'bang_wa', name: 'บางหว้า', line: 'BTS' },
+    { id: 'siam', name: 'สยาม', line: 'BTS' },
+    { id: 'chit_lom', name: 'ชิดลม', line: 'BTS' },
+    { id: 'ploen_chit', name: 'เพลินจิต', line: 'BTS' },
+    { id: 'nana', name: 'นานา', line: 'BTS' }
+  ];
+
+  const mrtStations = [
+    { id: 'hua_lamphong', name: 'หัวลำโพง', line: 'MRT สีน้ำเงิน' },
+    { id: 'sam_yan', name: 'สามย่าน', line: 'MRT สีน้ำเงิน' },
+    { id: 'silom', name: 'สีลม', line: 'MRT สีน้ำเงิน' },
+    { id: 'lumphini', name: 'ลุมพินี', line: 'MRT สีน้ำเงิน' },
+    { id: 'klong_toei', name: 'คลองเตย', line: 'MRT สีน้ำเงิน' },
+    { id: 'queen_sirikit_national_convention_center', name: 'ศูนย์การประชุมแห่งชาติสิริกิติ์', line: 'MRT สีน้ำเงิน' },
+    { id: 'sukhumvit', name: 'สุขุมวิท', line: 'MRT สีน้ำเงิน' },
+    { id: 'phetchaburi', name: 'เพชรบุรี', line: 'MRT สีน้ำเงิน' },
+    { id: 'phra_ram_9', name: 'พระราม 9', line: 'MRT สีน้ำเงิน' },
+    { id: 'thailand_cultural_center', name: 'ศูนย์วัฒนธรรมแห่งประเทศไทย', line: 'MRT สีน้ำเงิน' },
+    { id: 'huai_kwang', name: 'ห้วยขวาง', line: 'MRT สีน้ำเงิน' },
+    { id: 'sutthisan', name: 'สุทธิสาร', line: 'MRT สีน้ำเงิน' },
+    { id: 'ratchadaphisek', name: 'รัชดาภิเษก', line: 'MRT สีน้ำเงิน' },
+    { id: 'lat_phrao', name: 'ลาดพร้าว', line: 'MRT สีน้ำเงิน' },
+    { id: 'phahon_yothin', name: 'พหลโยธิน', line: 'MRT สีน้ำเงิน' },
+    { id: 'chatuchak_park', name: 'สวนจตุจักร', line: 'MRT สีน้ำเงิน' },
+    { id: 'kamphaeng_phet', name: 'กำแพงเพชร', line: 'MRT สีน้ำเงิน' },
+    { id: 'bang_sue', name: 'บางซื่อ', line: 'MRT สีน้ำเงิน' },
+    { id: 'tao_poon', name: 'เตาปูน', line: 'MRT สีน้ำเงิน' }
+  ];
+
+  const arlStations = [
+    { id: 'phaya_thai', name: 'พญาไท', line: 'ARL' },
+    { id: 'ratchaprarop', name: 'ราชปรารภ', line: 'ARL' },
+    { id: 'makkasan', name: 'มักกะสัน', line: 'ARL' },
+    { id: 'ramkhamhaeng', name: 'รามคำแหง', line: 'ARL' },
+    { id: 'huamark', name: 'หัวหมาก', line: 'ARL' },
+    { id: 'ban_thap_chang', name: 'บ้านทับช้าง', line: 'ARL' },
+    { id: 'lat_krabang', name: 'ลาดกระบัง', line: 'ARL' },
+    { id: 'suvarnabhumi', name: 'สุวรรณภูมิ', line: 'ARL' }
+  ];
+
+  const srtStations = [
+    { id: 'bang_sue_srt', name: 'บางซื่อ', line: 'SRT' },
+    { id: 'bang_son', name: 'บางซอน', line: 'SRT' },
+    { id: 'bang_phlat', name: 'บางพลัด', line: 'SRT' },
+    { id: 'bang_oi', name: 'บางอ้อ', line: 'SRT' },
+    { id: 'bang_yi_khan', name: 'บางยี่ขัน', line: 'SRT' },
+    { id: 'bang_kruai', name: 'บางกรวย', line: 'SRT' },
+    { id: 'bang_yai', name: 'บางใหญ่', line: 'SRT' },
+    { id: 'bang_phai', name: 'บางไผ่', line: 'SRT' },
+    { id: 'bang_rakam', name: 'บางระกำ', line: 'SRT' },
+    { id: 'bang_rak_noi', name: 'บางรักน้อย', line: 'SRT' }
+  ];
+
+  // ฟังก์ชันจัดการการเลือกสถานี
+  const handleStationToggle = (stationId) => {
+    setFormData(prev => {
+      const currentStations = prev.selectedStations && Array.isArray(prev.selectedStations) ? prev.selectedStations : [];
+      
+      if (currentStations.includes(stationId)) {
+        return {
+          ...prev,
+          selectedStations: currentStations.filter(id => id !== stationId)
+        };
+      } else {
+        return {
+          ...prev,
+          selectedStations: [...currentStations, stationId]
+        };
+      }
+    });
+  };
+
+  // ฟังก์ชันตรวจสอบสถานีที่เลือก
+  const isStationSelected = (stationId) => {
+    return formData.selectedStations && Array.isArray(formData.selectedStations) && formData.selectedStations.includes(stationId);
+  };
+
+  // ฟังก์ชันกรองสถานีตามคำค้นหา
+  const filteredStations = () => {
+    const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
+    if (!stationSearchTerm) return allStations;
+    
+    return allStations.filter(station => 
+      station.name.toLowerCase().includes(stationSearchTerm.toLowerCase()) ||
+      station.line.toLowerCase().includes(stationSearchTerm.toLowerCase())
+    );
+  };
+
+  // ฟังก์ชันเลือกสถานีจาก dropdown
+  const handleStationSelect = (station) => {
+    handleStationToggle(station.id);
+    setStationSearchTerm('');
+    setShowStationDropdown(false);
+  };
+
+  // ฟังก์ชันปิด dropdown เมื่อคลิกนอกช่องค้นหา
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.station-search-container')) {
+        setShowStationDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // รายการสิ่งอำนวยความสะดวกภายในห้อง (Amenities)
   const [amenitiesList] = useState([
@@ -1301,7 +1448,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
                   { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
-                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                  { value: 'agent', label: 'ตัวแทนพิเศษ (Exclusive Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -1334,8 +1481,53 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 ))}
               </div>
               <p className="text-sm text-gray-500 mt-2 font-prompt">
-                เลือกสถานะของผู้ประกาศ: เจ้าของคอนโด หรือ นายหน้าอสังหาริมทรัพย์
+                เลือกสถานะของผู้ประกาศ: เจ้าของคอนโด หรือ ตัวแทนพิเศษ
               </p>
+              <p className="text-sm text-gray-500 mt-1 font-prompt">
+                *รับฝากเฉพาะนายหน้าที่เป็นสัญญาปิดหรือทรัพย์ที่ดีลปิดกับทางเจ้าของเท่านั้น
+              </p>
+            </div>
+
+            {/* ประเภททรัพย์ */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
+                ประเภททรัพย์ *
+              </label>
+              <div className="grid grid-cols-2 gap-3 max-w-md">
+                {[
+                  { value: 'condo', label: 'คอนโด', icon: Building, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
+                  { value: 'apartment', label: 'อพาร์ตเมนท์', icon: FaHome, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleInputChange('propertyType', option.value)}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                      formData.propertyType === option.value
+                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
+                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                    }`}
+                  >
+                    <div className="p-3 flex items-center justify-center space-x-2">
+                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
+                        formData.propertyType === option.value 
+                          ? 'bg-white/20 scale-110' 
+                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                      }`}>
+                        <option.icon className={`h-4 w-4 ${
+                          formData.propertyType === option.value ? 'text-white' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    </div>
+                    {formData.propertyType === option.value && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* สถานะ */}
@@ -1381,44 +1573,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               </div>
             </div>
 
-            {/* ประเภท */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
-                ประเภทประกาศ *
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {listingTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => handleInputChange('listingType', type.value)}
-                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
-                      formData.listingType === type.value
-                        ? `border-${type.color.split('-')[1]}-500 bg-gradient-to-r ${type.color} text-white shadow-lg transform scale-105`
-                        : `${type.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
-                    }`}
-                  >
-                    <div className="p-3 flex items-center justify-center space-x-2">
-                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
-                        formData.listingType === type.value 
-                          ? 'bg-white/20 scale-110' 
-                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
-                      }`}>
-                        <type.icon className={`h-4 w-4 ${
-                          formData.listingType === type.value ? 'text-white' : 'text-gray-600'
-                        }`} />
-                      </div>
-                      <span className="text-sm font-semibold">{type.label}</span>
-                    </div>
-                    {formData.listingType === type.value && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             {/* ราคา (บาท) */}
             <div>
@@ -1507,14 +1662,116 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ขนส่งใกล้เคียง */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                โลเคชั่น BTS MRT APL SRT :
+                โลเคชั่น BTS MRT ARL SRT :
               </label>
-              <Input
-                value={formData.nearbyTransport}
-                onChange={(e) => handleInputChange('nearbyTransport', e.target.value)}
-                placeholder="เช่น BTS รามคำแหง 500 ม., MRT ห้วยขวาง 1 กม."
-              />
-              <p className="text-sm text-gray-500 mt-1">ระบุระยะทางและชื่อสถานีขนส่งสาธารณะใกล้เคียง</p>
+              
+              {/* ช่องค้นหาสถานี */}
+              <div className="relative station-search-container">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={stationSearchTerm}
+                    onChange={(e) => {
+                      setStationSearchTerm(e.target.value);
+                      setShowStationDropdown(true);
+                    }}
+                    onFocus={() => setShowStationDropdown(true)}
+                    placeholder="ค้นหาสถานีรถไฟฟ้า เช่น อโศก, สุขุมวิท, MRT..."
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Dropdown ผลการค้นหา */}
+                {showStationDropdown && (stationSearchTerm || filteredStations().length > 0) && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredStations().length > 0 ? (
+                      <div className="py-2">
+                        {filteredStations().map((station) => (
+                          <button
+                            key={station.id}
+                            type="button"
+                            onClick={() => handleStationSelect(station)}
+                            className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${
+                              isStationSelected(station.id) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-medium">{station.name}</div>
+                              <div className="text-sm text-gray-500">{station.line}</div>
+                            </div>
+                            {isStationSelected(station.id) && (
+                              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500 text-center">
+                        ไม่พบสถานีที่ค้นหา
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* แสดงสถานีที่เลือก */}
+              {formData.selectedStations && formData.selectedStations.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-blue-700">
+                      สถานีที่เลือก ({formData.selectedStations.length} สถานี)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, selectedStations: [] }));
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      ลบทั้งหมด
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.selectedStations.map((stationId) => {
+                      const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
+                      const station = allStations.find(s => s.id === stationId);
+                      return station ? (
+                        <span
+                          key={stationId}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {station.name}
+                          <button
+                            type="button"
+                            onClick={() => handleStationToggle(stationId)}
+                            className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* คำแนะนำ */}
+              <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
+                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>พิมพ์ชื่อสถานีหรือสายรถไฟฟ้าเพื่อค้นหา เช่น "อโศก", "BTS", "MRT"</span>
+              </div>
             </div>
           </div>
         </Card>
