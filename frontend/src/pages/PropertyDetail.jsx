@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler } from 'lucide-react'
-import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa'
+import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
+import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt } from 'react-icons/fa'
 import { propertyAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
@@ -18,6 +18,7 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [clickCount, setClickCount] = useState(0)
+  const [activeTab, setActiveTab] = useState('overview')
 
   // Derived values for UI meta
   const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
@@ -56,7 +57,30 @@ const PropertyDetail = () => {
               'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
             ],
             amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'สวนสาธารณะ'],
-            nearby: ['BTS สีลม', 'MRT สีลม', 'ห้างสรรพสินค้า', 'โรงพยาบาล', 'โรงเรียน']
+            nearby: ['BTS สีลม', 'MRT สีลม', 'ห้างสรรพสินค้า', 'โรงพยาบาล', 'โรงเรียน'],
+            // Additional fields from form
+            projectCode: 'WS001',
+            propertyType: 'condo',
+            announcerStatus: 'agent',
+            googleMapUrl: 'https://maps.google.com',
+            nearbyTransport: 'BTS, MRT',
+            selectedStations: ['silom', 'sala_daeng'],
+            listingType: 'sale',
+            seoTags: 'คอนโด, สีลม, ใกล้รถไฟฟ้า',
+            selectedProject: 'Whale Space Condo',
+            availableDate: '2024-01-15',
+            specialFeatures: {
+              shortTerm: true,
+              allowPet: false,
+              allowCompanyRegistration: true,
+              foreignQuota: true,
+              penthouse: false,
+              luckyNumber: true
+            },
+            youtubeUrl: 'https://youtube.com/watch?v=example',
+            floorPlan: null,
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-15'
           })
         }
         
@@ -113,7 +137,30 @@ const PropertyDetail = () => {
             'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
           ],
           amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'สวนสาธารณะ'],
-          nearby: ['BTS สีลม', 'MRT สีลม', 'ห้างสรรพสินค้า', 'โรงพยาบาล', 'โรงเรียน']
+          nearby: ['BTS สีลม', 'MRT สีลม', 'ห้างสรรพสินค้า', 'โรงพยาบาล', 'โรงเรียน'],
+          // Additional fields from form
+          projectCode: 'WS001',
+          propertyType: 'condo',
+          announcerStatus: 'agent',
+          googleMapUrl: 'https://maps.google.com',
+          nearbyTransport: 'BTS, MRT',
+          selectedStations: ['silom', 'sala_daeng'],
+          listingType: 'sale',
+          seoTags: 'คอนโด, สีลม, ใกล้รถไฟฟ้า',
+          selectedProject: 'Whale Space Condo',
+          availableDate: '2024-01-15',
+          specialFeatures: {
+            shortTerm: true,
+            allowPet: false,
+            allowCompanyRegistration: true,
+            foreignQuota: true,
+            penthouse: false,
+            luckyNumber: true
+          },
+          youtubeUrl: 'https://youtube.com/watch?v=example',
+          floorPlan: null,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-15'
         })
       } finally {
         setLoading(false)
@@ -174,6 +221,28 @@ const PropertyDetail = () => {
     }
   };
 
+  const getAnnouncerStatusLabel = (status) => {
+    switch (status) {
+      case 'owner':
+        return 'เจ้าของ';
+      case 'agent':
+        return 'นายหน้า';
+      default:
+        return 'ไม่ระบุ';
+    }
+  };
+
+  const getAnnouncerStatusColor = (status) => {
+    switch (status) {
+      case 'owner':
+        return 'bg-purple-500 text-white';
+      case 'agent':
+        return 'bg-orange-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -206,39 +275,58 @@ const PropertyDetail = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Main Header */}
       <Header />
-      
-
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Top meta bar */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl p-4 shadow-lg mb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="text-gray-800 font-medium">Property ID:</div>
-                <div className="font-semibold text-gray-900">{`WS${property?.id || ''}`}</div>
-                <span className="ml-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">Available</span>
+        {/* Property Header */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
+                  {getTypeLabel(property.type)}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(property.status)}`}>
+                  {getStatusLabel(property.status)}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getAnnouncerStatusColor(property.announcerStatus)}`}>
+                  {getAnnouncerStatusLabel(property.announcerStatus)}
+                </span>
               </div>
-              <div className="text-right space-y-1">
-                {rentPerSqm !== null && (
-                  <div className="text-gray-700">
-                    Renting Price per sq.m: <span className="font-semibold">{format(convert(rentPerSqm))}</span>
-                  </div>
-                )}
-                {pricePerSqm !== null && (
-                  <div className="text-gray-700">
-                    Selling Price per sq.m: <span className="font-semibold">{format(convert(pricePerSqm))}</span>
-                  </div>
-                )}
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-oswald">{property.title}</h1>
+              <p className="text-gray-600 flex items-center mb-3">
+                <MapPin className="h-5 w-5 mr-2 text-blue-500" />
+                {property.location || property.address}
+              </p>
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <span>Property ID: WS{property.id}</span>
+                {property.projectCode && <span>Project: {property.projectCode}</span>}
+                <span>อัปเดต: {new Date(property.updatedAt).toLocaleDateString('th-TH')}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent mb-2">
+                {format(convert(property.price))}
+              </div>
+              {property.rent_price > 0 && (
+                <div className="text-xl text-gray-500 mb-2">
+                  {format(convert(property.rent_price))}/เดือน
+                </div>
+              )}
+              <div className="flex items-center justify-center text-sm text-gray-600">
+                <Eye className="h-4 w-4 mr-1 text-green-500" />
+                {clickCount} ครั้ง
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Image Gallery - collage layout */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg mb-8 p-3">
+            {/* Image Gallery */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg mb-8">
               {property.images && property.images.length > 0 ? (
-                <div className="grid grid-cols-3 grid-rows-2 gap-3 h-[520px]">
+                <div className="grid grid-cols-3 grid-rows-2 gap-3 h-[520px] p-3">
                   {/* Main image */}
                   <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden">
                     <img
@@ -269,94 +357,338 @@ const PropertyDetail = () => {
                 <img
                   src={'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
                   alt={property.title}
-                  className="w-full h-96 object-cover rounded-xl"
+                  className="w-full h-96 object-cover"
                 />
               )}
             </div>
 
-            {/* Property Details */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2 font-oswald">{property.title}</h1>
-                  <p className="text-gray-600 flex items-center">
-                    <MapPin className="h-5 w-5 mr-2 text-blue-500" />
-                    {property.location || property.address}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                    {format(convert(property.price))}
-                  </div>
-                  {property.rent_price > 0 && (
-                    <div className="text-lg text-gray-500">
-                      {format(convert(property.rent_price))}/เดือน
+            {/* Tab Navigation */}
+            <div className="bg-white rounded-2xl shadow-lg mb-8">
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8 px-6">
+                  {['overview', 'details', 'amenities', 'location', 'media'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        activeTab === tab
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {tab === 'overview' && 'ภาพรวม'}
+                      {tab === 'details' && 'รายละเอียด'}
+                      {tab === 'amenities' && 'สิ่งอำนวยความสะดวก'}
+                      {tab === 'location' && 'ทำเล'}
+                      {tab === 'media' && 'สื่อ'}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6">
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    {/* Key Features */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="text-center p-4 bg-gray-50 rounded-xl">
+                        <Bed className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <div className="text-sm text-gray-600">ห้องนอน</div>
+                        <div className="font-semibold text-gray-900">{property.bedrooms || 'N/A'}</div>
+                      </div>
+                      <div className="text-center p-4 bg-gray-50 rounded-xl">
+                        <Bath className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <div className="text-sm text-gray-600">ห้องน้ำ</div>
+                        <div className="font-semibold text-gray-900">{property.bathrooms || 'N/A'}</div>
+                      </div>
+                      <div className="text-center p-4 bg-gray-50 rounded-xl">
+                        <Home className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <div className="text-sm text-gray-600">ชั้นที่</div>
+                        <div className="font-semibold text-gray-900">{property.floor || 'N/A'}</div>
+                      </div>
+                      <div className="text-center p-4 bg-gray-50 rounded-xl">
+                        <Ruler className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <div className="text-sm text-gray-600">ขนาด</div>
+                        <div className="font-semibold text-gray-900">{property.area ? `${property.area} ตร.ม.` : 'N/A'}</div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Property Features */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                <div className="text-center">
-                  <Bed className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-gray-600">ห้องนอน</div>
-                  <div className="font-semibold text-gray-900">{property.bedrooms || 'N/A'}</div>
-                </div>
-                <div className="text-center">
-                  <Bath className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-gray-600">ห้องน้ำ</div>
-                  <div className="font-semibold text-gray-900">{property.bathrooms || 'N/A'}</div>
-                </div>
-                <div className="text-center">
-                  <Home className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-gray-600">ชั้นที่</div>
-                  <div className="font-semibold text-gray-900">{property.floor || 'N/A'}</div>
-                </div>
-                <div className="text-center">
-                  <Star className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-gray-600">ขนาด</div>
-                  <div className="font-semibold text-gray-900">{property.area ? `${property.area} ตร.ม.` : 'N/A'}</div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {property.description && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">รายละเอียด</h3>
-                  <p className="text-gray-700 leading-relaxed">{property.description}</p>
-                </div>
-              )}
-
-              {/* Amenities */}
-              {property.amenities && property.amenities.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">สิ่งอำนวยความสะดวก</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {property.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center text-gray-700">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                        {amenity}
+                    {/* Price Analysis */}
+                    <div className="bg-gradient-to-r from-blue-50 to-yellow-50 p-6 rounded-xl">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">การวิเคราะห์ราคา</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {pricePerSqm !== null && (
+                          <div className="bg-white p-4 rounded-lg">
+                            <div className="text-sm text-gray-600">ราคาขายต่อ ตร.ม.</div>
+                            <div className="text-xl font-bold text-blue-600">{format(convert(pricePerSqm))}</div>
+                          </div>
+                        )}
+                        {rentPerSqm !== null && (
+                          <div className="bg-white p-4 rounded-lg">
+                            <div className="text-sm text-gray-600">ราคาเช่าต่อ ตร.ม.</div>
+                            <div className="text-xl font-bold text-green-600">{format(convert(rentPerSqm))}</div>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
 
-              {/* Nearby Places */}
-              {property.nearby && property.nearby.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">สถานที่ใกล้เคียง</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {property.nearby.map((place, index) => (
-                      <div key={index} className="flex items-center text-gray-700">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                        {place}
+                    {/* Description */}
+                    {property.description && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">รายละเอียด</h3>
+                        <p className="text-gray-700 leading-relaxed">{property.description}</p>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Details Tab */}
+                {activeTab === 'details' && (
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลพื้นฐาน</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600">ประเภททรัพย์สิน</div>
+                          <div className="font-semibold text-gray-900">{getTypeLabel(property.propertyType || property.type)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600">สถานะ</div>
+                          <div className="font-semibold text-gray-900">{getStatusLabel(property.status)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600">ประเภทการประกาศ</div>
+                          <div className="font-semibold text-gray-900">{getStatusLabel(property.listingType || property.status)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600">สถานะผู้ประกาศ</div>
+                          <div className="font-semibold text-gray-900">{getAnnouncerStatusLabel(property.announcerStatus)}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Project Information */}
+                    {property.selectedProject && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลโครงการ</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-sm text-gray-600">ชื่อโครงการ</div>
+                            <div className="font-semibold text-gray-900">{property.selectedProject}</div>
+                          </div>
+                          {property.availableDate && (
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <div className="text-sm text-gray-600">วันที่ว่าง</div>
+                              <div className="font-semibold text-gray-900">{new Date(property.availableDate).toLocaleDateString('th-TH')}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Special Features */}
+                    {property.specialFeatures && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">คุณสมบัติพิเศษ</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {property.specialFeatures.shortTerm && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              เช่าช่วงสั้น
+                            </div>
+                          )}
+                          {property.specialFeatures.allowPet && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              อนุญาตสัตว์เลี้ยง
+                            </div>
+                          )}
+                          {property.specialFeatures.allowCompanyRegistration && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              ลงทะเบียนบริษัทได้
+                            </div>
+                          )}
+                          {property.specialFeatures.foreignQuota && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              โควต้าชาวต่างชาติ
+                            </div>
+                          )}
+                          {property.specialFeatures.penthouse && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              เพนท์เฮาส์
+                            </div>
+                          )}
+                          {property.specialFeatures.luckyNumber && (
+                            <div className="flex items-center text-green-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              เลขมงคล
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SEO Tags */}
+                    {property.seoTags && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แท็ก SEO</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {property.seoTags.split(',').map((tag, index) => (
+                            <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
+                              {tag.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Amenities Tab */}
+                {activeTab === 'amenities' && (
+                  <div className="space-y-6">
+                    {/* Room Amenities */}
+                    {property.amenities && property.amenities.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สิ่งอำนวยความสะดวกภายในห้อง</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {property.amenities.map((amenity, index) => (
+                            <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                              {amenity}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Project Amenities */}
+                    {property.projectAmenities && property.projectAmenities.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สิ่งอำนวยความสะดวกของโครงการ</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {property.projectAmenities.map((amenity, index) => (
+                            <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              {amenity}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Location Tab */}
+                {activeTab === 'location' && (
+                  <div className="space-y-6">
+                    {/* Transport */}
+                    {property.nearbyTransport && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">การเดินทาง</h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600 mb-2">ระบบขนส่งใกล้เคียง</div>
+                          <div className="font-semibold text-gray-900">{property.nearbyTransport}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Selected Stations */}
+                    {property.selectedStations && property.selectedStations.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สถานีรถไฟฟ้าใกล้เคียง</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {property.selectedStations.map((station, index) => (
+                            <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
+                              <Train className="h-5 w-5 text-blue-500 mr-3" />
+                              {station}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Nearby Places */}
+                    {property.nearby && property.nearby.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สถานที่ใกล้เคียง</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {property.nearby.map((place, index) => (
+                            <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                              {place}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Google Map */}
+                    {property.googleMapUrl && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แผนที่</h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <a 
+                            href={property.googleMapUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            ดูแผนที่ Google Maps
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Media Tab */}
+                {activeTab === 'media' && (
+                  <div className="space-y-6">
+                    {/* YouTube Video */}
+                    {property.youtubeUrl && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">วิดีโอ YouTube</h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <a 
+                            href={property.youtubeUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-red-600 hover:text-red-800"
+                          >
+                            <FaYoutube className="h-6 w-6 mr-2" />
+                            ดูวิดีโอ YouTube
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Floor Plan */}
+                    {property.floorPlan && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แปลนห้อง</h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <a 
+                            href={property.floorPlan} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-blue-600 hover:text-blue-800"
+                          >
+                            <FaFileAlt className="h-6 w-6 mr-2" />
+                            ดูแปลนห้อง
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -488,8 +820,6 @@ const PropertyDetail = () => {
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
       </div>

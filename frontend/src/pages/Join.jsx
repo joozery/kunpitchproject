@@ -13,10 +13,21 @@ import {
   Star,
   Award,
   Briefcase,
-  Globe
+  Globe,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  DollarSign,
+  Heart,
+  TrendingUp as TrendingUpIcon,
+  Zap,
+  Shield
 } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import joinBanner from '../assets/joinbanner.png'
+import bannerMobile from '../assets/bannermobile.png'
 
 const Join = () => {
   const navigate = useNavigate()
@@ -149,290 +160,200 @@ const Join = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
       
-      <div className="pt-20">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <motion.div
+      {/* Hero Section - Image Only */}
+      <section className="relative pt-20">
+        <div className="w-full">
+          <img 
+            src={joinBanner} 
+            alt="Join Us Hero" 
+            className="hidden md:block w-full h-auto"
+          />
+          <img 
+            src={bannerMobile} 
+            alt="Join Us Hero Mobile" 
+            className="md:hidden w-full h-auto"
+          />
+        </div>
+      </section>
+
+      {/* WHALESPACE AGENT Content */}
+      <section className="py-12 md:py-20 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+          <div className="text-center" style={{ fontFamily: "Prompt, sans-serif" }}>
+            {/* Heading with Line Button */}
+            <motion.div 
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="inline-flex items-center gap-3 mb-4"
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="relative mb-6 md:mb-8"
             >
-              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-              <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Join Our Team</span>
-              <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+              <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6" style={{ color: "#051d40" }}>
+                WHALESPACE AGENT
+              </h2>
+              
+              {/* Line Button */}
+              <div className="absolute top-0 right-0">
+                <button className="bg-green-500 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-bold flex items-center gap-2 md:gap-3 hover:bg-green-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm md:text-base">
+                  <svg className="w-4 h-4 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.346 0 .63.285.63.63v4.141h1.756c.345 0 .629.283.629.63 0 .344-.284.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                  </svg>
+                  <span className="hidden sm:inline">Whalespace</span>
+                </button>
+              </div>
             </motion.div>
-            
-            <motion.h1 
+
+            {/* Subtitle */}
+            <motion.p 
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-oswald text-gray-900"
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-lg md:text-xl mb-3 md:mb-4" 
+              style={{ color: "#737373" }}
             >
-              ร่วมงานกับเรา
-            </motion.h1>
+              Your Opportunity Starts Here | Join Whalespace Today!
+            </motion.p>
             
             <motion.p 
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-xl text-gray-600 max-w-3xl mx-auto font-prompt"
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="text-xl md:text-2xl font-bold mb-6 md:mb-8" 
+              style={{ color: "#051d40" }}
             >
-              มาสร้างอนาคตที่สดใสไปพร้อมกับ Whale Space 
-              เราเปิดรับบุคคลากรที่มีความสามารถและความมุ่งมั่น
+              Real Opportunities in Real Estate
             </motion.p>
-          </motion.div>
 
-          {/* Available Positions */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mb-16"
-          >
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center font-oswald">
-              ตำแหน่งที่เปิดรับ
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {positions.map((position, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 * index }}
-                  className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-16 h-16 bg-gradient-to-r ${position.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                      <position.icon className="h-8 w-8 text-white" />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 font-prompt">
-                        {position.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4 font-prompt">
-                        {position.description}
-                      </p>
-                      
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-800 font-prompt">คุณสมบัติ:</h4>
-                        {position.requirements.map((req, idx) => (
-                          <div key={idx} className="flex items-center text-sm text-gray-600">
-                            <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                            <span className="font-prompt">{req}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Benefits */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-8 mb-16"
-          >
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center font-oswald">
-              สิทธิประโยชน์
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {benefits.map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 * index }}
-                  className="bg-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow duration-300"
-                >
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <benefit.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 font-prompt">{benefit.title}</h3>
-                  <p className="text-gray-600 text-sm font-prompt">{benefit.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Application Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="bg-white rounded-2xl p-8 shadow-xl">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center font-oswald">
-                สมัครงาน
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      ชื่อ *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="ชื่อ"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      นามสกุล *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="นามสกุล"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      อีเมล *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="example@email.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      เบอร์โทรศัพท์ *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="081-234-5678"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      ตำแหน่งที่สนใจ *
-                    </label>
-                    <select
-                      required
-                      value={formData.position}
-                      onChange={(e) => handleInputChange('position', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">เลือกตำแหน่ง</option>
-                      <option value="real_estate_agent">Real Estate Agent</option>
-                      <option value="marketing_specialist">Marketing Specialist</option>
-                      <option value="property_consultant">Property Consultant</option>
-                      <option value="sales_manager">Sales Manager</option>
-                      <option value="other">อื่นๆ</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                      ประสบการณ์ (ปี) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={formData.experience}
-                      onChange={(e) => handleInputChange('experience', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="เช่น 3"
-                      min="0"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                    ข้อความเพิ่มเติม
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={formData.message}
-                    onChange={(e) => handleInputChange('message', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="บอกเราเพิ่มเติมเกี่ยวกับตัวคุณ ประสบการณ์ หรือเหตุผลที่อยากร่วมงานกับเรา..."
-                  />
-                </div>
-                
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-12 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-prompt disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white inline mr-2"></div>
-                        กำลังส่งใบสมัคร...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-6 w-6 inline mr-2" />
-                        ส่งใบสมัคร
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
-
-          {/* Back Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-center mt-12"
-          >
-            <button
-              onClick={() => navigate('/')}
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-300 font-prompt"
+            {/* Description */}
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-base md:text-lg mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4 md:px-0" 
+              style={{ color: "#737373" }}
             >
-              <ArrowLeft className="h-5 w-5" />
-              กลับหน้าหลัก
-            </button>
-          </motion.div>
+              Whalespace is now inviting you to join our team. Gain exclusive access to
+              property listings, client databases, and real career growth opportunities.
+            </motion.p>
+
+            {/* Why Work with Whalespace */}
+            <motion.h3 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-2xl md:text-3xl font-bold mb-6 md:mb-8" 
+              style={{ color: "#051d40" }}
+            >
+              Why Work with Whalespace?
+            </motion.h3>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="max-w-4xl mx-auto mb-12 md:mb-16 px-4 md:px-0"
+            >
+              <ul
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 text-left"
+                style={{ color: "#545454" }}
+              >
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Access to a wide range of properties ready for closing</strong>
+                    <span style={{ fontWeight: "normal" }}>
+                      {" "}– houses, condominiums, land, and new developments nationwide.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Career growth & income potential</strong>
+                    <span style={{ fontWeight: "normal" }}>
+                      {" "}– expand your skills and increase your earnings.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Free training & mentorship</strong>
+                    <span style={{ fontWeight: "normal" }}> – no fees required.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Step-up commission system</strong>
+                    <span style={{ fontWeight: "normal" }}>
+                      {" "}– the more you sell, the more you earn.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Flexible working</strong>
+                    <span style={{ fontWeight: "normal" }}>
+                      {" "}– manage your own schedule while receiving full support.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 md:mt-3 flex-shrink-0"></div>
+                  <div className="text-sm md:text-base">
+                    <strong>Professional growth</strong>
+                    <span style={{ fontWeight: "normal" }}>
+                      {" "}– advance your career with Whalespace.
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </motion.div>
+
+            {/* Full Support from Experts */}
+            <motion.h3
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.0 }}
+              className="text-2xl md:text-3xl font-bold mb-4 md:mb-6"
+              style={{ color: "#051d40" }}
+            >
+              Full Support from Experts
+            </motion.h3>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+              className="text-base md:text-lg mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4 md:px-0" 
+              style={{ color: "#737373" }}
+            >
+              Our experienced Whalespace team provides complete support, including
+              property information, marketing (online and offline), and document
+              handling— so you can focus on growing your opportunity efficiently.
+            </motion.p>
+
+            {/* Call to Action */}
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+              className="text-lg md:text-xl font-semibold px-4 md:px-0" 
+              style={{ color: "#737373" }}
+            >
+              Don't miss the chance to kickstart your career as a real estate agent
+              with Whalespace. <br />
+              <span style={{ color: "#051d40" }}>
+                Interested? Apply now and join the Whalespace Agent team!
+              </span>
+            </motion.p>
+          </div>
         </div>
-      </div>
+      </section>
       
       <Footer />
     </div>
