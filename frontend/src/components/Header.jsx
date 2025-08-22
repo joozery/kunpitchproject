@@ -6,7 +6,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { 
   Menu, 
   X, 
-  Search, 
   ChevronDown
 } from 'lucide-react'
 import whaleLogo from '../assets/icon2.png'
@@ -47,7 +46,8 @@ const Header = () => {
     { name: 'Home', href: '/' },
     { name: 'Property type', href: '/properties' },
     { name: 'Projects', href: '/projects' },
-    { name: 'Join us', href: '/join' }
+    { name: 'Buy', href: '/buy' },
+    { name: 'Rent', href: '/rent' }
   ]
 
   return (
@@ -172,10 +172,10 @@ const Header = () => {
                   List Your Property
                 </Link>
                 <Link
-                  to="/consult"
+                  to="/join"
                   className="hidden md:block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-taviraj"
                 >
-                  Contact us
+                  Join us
                 </Link>
               </div>
             </div>
@@ -284,11 +284,11 @@ const Header = () => {
               List Your Property
             </Link>
             <Link
-              to="/consult"
+              to="/join"
               onClick={() => setIsOpen(false)}
               className="block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-taviraj"
             >
-              Contact us
+              Join us
             </Link>
           </div>
         </div>

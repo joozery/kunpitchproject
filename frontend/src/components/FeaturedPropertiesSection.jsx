@@ -9,6 +9,7 @@ import { SlLocationPin } from 'react-icons/sl'
 import { LuBath } from 'react-icons/lu'
 import { IoBedOutline } from 'react-icons/io5'
 import AutoTranslate from './AutoTranslate'
+import bgImage from '../assets/bg .png'
 
 const FeaturedPropertiesSection = () => {
   const navigate = useNavigate()
@@ -438,7 +439,10 @@ const FeaturedPropertiesSection = () => {
   const featuredProperties = properties;
 
   return (
-    <section className="py-16 bg-white relative overflow-hidden">
+    <section className="py-16 relative overflow-hidden" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+      {/* Background Overlay */}
+      <div className="absolute inset-0 bg-white bg-opacity-30"></div>
+      
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
