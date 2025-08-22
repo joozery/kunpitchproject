@@ -282,39 +282,42 @@ const PropertyDetail = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-                  {getTypeLabel(property.type)}
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full font-prompt">
+                  คอนโด Low rise
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(property.status)}`}>
-                  {getStatusLabel(property.status)}
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full font-prompt">
+                  คอนโดชั้นเตี้ย
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getAnnouncerStatusColor(property.announcerStatus)}`}>
-                  {getAnnouncerStatusLabel(property.announcerStatus)}
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full font-prompt">
+                  ปล่อยเช่าชาวต่างชาติ
                 </span>
+                <button className="w-8 h-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  <span className="text-lg font-bold">+</span>
+                </button>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-oswald">{property.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-prompt">{property.title}</h1>
               <p className="text-gray-600 flex items-center mb-3">
                 <MapPin className="h-5 w-5 mr-2 text-blue-500" />
                 {property.location || property.address}
               </p>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span>Property ID: WS{property.id}</span>
+              <div className="flex items-center gap-4 text-sm text-gray-500 font-prompt">
+                <span>Ref: WS{property.id}</span>
                 {property.projectCode && <span>Project: {property.projectCode}</span>}
                 <span>อัปเดต: {new Date(property.updatedAt).toLocaleDateString('th-TH')}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent mb-2">
-                {format(convert(property.price))}
-              </div>
+              <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาขาย</div>
+              <div className="text-4xl font-bold text-orange-600 mb-2 font-prompt">
+                {format(convert(property.price))} บาท
+                  </div>
               {property.rent_price > 0 && (
-                <div className="text-xl text-gray-500 mb-2">
+                <div className="text-xl text-gray-500 mb-2 font-prompt">
                   {format(convert(property.rent_price))}/เดือน
-                </div>
-              )}
+                  </div>
+                )}
               <div className="flex items-center justify-center text-sm text-gray-600">
-                <Eye className="h-4 w-4 mr-1 text-green-500" />
-                {clickCount} ครั้ง
+                <Share2 className="h-4 w-4 mr-1 text-gray-500" />
               </div>
             </div>
           </div>
@@ -392,32 +395,39 @@ const PropertyDetail = () => {
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
                     {/* Key Features */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      <div className="text-center p-4 bg-gray-50 rounded-xl">
-                        <Bed className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                        <div className="text-sm text-gray-600">ห้องนอน</div>
-                        <div className="font-semibold text-gray-900">{property.bedrooms || 'N/A'}</div>
-                      </div>
-                      <div className="text-center p-4 bg-gray-50 rounded-xl">
-                        <Bath className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                        <div className="text-sm text-gray-600">ห้องน้ำ</div>
-                        <div className="font-semibold text-gray-900">{property.bathrooms || 'N/A'}</div>
-                      </div>
-                      <div className="text-center p-4 bg-gray-50 rounded-xl">
-                        <Home className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                        <div className="text-sm text-gray-600">ชั้นที่</div>
-                        <div className="font-semibold text-gray-900">{property.floor || 'N/A'}</div>
-                      </div>
-                      <div className="text-center p-4 bg-gray-50 rounded-xl">
-                        <Ruler className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                        <div className="text-sm text-gray-600">ขนาด</div>
-                        <div className="font-semibold text-gray-900">{property.area ? `${property.area} ตร.ม.` : 'N/A'}</div>
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด ยูนิต</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="flex items-center space-x-3">
+                          <Bed className="h-6 w-6 text-gray-600" />
+                          <div>
+                            <div className="text-sm text-gray-600 font-prompt">{property.bedrooms || 'N/A'} ห้อง ห้องนอน</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Bath className="h-6 w-6 text-gray-600" />
+                          <div>
+                            <div className="text-sm text-gray-600 font-prompt">{property.bathrooms || 'N/A'} ห้อง ห้องน้ำ</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Ruler className="h-6 w-6 text-gray-600" />
+                          <div>
+                            <div className="text-sm text-gray-600 font-prompt">{property.area ? `${property.area} ตร.ม. พื้นที่ใช้สอย` : 'N/A'}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Building2 className="h-6 w-6 text-gray-600" />
+                <div>
+                            <div className="text-sm text-gray-600 font-prompt">{property.floor || 'N/A'} ลำดับชั้นที่</div>
+                          </div>
+                </div>
+                  </div>
                     </div>
 
                     {/* Price Analysis */}
                     <div className="bg-gradient-to-r from-blue-50 to-yellow-50 p-6 rounded-xl">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">การวิเคราะห์ราคา</h3>
+                                              <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">การวิเคราะห์ราคา</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {pricePerSqm !== null && (
                           <div className="bg-white p-4 rounded-lg">
@@ -429,15 +439,15 @@ const PropertyDetail = () => {
                           <div className="bg-white p-4 rounded-lg">
                             <div className="text-sm text-gray-600">ราคาเช่าต่อ ตร.ม.</div>
                             <div className="text-xl font-bold text-green-600">{format(convert(rentPerSqm))}</div>
-                          </div>
-                        )}
-                      </div>
                     </div>
+                  )}
+                </div>
+              </div>
 
                     {/* Description */}
                     {property.description && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">รายละเอียด</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด</h3>
                         <p className="text-gray-700 leading-relaxed">{property.description}</p>
                       </div>
                     )}
@@ -449,7 +459,7 @@ const PropertyDetail = () => {
                   <div className="space-y-6">
                     {/* Basic Information */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลพื้นฐาน</h3>
+                                              <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">ข้อมูลพื้นฐาน</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm text-gray-600">ประเภททรัพย์สิน</div>
@@ -458,22 +468,22 @@ const PropertyDetail = () => {
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm text-gray-600">สถานะ</div>
                           <div className="font-semibold text-gray-900">{getStatusLabel(property.status)}</div>
-                        </div>
+                </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm text-gray-600">ประเภทการประกาศ</div>
                           <div className="font-semibold text-gray-900">{getStatusLabel(property.listingType || property.status)}</div>
-                        </div>
+                </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm text-gray-600">สถานะผู้ประกาศ</div>
                           <div className="font-semibold text-gray-900">{getAnnouncerStatusLabel(property.announcerStatus)}</div>
-                        </div>
-                      </div>
-                    </div>
+                </div>
+                </div>
+              </div>
 
                     {/* Project Information */}
                     {property.selectedProject && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลโครงการ</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">ข้อมูลโครงการ</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="text-sm text-gray-600">ชื่อโครงการ</div>
@@ -492,7 +502,7 @@ const PropertyDetail = () => {
                     {/* Special Features */}
                     {property.specialFeatures && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">คุณสมบัติพิเศษ</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">คุณสมบัติพิเศษ</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {property.specialFeatures.shortTerm && (
                             <div className="flex items-center text-green-700">
@@ -537,7 +547,7 @@ const PropertyDetail = () => {
                     {/* SEO Tags */}
                     {property.seoTags && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แท็ก SEO</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">แท็ก SEO</h3>
                         <div className="flex flex-wrap gap-2">
                           {property.seoTags.split(',').map((tag, index) => (
                             <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
@@ -547,31 +557,31 @@ const PropertyDetail = () => {
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
+                </div>
+              )}
 
                 {/* Amenities Tab */}
                 {activeTab === 'amenities' && (
                   <div className="space-y-6">
                     {/* Room Amenities */}
-                    {property.amenities && property.amenities.length > 0 && (
+              {property.amenities && property.amenities.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สิ่งอำนวยความสะดวกภายในห้อง</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {property.amenities.map((amenity, index) => (
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">สิ่งอำนวยความสะดวกภายในห้อง</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {property.amenities.map((amenity, index) => (
                             <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                              {amenity}
-                            </div>
-                          ))}
-                        </div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                        {amenity}
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
 
                     {/* Project Amenities */}
                     {property.projectAmenities && property.projectAmenities.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สิ่งอำนวยความสะดวกของโครงการ</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">สิ่งอำนวยความสะดวกของโครงการ</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {property.projectAmenities.map((amenity, index) => (
                             <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
@@ -591,7 +601,7 @@ const PropertyDetail = () => {
                     {/* Transport */}
                     {property.nearbyTransport && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">การเดินทาง</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">การเดินทาง</h3>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm text-gray-600 mb-2">ระบบขนส่งใกล้เคียง</div>
                           <div className="font-semibold text-gray-900">{property.nearbyTransport}</div>
@@ -602,37 +612,37 @@ const PropertyDetail = () => {
                     {/* Selected Stations */}
                     {property.selectedStations && property.selectedStations.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สถานีรถไฟฟ้าใกล้เคียง</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">สถานีรถไฟฟ้าใกล้เคียง</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {property.selectedStations.map((station, index) => (
                             <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
                               <Train className="h-5 w-5 text-blue-500 mr-3" />
                               {station}
-                            </div>
-                          ))}
-                        </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                    {/* Nearby Places */}
-                    {property.nearby && property.nearby.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">สถานที่ใกล้เคียง</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {property.nearby.map((place, index) => (
+              {/* Nearby Places */}
+              {property.nearby && property.nearby.length > 0 && (
+                <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">สถานที่ใกล้เคียง</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {property.nearby.map((place, index) => (
                             <div key={index} className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg">
-                              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                              {place}
-                            </div>
-                          ))}
-                        </div>
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                        {place}
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
 
                     {/* Google Map */}
                     {property.googleMapUrl && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แผนที่</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">แผนที่</h3>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <a 
                             href={property.googleMapUrl} 
@@ -654,7 +664,7 @@ const PropertyDetail = () => {
                     {/* YouTube Video */}
                     {property.youtubeUrl && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">วิดีโอ YouTube</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">วิดีโอ YouTube</h3>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <a 
                             href={property.youtubeUrl} 
@@ -672,7 +682,7 @@ const PropertyDetail = () => {
                     {/* Floor Plan */}
                     {property.floorPlan && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">แปลนห้อง</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">แปลนห้อง</h3>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <a 
                             href={property.floorPlan} 
@@ -727,7 +737,7 @@ const PropertyDetail = () => {
 
               {/* Contact Info Section */}
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">ข้อมูลติดต่อ</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center font-prompt">ข้อมูลติดต่อ</h3>
                 <div className="space-y-2">
                   {contactInfo?.phone && (
                     <a 
@@ -737,7 +747,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaPhone className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">Call us</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">Call us</span>
                     </a>
                   )}
                   
@@ -751,7 +761,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaLine className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">Line@</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">Line@</span>
                     </a>
                   )}
                   
@@ -765,7 +775,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaWhatsapp className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">WhatsApp</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">WhatsApp</span>
                     </a>
                   )}
                   
@@ -779,7 +789,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaFacebookMessenger className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">Messenger</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">Messenger</span>
                     </a>
                   )}
                   
@@ -793,7 +803,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaFacebook className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">Facebook</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">Facebook</span>
                     </a>
                   )}
                   
@@ -807,7 +817,7 @@ const PropertyDetail = () => {
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <FaInstagram className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-gray-800 font-semibold text-base">Instagram</span>
+                      <span className="text-gray-800 font-semibold text-base font-prompt">Instagram</span>
                     </a>
                   )}
                   
@@ -815,7 +825,7 @@ const PropertyDetail = () => {
                     <div className="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                       <Calendar className="h-5 w-5 text-white" />
                     </div>
-                    <span className="text-gray-800 font-semibold text-base">อัปเดตล่าสุด: วันนี้</span>
+                    <span className="text-gray-800 font-semibold text-base font-prompt">อัปเดตล่าสุด: วันนี้</span>
                   </div>
                 </div>
               </div>

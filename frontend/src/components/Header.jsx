@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useCurrency } from '../lib/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { motion } from 'framer-motion'
@@ -15,6 +15,8 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
+  const [isPropertyOpen, setIsPropertyOpen] = useState(false)
+  const propertyRef = useRef(null)
   const { currency, setCurrency } = useCurrency()
   const { currentLanguage } = useLanguage()
 
@@ -40,6 +42,17 @@ const Header = () => {
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Close desktop Property dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (propertyRef.current && !propertyRef.current.contains(e.target)) {
+        setIsPropertyOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const navigation = [
@@ -83,26 +96,57 @@ const Header = () => {
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center space-x-6 ml-8">
+              <nav className="hidden md:flex items-center space-x-6 ml-8 font-prompt">
                 {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
-                      location.pathname === item.href
-                        ? 'text-white drop-shadow-md'
-                        : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
-                    }`}
-                    style={{
-                      textShadow: location.pathname === item.href 
-                        ? '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 255, 255, 0.6)' 
-                        : isScrolled 
-                          ? '2px 2px 4px rgba(0, 0, 0, 0.6)' 
-                          : '2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 6px rgba(0, 0, 0, 0.3)'
-                    }}
-                  >
-                    {item.name}
-                  </Link>
+                  item.name === 'Property type' ? (
+                    <div key={item.name} className="relative" ref={propertyRef}>
+                      <button
+                        onClick={() => setIsPropertyOpen(prev => !prev)}
+                        className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
+                          location.pathname === item.href
+                            ? 'text-white drop-shadow-md'
+                            : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
+                        }`}
+                        style={{
+                          textShadow: location.pathname === item.href 
+                            ? '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 255, 255, 0.6)'
+                            : isScrolled
+                              ? '2px 2px 4px rgba(0, 0, 0, 0.6)'
+                              : '2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 6px rgba(0, 0, 0, 0.3)'
+                        }}
+                      >
+                        {item.name}
+                      </button>
+                      {/* Dropdown - click to toggle */}
+                      {isPropertyOpen && (
+                        <div className="absolute left-0 mt-2 bg-white rounded-xl shadow-lg border py-2 min-w-[220px]">
+                          <Link to="/buy?type=condo" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Condo/Apartment</Link>
+                          <Link to="/buy?type=residential" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">House/Townhouse</Link>
+                          <Link to="/buy?type=commercial" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Commercial</Link>
+                          <Link to="/buy?type=land" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Land</Link>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
+                        location.pathname === item.href
+                          ? 'text-white drop-shadow-md'
+                          : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
+                      }`}
+                      style={{
+                        textShadow: location.pathname === item.href 
+                          ? '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 255, 255, 0.6)'
+                          : isScrolled 
+                            ? '2px 2px 4px rgba(0, 0, 0, 0.6)' 
+                            : '2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 6px rgba(0, 0, 0, 0.3)'
+                      }}
+                    >
+                      {item.name}
+                    </Link>
+                  )
                 ))}
               </nav>
             </div>
@@ -202,20 +246,40 @@ const Header = () => {
       >
         <div className="px-6 py-4 space-y-4">
           {/* Mobile Navigation */}
-          <nav className="space-y-3">
+          <nav className="space-y-3 font-prompt">
             {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`block px-4 py-2 rounded-lg font-taviraj text-lg ${
-                  location.pathname === item.href
-                    ? 'bg-white text-gray-900 shadow-md'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {item.name}
-              </Link>
+              item.name === 'Property type' ? (
+                <div key={item.name} className="px-2">
+                  <button
+                    onClick={() => setIsPropertyOpen(!isPropertyOpen)}
+                    className="w-full flex items-center justify-between px-2 py-2 rounded-lg font-taviraj text-lg text-gray-700 hover:bg-gray-50"
+                  >
+                    <span>Property type</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isPropertyOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isPropertyOpen && (
+                    <div className="mt-2 ml-3 space-y-2">
+                      <Link to="/buy?type=condo" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 font-prompt">Condo/Apartment</Link>
+                      <Link to="/buy?type=residential" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 font-prompt">House/Townhouse</Link>
+                      <Link to="/buy?type=commercial" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 font-prompt">Commercial</Link>
+                      <Link to="/buy?type=land" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 font-prompt">Land</Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`block px-4 py-2 rounded-lg font-taviraj text-lg ${
+                    location.pathname === item.href
+                      ? 'bg-white text-gray-900 shadow-md'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              )
             ))}
           </nav>
 

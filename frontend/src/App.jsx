@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
-import { MessageCircle, Calculator, Search as SearchIcon } from 'lucide-react'
+import { MessageCircle, Search as SearchIcon } from 'lucide-react'
 import Admin from './pages/Admin'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -97,14 +97,7 @@ const AppContent = () => {
                 </button>
               )}
               
-              <Link
-                to="/mortgage-calculator"
-                className="flex items-center space-x-2 bg-white hover:bg-gray-50 border border-yellow-500 px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-prompt"
-                style={{ color: '#243756' }}
-              >
-                <Calculator className="h-4 w-4" style={{ color: '#243756' }} />
-                <span>คำนวณสินเชื่อ</span>
-              </Link>
+              
               <Link
                 to="/find-assets"
                 className="flex items-center space-x-2 text-white px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-prompt"

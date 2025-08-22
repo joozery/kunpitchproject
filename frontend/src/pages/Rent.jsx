@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, Calendar, Shield } from 'lucide-react'
+import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, Calendar, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import LatestStyleCard from '../components/cards/LatestStyleCard'
+ 
 import { propertyAPI } from '../lib/api'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
 import { Link } from 'react-router-dom'
+import bgBuy from '../assets/bgbuy.jpg'
+import sectionBg from '../assets/bg .png'
 
 const Rent = () => {
   const { convert, format } = useCurrency()
@@ -20,6 +24,8 @@ const Rent = () => {
   const [filterDuration, setFilterDuration] = useState('all')
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(12)
 
   // Click tracking state
   const [clickCounts, setClickCounts] = useState({})
@@ -42,16 +48,34 @@ const Rent = () => {
         const result = await propertyAPI.getAll()
         if (result.success) {
           // Filter only properties for rent
-          const rentProperties = result.data.filter(property => 
+          let rentProperties = result.data.filter(property => 
             property.status === 'for_rent' || property.listingType === 'rent'
           )
+
+          // Top-up with mocks to ensure multiple rows
+          const rentMocks = [
+            { id: 201, title: 'คอนโดให้เช่า เฟอร์ครบ วิวสวย', address: 'เอกมัย, กรุงเทพฯ', location: 'เอกมัย, กรุงเทพฯ', price: 3500000, rent_price: 22000, bedrooms: 1, bathrooms: 1, floor: 18, area: 30, parking: 1, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 202, title: 'บ้านเดี่ยวให้เช่า พร้อมอยู่', address: 'บางนา, กรุงเทพฯ', location: 'บางนา, กรุงเทพฯ', price: 8000000, rent_price: 45000, bedrooms: 3, bathrooms: 2, floor: 2, area: 160, parking: 2, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c52f?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 203, title: 'ออฟฟิศให้เช่า ใจกลางเมือง', address: 'สาทร, กรุงเทพฯ', location: 'สาทร, กรุงเทพฯ', price: 5000000, rent_price: 38000, bedrooms: 0, bathrooms: 1, floor: 12, area: 60, parking: 1, type: 'commercial', status: 'for_rent', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 204, title: 'คอนโดสตูดิโอ ติด BTS', address: 'อ่อนนุช, กรุงเทพฯ', location: 'อ่อนนุช, กรุงเทพฯ', price: 2200000, rent_price: 18000, bedrooms: 0, bathrooms: 1, floor: 10, area: 28, parking: 1, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c52f?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 205, title: 'บ้านเดี่ยวพร้อมอยู่ ใกล้ห้าง', address: 'บางนา, กรุงเทพฯ', location: 'บางนา, กรุงเทพฯ', price: 9500000, rent_price: 55000, bedrooms: 3, bathrooms: 2, floor: 2, area: 160, parking: 2, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1560184897-ae75f418493e?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 206, title: 'โฮมออฟฟิศให้เช่า 4 ชั้น', address: 'ลาดพร้าว, กรุงเทพฯ', location: 'ลาดพร้าว, กรุงเทพฯ', price: 12000000, rent_price: 65000, bedrooms: 3, bathrooms: 3, floor: 4, area: 220, parking: 2, type: 'commercial', status: 'for_rent', images: ['https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 207, title: 'เพนท์เฮาส์ วิวพาโนรามา', address: 'ทองหล่อ, กรุงเทพฯ', location: 'ทองหล่อ, กรุงเทพฯ', price: 19000000, rent_price: 95000, bedrooms: 3, bathrooms: 3, floor: 35, area: 180, parking: 2, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005097973-6a7082348e28?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 208, title: 'ทาวน์โฮม 3 ชั้น ให้เช่า', address: 'รัชดา, กรุงเทพฯ', location: 'รัชดา, กรุงเทพฯ', price: 6500000, rent_price: 30000, bedrooms: 3, bathrooms: 3, floor: 3, area: 140, parking: 1, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop'] }
+          ]
+
+          if (!rentProperties || rentProperties.length < 8) {
+            const need = 8 - (rentProperties?.length || 0)
+            rentProperties = [ ...(rentProperties || []), ...rentMocks.slice(0, Math.max(0, need)) ]
+          }
+
           setProperties(rentProperties)
           setFilteredProperties(rentProperties)
         }
       } catch (error) {
         console.error('Failed to fetch properties:', error)
-        // Fallback data
-        setProperties([
+        // Fallback data - richer mock list (at least 8 for multiple rows)
+        const initialFallback = [
           {
             id: 1,
             title: 'คอนโดหรู 1 ห้องนอน พร้อมเฟอร์นิเจอร์',
@@ -123,82 +147,17 @@ const Rent = () => {
               allowPet: false,
               allowCompanyRegistration: true
             }
-          }
-        ])
-        setFilteredProperties([
-          {
-            id: 1,
-            title: 'คอนโดหรู 1 ห้องนอน พร้อมเฟอร์นิเจอร์',
-            address: 'สีลม, กรุงเทพฯ',
-            location: 'สีลม, กรุงเทพฯ',
-            price: 3500000,
-            rent_price: 25000,
-            bedrooms: 1,
-            bathrooms: 1,
-            floor: 12,
-            area: 35,
-            parking: 1,
-            type: 'condo',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'อินเทอร์เน็ต'],
-            projectCode: 'WS001',
-            announcerStatus: 'agent',
-            specialFeatures: {
-              shortTerm: true,
-              allowPet: false,
-              allowCompanyRegistration: true
-            }
           },
-          {
-            id: 2,
-            title: 'บ้านเดี่ยว 2 ห้องนอน สวนสวย',
-            address: 'สุขุมวิท, กรุงเทพฯ',
-            location: 'สุขุมวิท, กรุงเทพฯ',
-            price: 8500000,
-            rent_price: 45000,
-            bedrooms: 2,
-            bathrooms: 2,
-            floor: 1,
-            area: 80,
-            parking: 2,
-            type: 'residential',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สวนส่วนตัว', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต'],
-            projectCode: 'WS002',
-            announcerStatus: 'owner',
-            specialFeatures: {
-              shortTerm: false,
-              allowPet: true,
-              allowCompanyRegistration: false
-            }
-          },
-          {
-            id: 3,
-            title: 'ออฟฟิศ 1 ห้อง พร้อมเฟอร์นิเจอร์',
-            address: 'สาทร, กรุงเทพฯ',
-            location: 'สาทร, กรุงเทพฯ',
-            price: 5000000,
-            rent_price: 35000,
-            bedrooms: 0,
-            bathrooms: 1,
-            floor: 8,
-            area: 50,
-            parking: 1,
-            type: 'commercial',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต', 'เครื่องปรับอากาศ'],
-            projectCode: 'WS003',
-            announcerStatus: 'agent',
-            specialFeatures: {
-              shortTerm: true,
-              allowPet: false,
-              allowCompanyRegistration: true
-            }
-          }
-        ])
+          { id: 4, title: 'คอนโดสตูดิโอ เฟอร์ครบ ติด BTS', address: 'อ่อนนุช, กรุงเทพฯ', location: 'อ่อนนุช, กรุงเทพฯ', price: 2200000, rent_price: 18000, bedrooms: 0, bathrooms: 1, floor: 10, area: 28, parking: 1, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c52f?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 5, title: 'บ้านเดี่ยวพร้อมอยู่ ใกล้ห้าง', address: 'บางนา, กรุงเทพฯ', location: 'บางนา, กรุงเทพฯ', price: 9500000, rent_price: 55000, bedrooms: 3, bathrooms: 2, floor: 2, area: 160, parking: 2, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1560184897-ae75f418493e?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 6, title: 'โฮมออฟฟิศให้เช่า 4 ชั้น', address: 'ลาดพร้าว, กรุงเทพฯ', location: 'ลาดพร้าว, กรุงเทพฯ', price: 12000000, rent_price: 65000, bedrooms: 3, bathrooms: 3, floor: 4, area: 220, parking: 2, type: 'commercial', status: 'for_rent', images: ['https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 7, title: 'เพนท์เฮาส์ วิวพาโนรามา', address: 'ทองหล่อ, กรุงเทพฯ', location: 'ทองหล่อ, กรุงเทพฯ', price: 19000000, rent_price: 95000, bedrooms: 3, bathrooms: 3, floor: 35, area: 180, parking: 2, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005097973-6a7082348e28?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 8, title: 'ทาวน์โฮม 3 ชั้น ให้เช่า', address: 'รัชดา, กรุงเทพฯ', location: 'รัชดา, กรุงเทพฯ', price: 6500000, rent_price: 30000, bedrooms: 3, bathrooms: 3, floor: 3, area: 140, parking: 1, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop'] }
+        ]
+        const targetCount = 8
+        const mergedFallback = initialFallback.length >= targetCount ? initialFallback : [...initialFallback, ...initialFallback.slice(0, targetCount - initialFallback.length)]
+        setProperties(mergedFallback)
+        setFilteredProperties(mergedFallback)
       } finally {
         setLoading(false)
       }
@@ -286,7 +245,27 @@ const Rent = () => {
     })
 
     setFilteredProperties(filtered)
+    setCurrentPage(1)
   }, [properties, searchTerm, filterType, filterRentPrice, filterBedrooms, filterArea, filterDuration])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / pageSize))
+  const pageItems = filteredProperties.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const getPagination = () => {
+    const pages = []
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, '...', totalPages - 1, totalPages)
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, 2, '...', totalPages - 2, totalPages - 1, totalPages)
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages)
+      }
+    }
+    return pages
+  }
 
   const getTypeLabel = (type) => {
     switch (type) {
@@ -470,33 +449,38 @@ const Rent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-prompt">
       {/* Header */}
       <Header />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-600 via-green-700 to-emerald-800 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative text-white py-20">
+        {/* Background image */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={bgBuy} alt="background" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.85 }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-left"
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
               เช่าอสังหาริมทรัพย์
             </h1>
-            <p className="text-xl md:text-2xl text-green-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-green-100 mb-8 max-w-3xl font-prompt">
               ค้นพบที่พักที่ใช่สำหรับคุณ ตั้งแต่คอนโดหรู บ้านเดี่ยว ไปจนถึงออฟฟิศเชิงพาณิชย์
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+            <div className="flex flex-wrap justify-start gap-4 text-sm">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">{filteredProperties.length}</span> ทรัพย์สิน
               </div>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">100%</span> ตรวจสอบแล้ว
               </div>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">เช่าช่วงสั้น</span> ได้
               </div>
             </div>
@@ -621,8 +605,13 @@ const Rent = () => {
       </section>
 
       {/* Properties Grid */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 relative">
+        {/* Section background with overlay */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={sectionBg} alt="section-bg" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.06 }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
             <div>
@@ -634,7 +623,7 @@ const Rent = () => {
               </p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-prompt">
                 <option value="newest">ใหม่ล่าสุด</option>
                 <option value="price-low">ราคาต่ำ-สูง</option>
                 <option value="price-high">ราคาสูง-ต่ำ</option>
@@ -645,14 +634,14 @@ const Rent = () => {
           </div>
 
           {/* Properties Grid */}
-          {filteredProperties.length > 0 ? (
+          {pageItems.length > 0 ? (
             <div className={`grid gap-8 ${
               viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' 
                 : 'grid-cols-1'
             }`}>
-              {filteredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+              {pageItems.map((property) => (
+                <LatestStyleCard key={property.id} property={property} type={property.type || 'condo'} />
               ))}
             </div>
           ) : (
@@ -681,81 +670,41 @@ const Rent = () => {
               </button>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-prompt">
-              ทำไมต้องเลือกเรา?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              เรามีบริการที่ครบครันและตอบโจทย์ทุกความต้องการของคุณ
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 font-prompt">เช่าช่วงสั้น</h3>
-              <p className="text-gray-600">
-                เช่าช่วงสั้นได้ตั้งแต่ 1 เดือนขึ้นไป เหมาะสำหรับการเดินทางหรือทำงานชั่วคราว
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 font-prompt">ปลอดภัย 100%</h3>
-              <p className="text-gray-600">
-                ทรัพย์สินทุกแห่งผ่านการตรวจสอบและยืนยันจากทีมงานผู้เชี่ยวชาญ
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 font-prompt">บริการ 24/7</h3>
-              <p className="text-gray-600">
-                บริการตลอด 24 ชั่วโมง พร้อมให้คำปรึกษาและช่วยเหลือทุกเมื่อ
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-green-600 to-emerald-700 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                      <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 font-prompt">
-              ต้องการให้เช่าทรัพย์สินของคุณ?
-            </h2>
-          <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            เข้าร่วมกับเราและให้เช่าทรัพย์สินของคุณได้อย่างรวดเร็วและมีประสิทธิภาพ
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <Link
-                to="/join"
-                className="px-8 py-4 bg-white text-green-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors font-prompt"
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center mt-10 gap-2 select-none">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                disabled={currentPage === 1}
               >
-                ลงประกาศฟรี
-              </Link>
-                          <Link
-                to="/consult"
-                className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-green-600 transition-colors font-prompt"
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {getPagination().map((p, idx) => p === '...'
+                ? (
+                  <span key={`dots-${idx}`} className="px-3 text-gray-400">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`px-3 py-2 rounded-lg border ${currentPage === p ? 'bg-white text-blue-900 border-blue-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 border-transparent'}`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                disabled={currentPage === totalPages}
               >
-                ปรึกษาผู้เชี่ยวชาญ
-              </Link>
-          </div>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
-
+      
       {/* Footer */}
       <Footer />
     </div>

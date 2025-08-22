@@ -6,7 +6,7 @@ const Footer = () => {
   return (
     <footer className="relative overflow-hidden">
       {/* Upper Section - Main Footer Content */}
-      <div className="bg-[#051d40] text-white py-16">
+      <div className="bg-[#051d40] text-white py-16 font-prompt">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
             {/* Logo Section (Far Left) */}
@@ -101,7 +101,7 @@ const Footer = () => {
       </div>
 
       {/* Lower Section - Copyright and Legal Links */}
-      <div className="bg-gray-100 text-gray-700 py-6">
+      <div className="bg-gray-100 text-gray-700 py-6 font-prompt">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm font-taviraj">© 2025 Whalespace. All rights reserved.</p>

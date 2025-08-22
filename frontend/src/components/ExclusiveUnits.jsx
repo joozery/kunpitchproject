@@ -39,7 +39,75 @@ const ExclusiveUnits = () => {
         const latest = all
           .sort((a, b) => new Date(getUpdatedAt(b)) - new Date(getUpdatedAt(a)))
           .slice(0, 12)
-        setItems(latest)
+
+        // Ensure at least 4 cards are available (add mock items if API returns less)
+        let ensure = latest
+        if (latest.length < 4) {
+          const mockItems = [
+            {
+              id: 'mock-ex-1',
+              __type: 'condo',
+              title: 'Mock Condo – River View',
+              bedrooms: 1,
+              bathrooms: 1,
+              area: 35,
+              floor: 12,
+              location: 'Bangkok',
+              status: 'for_sale',
+              price: 3200000,
+              rent_price: 0,
+              views: 0,
+              images: ['https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop']
+            },
+            {
+              id: 'mock-ex-2',
+              __type: 'house',
+              title: 'Mock House – Minimal Style',
+              bedrooms: 3,
+              bathrooms: 2,
+              area: 180,
+              floor: 2,
+              location: 'Nonthaburi',
+              status: 'for_sale',
+              price: 8500000,
+              rent_price: 0,
+              views: 0,
+              images: ['https://images.unsplash.com/photo-1560185127-6ed189bf02f4?q=80&w=1200&auto=format&fit=crop']
+            },
+            {
+              id: 'mock-ex-3',
+              __type: 'commercial',
+              title: 'Mock Office – Ready to Move',
+              bedrooms: 0,
+              bathrooms: 2,
+              area: 150,
+              floor: 5,
+              location: 'Sukhumvit, Bangkok',
+              status: 'for_rent',
+              price: 0,
+              rent_price: 65000,
+              views: 0,
+              images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop']
+            },
+            {
+              id: 'mock-ex-4',
+              __type: 'land',
+              title: 'Mock Land – Corner Plot',
+              bedrooms: 0,
+              bathrooms: 0,
+              area: 200,
+              floor: null,
+              location: 'Pathum Thani',
+              status: 'for_sale',
+              price: 5200000,
+              rent_price: 0,
+              views: 0,
+              images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1200&auto=format&fit=crop']
+            }
+          ]
+          ensure = [...latest, ...mockItems.slice(0, 4 - latest.length)]
+        }
+        setItems(ensure)
       } catch (e) {
         setItems([])
       } finally {

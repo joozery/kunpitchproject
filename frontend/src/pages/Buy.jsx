@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car } from 'lucide-react'
+import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, ChevronLeft, ChevronRight } from 'lucide-react'
+import LatestStyleCard from '../components/cards/LatestStyleCard'
 import { propertyAPI } from '../lib/api'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
 import { Link } from 'react-router-dom'
+import bgBuy from '../assets/bgbuy.jpg'
+import sectionBg from '../assets/bg .png'
 
 const Buy = () => {
   const { convert, format } = useCurrency()
@@ -19,6 +22,8 @@ const Buy = () => {
   const [filterArea, setFilterArea] = useState('all')
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(12)
 
   // Click tracking state
   const [clickCounts, setClickCounts] = useState({})
@@ -41,16 +46,34 @@ const Buy = () => {
         const result = await propertyAPI.getAll()
         if (result.success) {
           // Filter only properties for sale
-          const saleProperties = result.data.filter(property => 
+          let saleProperties = result.data.filter(property => 
             property.status === 'for_sale' || property.listingType === 'sale'
           )
+
+          // Top-up with mocks to ensure multiple rows
+          const saleMocks = [
+            { id: 101, title: 'คอนโดหรู 1 ห้องนอน ใกล้ BTS พร้อมเข้าอยู่', address: 'สุขุมวิท, กรุงเทพฯ', location: 'สุขุมวิท, กรุงเทพฯ', price: 4200000, bedrooms: 1, bathrooms: 1, floor: 15, area: 32, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 102, title: 'บ้านเดี่ยวสไตล์โมเดิร์น โครงการใหม่', address: 'รามอินทรา, กรุงเทพฯ', location: 'รามอินทรา, กรุงเทพฯ', price: 6900000, bedrooms: 3, bathrooms: 2, floor: 2, area: 180, parking: 2, type: 'residential', status: 'for_sale', images: ['https://images.unsplash.com/photo-1560185127-6ed189bf02f4?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 103, title: 'ตึกพาณิชย์ 3 ชั้น ทำเลค้าขาย', address: 'ลาดพร้าว, กรุงเทพฯ', location: 'ลาดพร้าว, กรุงเทพฯ', price: 8500000, bedrooms: 0, bathrooms: 2, floor: 3, area: 150, parking: 1, type: 'commercial', status: 'for_sale', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 104, title: 'คอนโดวิวเมือง ห้องมุม', address: 'อโศก, กรุงเทพฯ', location: 'อโศก, กรุงเทพฯ', price: 5200000, bedrooms: 2, bathrooms: 2, floor: 22, area: 60, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 105, title: 'บ้านเดี่ยวพื้นที่กว้าง ทำเลเงียบสงบ', address: 'พระราม 2, กรุงเทพฯ', location: 'พระราม 2, กรุงเทพฯ', price: 7800000, bedrooms: 4, bathrooms: 3, floor: 2, area: 220, parking: 2, type: 'residential', status: 'for_sale', images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 106, title: 'คอนโดหรูติดแม่น้ำ', address: 'เจริญนคร, กรุงเทพฯ', location: 'เจริญนคร, กรุงเทพฯ', price: 9800000, bedrooms: 2, bathrooms: 2, floor: 28, area: 72, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1515263487990-61b07816b324?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 107, title: 'ที่ดินเปล่าถมแล้ว เหมาะลงทุน', address: 'บางบ่อ, สมุทรปราการ', location: 'บางบ่อ, สมุทรปราการ', price: 3500000, bedrooms: 0, bathrooms: 0, floor: 0, area: 400, parking: 0, type: 'land', status: 'for_sale', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 108, title: 'คอนโดโลว์ไรส์ เงียบสงบ', address: 'Ari, กรุงเทพฯ', location: 'อารีย์, กรุงเทพฯ', price: 3100000, bedrooms: 1, bathrooms: 1, floor: 6, area: 35, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop'] }
+          ]
+
+          if (!saleProperties || saleProperties.length < 8) {
+            const need = 8 - (saleProperties?.length || 0)
+            saleProperties = [ ...(saleProperties || []), ...saleMocks.slice(0, Math.max(0, need)) ]
+          }
+
           setProperties(saleProperties)
           setFilteredProperties(saleProperties)
         }
       } catch (error) {
         console.error('Failed to fetch properties:', error)
-        // Fallback data
-        setProperties([
+        // Fallback data - richer mock list (at least 8 for multiple rows)
+        const initial = [
           {
             id: 1,
             title: 'คอนโดหรู 2 ห้องนอน พร้อมเฟอร์นิเจอร์',
@@ -87,45 +110,50 @@ const Buy = () => {
             projectCode: 'WS002',
             announcerStatus: 'owner'
           }
-        ])
-        setFilteredProperties([
+        ]
+
+        const topup = [
           {
-            id: 1,
-            title: 'คอนโดหรู 2 ห้องนอน พร้อมเฟอร์นิเจอร์',
-            address: 'สีลม, กรุงเทพฯ',
-            location: 'สีลม, กรุงเทพฯ',
-            price: 3500000,
-            bedrooms: 2,
+            id: 3,
+            title: 'คอนโดวิวเมือง ใกล้รถไฟฟ้า',
+            address: 'อโศก, กรุงเทพฯ',
+            location: 'อโศก, กรุงเทพฯ',
+            price: 4910000,
+            bedrooms: 1,
             bathrooms: 1,
-            floor: 15,
-            area: 45,
+            floor: 20,
+            area: 29.65,
             parking: 1,
             type: 'condo',
             status: 'for_sale',
-            images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ'],
-            projectCode: 'WS001',
-            announcerStatus: 'agent'
+            images: ['https://images.unsplash.com/photo-1505691723518-36a5ac3b2d35?q=80&w=1200&auto=format&fit=crop']
           },
           {
-            id: 2,
-            title: 'บ้านเดี่ยว 3 ห้องนอน สวนสวย',
-            address: 'สุขุมวิท, กรุงเทพฯ',
-            location: 'สุขุมวิท, กรุงเทพฯ',
+            id: 4,
+            title: 'ตึกพาณิชย์ 3 ชั้น ทำเลค้าขาย',
+            address: 'ลาดพร้าว, กรุงเทพฯ',
+            location: 'ลาดพร้าว, กรุงเทพฯ',
             price: 8500000,
-            bedrooms: 3,
+            bedrooms: 0,
             bathrooms: 2,
-            floor: 1,
-            area: 120,
-            parking: 2,
-            type: 'residential',
+            floor: 3,
+            area: 150,
+            parking: 1,
+            type: 'commercial',
             status: 'for_sale',
-            images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สวนส่วนตัว', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย'],
-            projectCode: 'WS002',
-            announcerStatus: 'owner'
+            images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop']
           }
-        ])
+        ,
+          { id: 5, title: 'บ้านเดี่ยวพื้นที่กว้าง ทำเลเงียบสงบ', address: 'พระราม 2, กรุงเทพฯ', location: 'พระราม 2, กรุงเทพฯ', price: 7800000, bedrooms: 4, bathrooms: 3, floor: 2, area: 220, parking: 2, type: 'residential', status: 'for_sale', images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 6, title: 'คอนโดหรูติดแม่น้ำ', address: 'เจริญนคร, กรุงเทพฯ', location: 'เจริญนคร, กรุงเทพฯ', price: 9800000, bedrooms: 2, bathrooms: 2, floor: 28, area: 72, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1515263487990-61b07816b324?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 7, title: 'ที่ดินเปล่าถมแล้ว เหมาะลงทุน', address: 'บางบ่อ, สมุทรปราการ', location: 'บางบ่อ, สมุทรปราการ', price: 3500000, bedrooms: 0, bathrooms: 0, floor: 0, area: 400, parking: 0, type: 'land', status: 'for_sale', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1200&auto=format&fit=crop'] },
+          { id: 8, title: 'คอนโดโลว์ไรส์ เงียบสงบ', address: 'อารีย์, กรุงเทพฯ', location: 'อารีย์, กรุงเทพฯ', price: 3100000, bedrooms: 1, bathrooms: 1, floor: 6, area: 35, parking: 1, type: 'condo', status: 'for_sale', images: ['https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop'] }
+        ]
+
+        const targetCount = 8
+        const merged = initial.length >= targetCount ? initial : [...initial, ...topup.slice(0, targetCount - initial.length)]
+        setProperties(merged)
+        setFilteredProperties(merged)
       } finally {
         setLoading(false)
       }
@@ -197,7 +225,27 @@ const Buy = () => {
     })
 
     setFilteredProperties(filtered)
+    setCurrentPage(1)
   }, [properties, searchTerm, filterType, filterPrice, filterBedrooms, filterArea])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / pageSize))
+  const pageItems = filteredProperties.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const getPagination = () => {
+    const pages = []
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, '...', totalPages - 1, totalPages)
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, 2, '...', totalPages - 2, totalPages - 1, totalPages)
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages)
+      }
+    }
+    return pages
+  }
 
   const getTypeLabel = (type) => {
     switch (type) {
@@ -353,33 +401,38 @@ const Buy = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-prompt">
       {/* Header */}
       <Header />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative text-white py-20">
+        {/* Background image */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={bgBuy} alt="background" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.85 }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-left"
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
               ซื้ออสังหาริมทรัพย์
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl font-prompt">
               ค้นพบทรัพย์สินที่ใช่สำหรับคุณ ตั้งแต่คอนโดหรู บ้านเดี่ยว ไปจนถึงที่ดินเชิงพาณิชย์
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+            <div className="flex flex-wrap justify-start gap-4 text-sm">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">{filteredProperties.length}</span> ทรัพย์สิน
               </div>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">100%</span> ตรวจสอบแล้ว
               </div>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full font-prompt">
                 <span className="font-semibold">24/7</span> บริการ
               </div>
             </div>
@@ -493,9 +546,14 @@ const Buy = () => {
         </div>
       </section>
 
-      {/* Properties Grid */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Properties Grid / Hot deals mock */}
+      <section className="py-12 relative">
+        {/* Section background with overlay */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={sectionBg} alt="section-bg" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.06 }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
             <div>
@@ -507,7 +565,7 @@ const Buy = () => {
               </p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-prompt">
                 <option value="newest">ใหม่ล่าสุด</option>
                 <option value="price-low">ราคาต่ำ-สูง</option>
                 <option value="price-high">ราคาสูง-ต่ำ</option>
@@ -518,14 +576,14 @@ const Buy = () => {
           </div>
 
           {/* Properties Grid */}
-          {filteredProperties.length > 0 ? (
+          {pageItems.length > 0 ? (
             <div className={`grid gap-8 ${
               viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' 
                 : 'grid-cols-1'
             }`}>
-              {filteredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+              {pageItems.map((property) => (
+                <LatestStyleCard key={property.id} property={property} type={property.type || 'condo'} />
               ))}
             </div>
           ) : (
@@ -553,34 +611,41 @@ const Buy = () => {
               </button>
             </div>
           )}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center mt-10 gap-2 select-none">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {getPagination().map((p, idx) => p === '...'
+                ? (
+                  <span key={`dots-${idx}`} className="px-3 text-gray-400">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`px-3 py-2 rounded-lg border ${currentPage === p ? 'bg-white text-blue-900 border-blue-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 border-transparent'}`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                      <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 font-prompt">
-              ต้องการขายทรัพย์สินของคุณ?
-            </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            เข้าร่วมกับเราและขายทรัพย์สินของคุณได้อย่างรวดเร็วและมีประสิทธิภาพ
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <Link
-                to="/join"
-                className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors font-prompt"
-              >
-                ลงประกาศฟรี
-              </Link>
-                          <Link
-                to="/consult"
-                className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-blue-600 transition-colors font-prompt"
-              >
-                ปรึกษาผู้เชี่ยวชาญ
-              </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <Footer />
