@@ -19,6 +19,37 @@ const FeaturedPropertiesSection = () => {
   // Click tracking state
   const [clickCounts, setClickCounts] = useState({})
 
+  // ฟังก์ชันสำหรับ property type
+  const getTypeLabel = (type) => ({
+    condo: 'คอนโด',
+    house: 'บ้าน',
+    land: 'ที่ดิน',
+    commercial: 'โฮมออฟฟิศ',
+    residential: 'ที่อยู่อาศัย'
+  }[type] || 'อสังหาฯ')
+
+  // ฟังก์ชันสำหรับสีของแต่ละ property type
+  const getTypeColor = (type) => {
+    const colorMap = {
+      condo: '#0cc0df',      // คอนโด - สีฟ้า
+      house: '#00bf63',      // บ้าน - สีเขียว
+      apartment: '#5271ff',  // อพาร์ตเม้นท์ - สีน้ำเงิน
+      townhouse: '#2ea36b',  // ทาวเฮาส์ - สีเขียวเข้ม
+      commercial: '#8c52ff', // โฮมออฟฟิศ - สีม่วง
+      building: '#b294ec',   // อาคารพาณิชย์ - สีม่วงอ่อน
+      land: '#ffb800',       // ที่ดิน - สีส้ม
+      residential: '#00bf63' // ที่อยู่อาศัย - สีเขียว
+    }
+    return colorMap[type] || '#0cc0df' // default เป็นสีคอนโด
+  }
+
+  // ฟังก์ชันสำหรับแสดงราคาเป็นจำนวนเต็ม
+  const formatPriceWithoutDecimal = (price) => {
+    if (!price) return '0'
+    const num = parseFloat(price) || 0
+    return Math.floor(num).toLocaleString('th-TH')
+  }
+
   // Handle card click
   const handleCardClick = (propertyId, propertyType) => {
     setClickCounts(prev => ({
@@ -124,19 +155,6 @@ const FeaturedPropertiesSection = () => {
 
     fetchProperties()
   }, [])
-
-  const getTypeLabel = (type) => {
-    switch (type) {
-      case 'residential':
-        return 'บ้านเดี่ยว';
-      case 'condo':
-        return 'คอนโด';
-      case 'land':
-        return 'ที่ดิน';
-      default:
-        return 'ประเภทอื่น';
-    }
-  };
 
   const getStatusLabel = (status) => {
     switch (status) {
@@ -276,28 +294,19 @@ const FeaturedPropertiesSection = () => {
           {/* Enhanced Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
-          {/* Top Left Badge with Blue-Gold Gradient */}
+          {/* Top Left Badge */}
           <div className="absolute top-4 left-4">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+            <div 
+              className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20"
+              style={{ backgroundColor: getTypeColor(type) }}
+            >
               {getTypeLabel(type)}
             </div>
           </div>
           
-          {/* Top Right Status Badge (custom colors) */}
-          <div className="absolute top-4 right-4">
-            <div
-              className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20"
-              style={{
-                background:
-                  property.status === 'sale'
-                    ? '#00bf63'
-                    : property.status === 'rent'
-                    ? '#0cc0df'
-                    : 'linear-gradient(90deg, #00bf63 0%, #0cc0df 100%)'
-              }}
-            >
-              {property.status === 'sale' ? 'ขาย' : property.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
-            </div>
+          {/* Top Right Status */}
+          <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: '#ffffff' }}>
+            {property.rent_price > 0 ? 'เช่า' : 'ขาย'}
           </div>
         </div>
 
@@ -312,68 +321,92 @@ const FeaturedPropertiesSection = () => {
             />
           </h3>
 
-          {/* Location placed under title */}
-          <div className="flex items-center gap-2 text-gray-500 text-xs mb-2 min-w-0">
-            <SlLocationPin className="h-4 w-4 text-blue-500" />
-            <span className="truncate" title={property.location || property.address || 'ไม่ระบุที่อยู่'}>
-              <AutoTranslate 
-                thaiText={property.location || property.address || 'ไม่ระบุที่อยู่'} 
-                targetLang="en" 
-                fallbackText={property.location || property.address || 'Address not specified'}
-              />
-            </span>
-          </div>
-
-          {/* Details Rows */}
-          <div className="space-y-3 mb-4 text-sm">
+          {/* Property details */}
+          <div className="space-y-2 mb-4 text-xs text-gray-600">
             {/* Row 1: Bed, Bath */}
-            <div className="grid grid-cols-2 gap-4 text-gray-600">
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <IoBedOutline className="h-4 w-4 text-blue-500" />
+                <IoBedOutline className="h-4 w-4" style={{ color: '#243756' }} />
                 <span className="truncate">
                   <AutoTranslate thaiText="ห้องนอน" targetLang="en" fallbackText="Bedrooms" />: {property.bedrooms || 'N/A'}
                 </span>
               </div>
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <LuBath className="h-4 w-4 text-blue-500" />
+                <LuBath className="h-4 w-4" style={{ color: '#243756' }} />
                 <span className="truncate">
                   <AutoTranslate thaiText="ห้องน้ำ" targetLang="en" fallbackText="Bathrooms" />: {property.bathrooms || 'N/A'}
                 </span>
               </div>
             </div>
             {/* Row 2: Area, Floor */}
-            <div className="grid grid-cols-2 gap-4 text-gray-600">
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <TbViewportWide className="h-4 w-4 text-blue-500" />
+                <TbViewportWide className="h-4 w-4" style={{ color: '#243756' }} />
                 <span className="truncate">
                   <AutoTranslate thaiText="พื้นที่" targetLang="en" fallbackText="Area" />: {property.area ? `${property.area} ตร.ม.` : 'N/A'}
                 </span>
               </div>
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <TbStairsUp className="h-4 w-4 text-blue-500" />
+                <TbStairsUp className="h-4 w-4" style={{ color: '#243756' }} />
                 <span className="truncate">
                   <AutoTranslate thaiText="ชั้นที่" targetLang="en" fallbackText="Floor" />: {property.floor || 'N/A'}
                 </span>
               </div>
             </div>
+            {/* Row 3: Location */}
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <SlLocationPin className="h-4 w-4" style={{ color: '#243756' }} />
+              <span className="truncate" title={property.location || property.address || 'ไม่ระบุที่อยู่'}>
+                <AutoTranslate 
+                  thaiText={property.location || property.address || 'ไม่ระบุที่อยู่'} 
+                  targetLang="en" 
+                  fallbackText={property.location || property.address || 'Address not specified'}
+                />
+              </span>
+            </div>
           </div>
 
           {/* Price Section */}
           <div className="mt-auto">
-            <div className="flex items-center justify-end mb-4">
-              <div className="text-right">
-                {property.rent_price > 0 && (
-                  <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                    {format(convert(property.rent_price))}/<AutoTranslate thaiText="เดือน" targetLang="en" fallbackText="month" />
-                  </div>
-                )}
-                <div className="text-sm text-gray-600 font-medium">
-                  {format(convert(property.price))}
-                </div>
-                <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
-                  <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                  <span>{clickCounts[property.id] || 0} <AutoTranslate thaiText="ครั้ง" targetLang="en" fallbackText="times" /></span>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              {/* ราคาทางซ้าย */}
+              <div className="text-left">
+                {/* แสดงราคาตามเงื่อนไข */}
+                {(() => {
+                  const hasSale = property.price && property.price > 0;
+                  const hasRent = property.rent_price && property.rent_price > 0;
+                  
+                  if (hasSale && hasRent) {
+                    // มีทั้งขายและเช่า
+                    return (
+                      <>
+                        <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.price)}</div>
+                        <div className="text-lg font-semibold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.rent_price)}/เดือน</div>
+                      </>
+                    );
+                  } else if (hasSale && !hasRent) {
+                    // มีแค่ขาย
+                    return (
+                      <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.price)}</div>
+                    );
+                  } else if (!hasSale && hasRent) {
+                    // มีแค่เช่า
+                    return (
+                      <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.rent_price)}/เดือน</div>
+                    );
+                  } else {
+                    // ไม่มีราคา
+                    return (
+                      <div className="text-lg text-gray-500">ราคาติดต่อ</div>
+                    );
+                  }
+                })()}
+              </div>
+              
+              {/* จำนวนการเข้าชมทางขวา */}
+              <div className="flex items-center text-xs text-gray-500">
+                <EyeIcon className="h-4 w-4 mr-1" style={{ color: '#243756' }} />
+                <span>{clickCounts[property.id] || 0} <AutoTranslate thaiText="ครั้ง" targetLang="en" fallbackText="times" /></span>
               </div>
             </div>
             

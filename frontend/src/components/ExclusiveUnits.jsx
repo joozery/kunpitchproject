@@ -5,7 +5,7 @@ import { ArrowRight, Eye as EyeIcon } from 'lucide-react'
 import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { SlLocationPin } from 'react-icons/sl'
 import { LuBath } from 'react-icons/lu'
-import { IoBedOutline } from 'react-icons/io5'
+import { IoBedOutline, IoDiamondOutline } from 'react-icons/io5'
 import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import { useCurrency } from '../lib/CurrencyContext'
 
@@ -55,12 +55,33 @@ const ExclusiveUnits = () => {
     return Math.floor(num).toLocaleString('th-TH')
   }
 
+  // ฟังก์ชันใหม่สำหรับแสดงราคาเป็นจำนวนเต็ม
+  const formatPriceWithoutDecimal = (price) => {
+    if (!price) return '0'
+    const num = parseFloat(price) || 0
+    return Math.floor(num).toLocaleString('th-TH')
+  }
+
   const getTypeLabel = (type) => ({
     condo: 'คอนโด',
     house: 'บ้าน',
     land: 'ที่ดิน',
     commercial: 'โฮมออฟฟิศ'
   }[type] || 'อสังหาฯ')
+
+  // ฟังก์ชันใหม่สำหรับสีของแต่ละ property type
+  const getTypeColor = (type) => {
+    const colorMap = {
+      condo: '#0cc0df',      // คอนโด - สีฟ้า
+      house: '#00bf63',      // บ้าน - สีเขียว
+      apartment: '#5271ff',  // อพาร์ตเม้นท์ - สีน้ำเงิน
+      townhouse: '#2ea36b',  // ทาวเฮาส์ - สีเขียวเข้ม
+      commercial: '#8c52ff', // โฮมออฟฟิศ - สีม่วง
+      building: '#b294ec',   // อาคารพาณิชย์ - สีม่วงอ่อน
+      land: '#ffb800'        // ที่ดิน - สีส้ม
+    }
+    return colorMap[type] || '#0cc0df' // default เป็นสีคอนโด
+  }
 
   const getStatusStyle = (status) => {
     if (status === 'for_sale' || status === 'sale') return { background: '#00bf63', color: '#fff' }
@@ -108,11 +129,14 @@ const ExclusiveUnits = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Exclusive Units</span>
+            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider flex items-center gap-2">
+              <IoDiamondOutline className="w-5 h-5" />
+              Exclusive Units
+            </span>
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           </motion.div>
           <motion.h2
@@ -121,7 +145,7 @@ const ExclusiveUnits = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
           >
-            <img src="https://img.icons8.com/ios/50/guarantee--v1.png" alt="Exclusive Units Icon" className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" />
+            <IoDiamondOutline className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" />
           </motion.h2>
         </div>
 
@@ -175,12 +199,15 @@ const ExclusiveUnits = () => {
 
                   {/* Top Left Badge */}
                   <div className="absolute top-4 left-4">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20">
+                    <div 
+                      className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20"
+                      style={{ backgroundColor: getTypeColor(property.__type) }}
+                    >
                       {getTypeLabel(property.__type)}
                     </div>
                   </div>
                   {/* Top Right Status */}
-                  <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={getStatusStyle(property.status)}>
+                  <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: '#ffffff' }}>
                     {property.status === 'for_sale' || property.status === 'sale' ? 'ขาย' : property.status === 'for_rent' || property.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
                   </div>
                 </div>
@@ -191,51 +218,80 @@ const ExclusiveUnits = () => {
                     {property.title || property.name}
                   </h3>
 
-                  {/* Location under title */}
-                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-2 min-w-0">
-                    <SlLocationPin className="h-4 w-4 text-blue-500" />
-                    <span className="truncate" title={property.location || property.address || 'ไม่ระบุที่อยู่'}>
-                      {property.location || property.address || 'ไม่ระบุที่อยู่'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3 mb-4 text-sm">
-                    {/* Row 1: Bed, Bath */}
-                    <div className="grid grid-cols-2 gap-4 text-gray-600">
+                  {/* Property details */}
+                  <div className="space-y-2 mb-4 text-xs text-gray-600">
+                    {/* แถวที่ 1: ห้องนอน | ห้องน้ำ */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center gap-2 whitespace-nowrap">
-                        <IoBedOutline className="h-4 w-4 text-blue-500" />
+                        <IoBedOutline className="h-4 w-4" style={{ color: '#243756' }} />
                         <span className="truncate">ห้องนอน: {property.bedrooms || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2 whitespace-nowrap">
-                        <LuBath className="h-4 w-4 text-blue-500" />
+                        <LuBath className="h-4 w-4" style={{ color: '#243756' }} />
                         <span className="truncate">ห้องน้ำ: {property.bathrooms || 'N/A'}</span>
                       </div>
                     </div>
-                    {/* Row 2: Area, Floor */}
-                    <div className="grid grid-cols-2 gap-4 text-gray-600">
+                    {/* แถวที่ 2: พื้นที่ | ชั้นที่ */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center gap-2 whitespace-nowrap">
-                        <TbViewportWide className="h-4 w-4 text-blue-500" />
+                        <TbViewportWide className="h-4 w-4" style={{ color: '#243756' }} />
                         <span className="truncate">พื้นที่: {property.area ? `${property.area} ตร.ม.` : 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-2 whitespace-nowrap">
-                        <TbStairsUp className="h-4 w-4 text-blue-500" />
+                        <TbStairsUp className="h-4 w-4" style={{ color: '#243756' }} />
                         <span className="truncate">ชั้นที่: {property.floor || 'N/A'}</span>
                       </div>
+                    </div>
+                    {/* แถวที่ 3: โลเคชัน (1 คอลัมน์เต็ม) */}
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                      <SlLocationPin className="h-4 w-4" style={{ color: '#243756' }} />
+                      <span className="truncate" title={property.location || property.address || 'ไม่ระบุที่อยู่'}>
+                        {property.location || property.address || 'ไม่ระบุที่อยู่'}
+                      </span>
                     </div>
                   </div>
 
                   {/* Price and Views */}
                   <div className="mt-auto">
-                    <div className="flex items-center justify-end mb-4">
-                      <div className="text-right">
-                        {property.rent_price > 0 && (
-                          <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.rent_price))}/เดือน</div>
-                        )}
-                        <div className="text-sm text-gray-600 font-medium">{format(convert(property.price))}</div>
-                        <div className="flex items-center justify-end text-xs text-gray-500 mt-1">
-                          <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                          <span>{property.views || 0} ครั้ง</span>
-                        </div>
+                    <div className="flex items-center justify-between mb-4">
+                      {/* ราคาทางซ้าย */}
+                      <div className="text-left">
+                        {/* แสดงราคาตามเงื่อนไข */}
+                        {(() => {
+                          const hasSale = property.price && property.price > 0;
+                          const hasRent = property.rent_price && property.rent_price > 0;
+                          
+                          if (hasSale && hasRent) {
+                            // มีทั้งขายและเช่า
+                            return (
+                              <>
+                                <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.price)}</div>
+                                <div className="text-lg font-semibold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.rent_price)}/เดือน</div>
+                              </>
+                            );
+                          } else if (hasSale && !hasRent) {
+                            // มีแค่ขาย
+                            return (
+                              <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.price)}</div>
+                            );
+                          } else if (!hasSale && hasRent) {
+                            // มีแค่เช่า
+                            return (
+                              <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPriceWithoutDecimal(property.rent_price)}/เดือน</div>
+                            );
+                          } else {
+                            // ไม่มีราคา
+                            return (
+                              <div className="text-lg text-gray-500">ราคาติดต่อ</div>
+                            );
+                          }
+                        })()}
+                      </div>
+                      
+                      {/* จำนวนการเข้าชมทางขวา */}
+                      <div className="flex items-center text-xs text-gray-500">
+                        <EyeIcon className="h-4 w-4 mr-1" style={{ color: '#243756' }} />
+                        <span>{property.views || 0} ครั้ง</span>
                       </div>
                     </div>
 
