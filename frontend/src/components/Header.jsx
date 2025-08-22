@@ -90,12 +90,12 @@ const Header = () => {
                     to={item.href}
                     className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
                       location.pathname === item.href
-                        ? 'text-blue-300 drop-shadow-md'
+                        ? 'text-white drop-shadow-md'
                         : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
                     }`}
                     style={{
                       textShadow: location.pathname === item.href 
-                        ? '2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(147, 197, 253, 0.6)' 
+                        ? '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 255, 255, 0.6)' 
                         : isScrolled 
                           ? '2px 2px 4px rgba(0, 0, 0, 0.6)' 
                           : '2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 6px rgba(0, 0, 0, 0.3)'
@@ -210,7 +210,7 @@ const Header = () => {
                 onClick={() => setIsOpen(false)}
                 className={`block px-4 py-2 rounded-lg font-taviraj text-lg ${
                   location.pathname === item.href
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-white text-gray-900 shadow-md'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >

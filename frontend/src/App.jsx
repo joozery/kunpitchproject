@@ -9,6 +9,8 @@ import ListProperty from './pages/ListProperty'
 import Consult from './pages/Consult'
 import Projects from './pages/Projects'
 import Join from './pages/Join'
+import Buy from './pages/Buy'
+import Rent from './pages/Rent'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './contexts/LanguageContext'
 
@@ -122,6 +124,8 @@ const AppContent = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/buy" element={<Buy />} />
+        <Route path="/rent" element={<Rent />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
         <Route path="/list-property" element={<ListProperty />} />
         <Route path="/consult" element={<Consult />} />
