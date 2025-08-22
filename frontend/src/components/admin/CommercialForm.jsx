@@ -582,7 +582,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
                   { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
-                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                  { value: 'agent', label: 'ตัวแทนพิเศษ (Exclusive Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -615,7 +615,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
                 ))}
               </div>
               <p className="text-sm text-gray-500 mt-2 font-prompt">
-                เลือกสถานะของผู้ประกาศ: เจ้าของโฮมออฟฟิศ หรือ นายหน้าอสังหาริมทรัพย์
+                เลือกสถานะของผู้ประกาศ: เจ้าของโฮมออฟฟิศ หรือ ตัวแทนพิเศษอสังหาริมทรัพย์
               </p>
             </div>
 

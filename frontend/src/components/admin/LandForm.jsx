@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
@@ -37,6 +37,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     location: land?.location || '', // สถานที่
     googleMapUrl: land?.googleMapUrl || '', // Google Map URL
     nearbyTransport: land?.nearbyTransport || '', // BTS/MRT/APL/SRT
+    selectedStations: land?.selectedStations || [], // สถานีรถไฟฟ้าที่เลือก
     
     // ประเภททรัพย์
     propertyType: land?.propertyType || 'land', // ประเภททรัพย์: ที่ดิน/ที่ดินพร้อมสิ่งปลูกสร้าง
@@ -80,6 +81,222 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     { value: 'both', label: 'ขาย/เช่า', icon: Landmark }
   ]
 
+  // State สำหรับการเลือกสถานีรถไฟฟ้า
+  const [selectedFacilities, setSelectedFacilities] = useState([])
+  const [dragActive, setDragActive] = useState(false)
+
+  // State สำหรับการค้นหาสถานี
+  const [stationSearchTerm, setStationSearchTerm] = useState('');
+  const [showStationDropdown, setShowStationDropdown] = useState(false);
+
+  // ข้อมูลสถานีรถไฟฟ้า
+  const btsStations = [
+    { id: 'kheha', name: 'BTS Kheha (เคหะฯ)', line: 'BTS' },
+    { id: 'phraek_sa', name: 'BTS Phraek Sa (แพรกษา)', line: 'BTS' },
+    { id: 'sai_luat', name: 'BTS Sai Luat (สายลวด)', line: 'BTS' },
+    { id: 'erawan_museum', name: 'BTS Erawan Museum (พิพิธภัณฑ์ช้างสามเศียร)', line: 'BTS' },
+    { id: 'pu_chao', name: 'BTS Pu Chao (ปู่เจ้า)', line: 'BTS' },
+    { id: 'samrong', name: 'BTS Samrong (สำโรง)', line: 'BTS' },
+    { id: 'bearing', name: 'BTS Bearing (แบริ่ง)', line: 'BTS' },
+    { id: 'udom_suk', name: 'BTS Udom Suk (อุดมสุข)', line: 'BTS' },
+    { id: 'bang_na', name: 'BTS Bang Na (บางนา)', line: 'BTS' },
+    { id: 'punnawithi', name: 'BTS Punnawithi (ปุณณวิถี)', line: 'BTS' },
+    { id: 'bang_chak', name: 'BTS Bang Chak (บางจาก)', line: 'BTS' },
+    { id: 'on_nut', name: 'BTS On Nut (อ่อนนุช)', line: 'BTS' },
+    { id: 'phra_khanong', name: 'BTS Phra Khanong (พระโขนง)', line: 'BTS' },
+    { id: 'ekkamai', name: 'BTS Ekkamai (เอกมัย)', line: 'BTS' },
+    { id: 'thong_lor', name: 'BTS Thong Lo (ทองหล่อ)', line: 'BTS' },
+    { id: 'phrom_phong', name: 'BTS Phrom Phong (พร้อมพงษ์)', line: 'BTS' },
+    { id: 'asok', name: 'BTS Asok (อโศก)', line: 'BTS' },
+    { id: 'nana', name: 'BTS Nana (นานา)', line: 'BTS' },
+    { id: 'phloen_chit', name: 'BTS Phloen Chit (เพลินจิต)', line: 'BTS' },
+    { id: 'chit_lom', name: 'BTS Chit Lom (ชิดลม)', line: 'BTS' },
+    { id: 'siam', name: 'BTS Siam (สยาม)', line: 'BTS' },
+    { id: 'ratchathewi', name: 'BTS Ratchathewi (ราชเทวี)', line: 'BTS' },
+    { id: 'phaya_thai', name: 'BTS Phaya Thai (พญาไท)', line: 'BTS' },
+    { id: 'victory_monument', name: 'BTS Victory Monument (อนุสาวรีย์ชัยสมรภูมิ)', line: 'BTS' },
+    { id: 'sanam_pao', name: 'BTS Sanam Pao (สนามเป้า)', line: 'BTS' },
+    { id: 'ari', name: 'BTS Ari (อารีย์)', line: 'BTS' },
+    { id: 'saphan_khwai', name: 'BTS Saphan Khwai (สะพานควาย)', line: 'BTS' },
+    { id: 'mo_chit', name: 'BTS Mo Chit (หมอชิต)', line: 'BTS' },
+    { id: 'ha_yaek_lat_phrao', name: 'BTS Ha Yaek Lat Phrao (ห้าแยกลาดพร้าว)', line: 'BTS' },
+    { id: 'phahon_yothin_24', name: 'BTS Phahon Yothin 24 (พหลโยธิน 24)', line: 'BTS' },
+    { id: 'ratchayothin', name: 'BTS Ratchayothin (รัชโยธิน)', line: 'BTS' },
+    { id: 'sena_nikhom', name: 'BTS Sena Nikhom (เสนานิคม)', line: 'BTS' },
+    { id: 'kasetsart_university', name: 'BTS Kasetsart University (มหาวิทยาลัยเกษตรศาสตร์)', line: 'BTS' },
+    { id: 'royal_forest_department', name: 'BTS Royal Forest Department (กรมป่าไม้)', line: 'BTS' },
+    { id: 'bang_bua', name: 'BTS Bang Bua (บางบัว)', line: 'BTS' },
+    { id: '11th_infantry_regiment', name: 'BTS 11th Infantry Regiment (กรมทหารราบที่ 11)', line: 'BTS' },
+    { id: 'wat_phra_sri_mahathat', name: 'BTS Wat Phra Sri Mahathat (วัดพระศรีมหาธาตุ)', line: 'BTS' },
+    { id: 'phahon_yothin_59', name: 'BTS Phahon Yothin 59 (พหลโยธิน 59)', line: 'BTS' },
+    { id: 'sai_yud', name: 'BTS Sai Yud (สายหยุด)', line: 'BTS' },
+    { id: 'saphan_mai', name: 'BTS Saphan Mai (สะพานใหม่)', line: 'BTS' },
+    { id: 'bhumibol_adulyadej_hospital', name: 'BTS Bhumibol Adulyadej Hospital (โรงพยาบาลภูมิพลอดุลยเดช)', line: 'BTS' },
+    { id: 'royal_thai_air_force_museum', name: 'BTS Royal Thai Air Force Museum (พิพิธภัณฑ์กองทัพอากาศ)', line: 'BTS' },
+    { id: 'yaek_kor_por_or', name: 'BTS Yaek Kor Por Or (แยก คปอ.)', line: 'BTS' },
+    { id: 'khu_khot', name: 'BTS Khu Khot (คูคต)', line: 'BTS' },
+    { id: 'national_stadium', name: 'BTS National Stadium (สนามกีฬาแห่งชาติ)', line: 'BTS' },
+    { id: 'ratchadamri', name: 'BTS Ratchadamri (ราชดำริ)', line: 'BTS' },
+    { id: 'sala_daeng', name: 'BTS Sala Daeng (ศาลาแดง)', line: 'BTS' },
+    { id: 'chong_nonsi', name: 'BTS Chong Nonsi (ช่องนนทรี)', line: 'BTS' },
+    { id: 'surasak', name: 'BTS Surasak (สุรศักดิ์)', line: 'BTS' },
+    { id: 'saphan_taksin', name: 'BTS Saphan Taksin (สะพานตากสิน)', line: 'BTS' },
+    { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
+    { id: 'wongwian_yai', name: 'BTS Wongwian Yai (วงเวียนใหญ่)', line: 'BTS' },
+    { id: 'pho_nimit', name: 'BTS Pho Nimit (โพธิ์นิมิตร)', line: 'BTS' },
+    { id: 'talat_phlu', name: 'BTS Talat Phlu (ตลาดพลู)', line: 'BTS' },
+    { id: 'wutthakat', name: 'BTS Wutthakat (วุฒากาศ)', line: 'BTS' },
+    { id: 'bang_wa', name: 'BTS Bang Wa (บางหว้า)', line: 'BTS' }
+  ];
+
+  const mrtStations = [
+    { id: 'tha_phra', name: 'MRT Tha Phra (ท่าพระ)', line: 'MRT' },
+    { id: 'charan_13', name: 'MRT Charan 13 (จรัญฯ 13)', line: 'MRT' },
+    { id: 'fai_chai', name: 'MRT Fai Chai (ไฟฉาย)', line: 'MRT' },
+    { id: 'bang_khun_non', name: 'MRT Bang Khun Non (บางขุนนนท์)', line: 'MRT' },
+    { id: 'bang_yi_khan', name: 'MRT Bang Yi Khan (บางยี่ขัน)', line: 'MRT' },
+    { id: 'sirindhorn', name: 'MRT Sirindhorn (สิรินธร)', line: 'MRT' },
+    { id: 'bang_phlat', name: 'MRT Bang Phlat (บางพลัด)', line: 'MRT' },
+    { id: 'bang_o', name: 'MRT Bang O (บางอ้อ)', line: 'MRT' },
+    { id: 'bang_pho', name: 'MRT Bang Pho (บางโพ)', line: 'MRT' },
+    { id: 'tao_pun', name: 'MRT Tao Pun (เตาปูน)', line: 'MRT' },
+    { id: 'bang_sue', name: 'MRT Bang Sue (บางซื่อ)', line: 'MRT' },
+    { id: 'kamphaeng_phet', name: 'MRT Kamphaeng Phet (กำแพงเพชร)', line: 'MRT' },
+    { id: 'chatuchak_park', name: 'MRT Chatuchak Park (สวนจตุจักร)', line: 'MRT' },
+    { id: 'phahon_yothin', name: 'MRT Phahon Yothin (พหลโยธิน)', line: 'MRT' },
+    { id: 'lat_phrao', name: 'MRT Lat Phrao (ลาดพร้าว)', line: 'MRT' },
+    { id: 'ratchadaphisek', name: 'MRT Ratchadaphisek (รัชดาภิเษก)', line: 'MRT' },
+    { id: 'sutthisan', name: 'MRT Sutthisan (สุทธิสาร)', line: 'MRT' },
+    { id: 'huai_kwang', name: 'MRT Huai Khwang (ห้วยขวาง)', line: 'MRT' },
+    { id: 'thailand_cultural_centre', name: 'MRT Thailand Cultural Centre (ศูนย์วัฒนธรรมแห่งประเทศไทย)', line: 'MRT' },
+    { id: 'phra_ram_9', name: 'MRT Phra Ram 9 (พระราม 9)', line: 'MRT' },
+    { id: 'phetchaburi', name: 'MRT Phetchaburi (เพชรบุรี)', line: 'MRT' },
+    { id: 'sukhumvit', name: 'MRT Sukhumvit (สุขุมวิท)', line: 'MRT' },
+    { id: 'queen_sirikit_national_convention_centre', name: 'MRT Queen Sirikit National Convention Centre (ศูนย์การประชุมแห่งชาติสิริกิติ์)', line: 'MRT' },
+    { id: 'khlong_toei', name: 'MRT Khlong Toei (คลองเตย)', line: 'MRT' },
+    { id: 'lumphini', name: 'MRT Lumphini (ลุมพินี)', line: 'MRT' },
+    { id: 'silom', name: 'MRT Silom (สีลม)', line: 'MRT' },
+    { id: 'sam_yan', name: 'MRT Sam Yan (สามย่าน)', line: 'MRT' },
+    { id: 'hua_lamphong', name: 'MRT Hua Lamphong (หัวลำโพง)', line: 'MRT' },
+    { id: 'wat_mangkon', name: 'MRT Wat Mangkon (วัดมังกร)', line: 'MRT' },
+    { id: 'sam_yot', name: 'MRT Sam Yot (สามยอด)', line: 'MRT' },
+    { id: 'sanam_chai', name: 'MRT Sanam Chai (สนามไชย)', line: 'MRT' },
+    { id: 'itsaraphap', name: 'MRT Itsaraphap (อิสรภาพ)', line: 'MRT' },
+    { id: 'phetkasem_48', name: 'MRT Phetkasem 48 (เพชรเกษม 48)', line: 'MRT' },
+    { id: 'phasi_charoen', name: 'MRT Phasi Charoen (ภาษีเจริญ)', line: 'MRT' },
+    { id: 'bang_khae', name: 'MRT Bang Khae (บางแค)', line: 'MRT' },
+    { id: 'lak_song', name: 'MRT Lak Song (หลักสอง)', line: 'MRT' },
+    { id: 'khlong_bang_phai', name: 'MRT Khlong Bang Phai (คลองบางไผ่)', line: 'MRT' },
+    { id: 'talad_bang_yai', name: 'MRT Talad Bang Yai (ตลาดบางใหญ่)', line: 'MRT' },
+    { id: 'sam_yaek_bang_yai', name: 'MRT Sam Yaek Bang Yai (สามแยกบางใหญ่)', line: 'MRT' },
+    { id: 'bang_phlu', name: 'MRT Bang Phlu (บางพลู)', line: 'MRT' },
+    { id: 'bang_rak_yai', name: 'MRT Bang Rak Yai (บางรักใหญ่)', line: 'MRT' },
+    { id: 'bang_rak_noi_tha_it', name: 'MRT Bang Rak Noi-Tha It (บางรักน้อย-ท่าอิฐ)', line: 'MRT' },
+    { id: 'sai_ma', name: 'MRT Sai Ma (ไทรม้า)', line: 'MRT' },
+    { id: 'phra_nang_klao_bridge', name: 'MRT Phra Nang Klao Bridge (สะพานพระนั่งเกล้า)', line: 'MRT' },
+    { id: 'yaek_nonthaburi_1', name: 'MRT Yaek Nonthaburi 1 (แยกนนทบุรี 1)', line: 'MRT' },
+    { id: 'bang_kraso', name: 'MRT Bang Kraso (บางกระสอ)', line: 'MRT' },
+    { id: 'nonthaburi_civic_centre', name: 'MRT Nonthaburi Civic Centre (ศูนย์ราชการนนทบุรี)', line: 'MRT' },
+    { id: 'ministry_of_public_health', name: 'MRT Ministry of Public Health (กระทรวงสาธารณสุข)', line: 'MRT' },
+    { id: 'yaek_tiwanon', name: 'MRT Yaek Tiwanon (แยกติวานนท์)', line: 'MRT' },
+    { id: 'wong_sawang', name: 'MRT Wong Sawang (วงศ์สว่าง)', line: 'MRT' },
+    { id: 'bang_son', name: 'MRT Bang Son (บางซ่อน)', line: 'MRT' },
+    { id: 'parliament_house', name: 'MRT Parliament House (รัฐสภา)', line: 'MRT' },
+    { id: 'sri_yan', name: 'MRT Sri Yan (ศรีย่าน)', line: 'MRT' },
+    { id: 'vachiraphayaban', name: 'MRT Vachiraphayaban (วชิรพยาบาล)', line: 'MRT' },
+    { id: 'national_library', name: 'MRT National Library (หอสมุดแห่งชาติ)', line: 'MRT' },
+    { id: 'bang_khun_phrom', name: 'MRT Bang Khun Phrom (บางขุนพรหม)', line: 'MRT' },
+    { id: 'democracy_monument', name: 'MRT Democracy Monument (อนุสาวรีย์ประชาธิปไตย)', line: 'MRT' },
+    { id: 'saphan_phut', name: 'MRT Saphan Phut (สะพานพุทธฯ)', line: 'MRT' },
+    { id: 'sao_ching_cha', name: 'MRT Sao Ching Cha (เสาชิงช้า)', line: 'MRT' },
+    { id: 'wat_pho', name: 'MRT Wat Pho (วัดโพธิ์)', line: 'MRT' },
+    { id: 'dao_khanong', name: 'MRT Dao Khanong (ดาวคะนอง)', line: 'MRT' },
+    { id: 'bang_pakaeo', name: 'MRT Bang Pakaeo (บางปะแก้ว)', line: 'MRT' },
+    { id: 'bang_pakok', name: 'MRT Bang Pakok (บางปะกอก)', line: 'MRT' },
+    { id: 'yaek_pracha_uthit', name: 'MRT Yaek Pracha Uthit (แยกประชาอุทิศ)', line: 'MRT' },
+    { id: 'rat_burana', name: 'MRT Rat Burana (ราษฎร์บูรณะ)', line: 'MRT' }
+  ];
+
+  const arlStations = [
+    { id: 'phaya_thai', name: 'ARL Phaya Thai (พญาไท)', line: 'ARL' },
+    { id: 'ratchaprarop', name: 'ARL Ratchaprarop (ราชปรารภ)', line: 'ARL' },
+    { id: 'makkasan', name: 'ARL Makkasan (มักกะสัน)', line: 'ARL' },
+    { id: 'ramkhamhaeng', name: 'ARL Ramkhamhaeng (รามคำแหง)', line: 'ARL' },
+    { id: 'huamark', name: 'ARL Huamark (หัวหมาก)', line: 'ARL' },
+    { id: 'ban_thap_chang', name: 'ARL Ban Thap Chang (บ้านทับช้าง)', line: 'ARL' },
+    { id: 'lat_krabang', name: 'ARL Lat Krabang (ลาดกระบัง)', line: 'ARL' },
+    { id: 'suvarnabhumi', name: 'ARL Suvarnabhumi (สุวรรณภูมิ)', line: 'ARL' }
+  ];
+
+  const srtStations = [
+    { id: 'bang_sue_srt', name: 'SRT Bang Sue (บางซื่อ)', line: 'SRT' },
+    { id: 'bang_son', name: 'SRT Bang Son (บางซอน)', line: 'SRT' },
+    { id: 'bang_phlat', name: 'SRT Bang Phlat (บางพลัด)', line: 'SRT' },
+    { id: 'bang_oi', name: 'SRT Bang Oi (บางอ้อ)', line: 'SRT' },
+    { id: 'bang_yi_khan', name: 'SRT Bang Yi Khan (บางยี่ขัน)', line: 'SRT' },
+    { id: 'bang_kruai', name: 'SRT Bang Kruai (บางกรวย)', line: 'SRT' },
+    { id: 'bang_yai', name: 'SRT Bang Yai (บางใหญ่)', line: 'SRT' },
+    { id: 'bang_phai', name: 'SRT Bang Phai (บางไผ่)', line: 'SRT' },
+    { id: 'bang_rakam', name: 'SRT Bang Rakam (บางระกำ)', line: 'SRT' },
+    { id: 'bang_rak_noi', name: 'SRT Bang Rak Noi (บางรักน้อย)', line: 'SRT' }
+  ];
+
+  // ฟังก์ชันจัดการการเลือกสถานี
+  const handleStationToggle = (stationId) => {
+    setFormData(prev => {
+      const currentStations = prev.selectedStations && Array.isArray(prev.selectedStations) ? prev.selectedStations : [];
+      
+      if (currentStations.includes(stationId)) {
+        return {
+          ...prev,
+          selectedStations: currentStations.filter(id => id !== stationId)
+        };
+      } else {
+        return {
+          ...prev,
+          selectedStations: [...currentStations, stationId]
+        };
+      }
+    });
+  };
+
+  // ฟังก์ชันตรวจสอบสถานีที่เลือก
+  const isStationSelected = (stationId) => {
+    return formData.selectedStations && Array.isArray(formData.selectedStations) && formData.selectedStations.includes(stationId);
+  };
+
+  // ฟังก์ชันกรองสถานีตามคำค้นหา
+  const filteredStations = () => {
+    const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
+    if (!stationSearchTerm) return allStations;
+    
+    return allStations.filter(station => 
+      station.name.toLowerCase().includes(stationSearchTerm.toLowerCase()) ||
+      station.line.toLowerCase().includes(stationSearchTerm.toLowerCase())
+    );
+  };
+
+  // ฟังก์ชันเลือกสถานีจาก dropdown
+  const handleStationSelect = (station) => {
+    handleStationToggle(station.id);
+    setStationSearchTerm('');
+    setShowStationDropdown(false);
+  };
+
+  // ฟังก์ชันปิด dropdown เมื่อคลิกนอกช่องค้นหา
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.station-search-container')) {
+        setShowStationDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   React.useEffect(() => {
     if (isEditing && land) {
@@ -97,6 +314,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
         location: land.location || '',
         googleMapUrl: land.google_map_url || '',
         nearbyTransport: land.nearby_transport || '',
+        selectedStations: land.selected_stations || [], // เพิ่มสถานีที่เลือก
         propertyType: land.property_type || 'land',
         listingType: land.listing_type || 'sale',
         description: land.description || '',
@@ -443,6 +661,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
         location: formData.location,
         google_map_url: formData.googleMapUrl,
         nearby_transport: formData.nearbyTransport,
+        selected_stations: formData.selectedStations, // เพิ่มสถานีที่เลือก
         listing_type: formData.listingType,
         description: payload.description,
         area: payload.area,
@@ -575,7 +794,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
                   { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
-                  { value: 'agent', label: 'นายหน้า (Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
+                  { value: 'agent', label: 'ตัวแทนพิเศษ (Exclusive Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -608,7 +827,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
                 ))}
               </div>
               <p className="text-sm text-gray-500 mt-2 font-prompt">
-                เลือกสถานะของผู้ประกาศ: เจ้าของที่ดิน หรือ นายหน้าอสังหาริมทรัพย์
+                เลือกสถานะของผู้ประกาศ: เจ้าของที่ดิน หรือ ตัวแทนพิเศษอสังหาริมทรัพย์
               </p>
             </div>
 
@@ -815,14 +1034,116 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
             {/* ขนส่งใกล้เคียง */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                โลเคชั่น BTS MRT APL SRT :
+                โลเคชั่น BTS MRT ARL SRT :
               </label>
-              <Input
-                value={formData.nearbyTransport}
-                onChange={(e) => handleInputChange('nearbyTransport', e.target.value)}
-                placeholder="เช่น BTS รามคำแหง 500 ม., MRT ห้วยขวาง 1 กม."
-              />
-              <p className="text-sm text-gray-500 mt-1">ระบุระยะทางและชื่อสถานีขนส่งสาธารณะใกล้เคียง</p>
+              
+              {/* ช่องค้นหาสถานี */}
+              <div className="relative station-search-container">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={stationSearchTerm}
+                    onChange={(e) => {
+                      setStationSearchTerm(e.target.value);
+                      setShowStationDropdown(true);
+                    }}
+                    onFocus={() => setShowStationDropdown(true)}
+                    placeholder="ค้นหาสถานีรถไฟฟ้า เช่น อโศก, สุขุมวิท, MRT..."
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Dropdown ผลการค้นหา */}
+                {showStationDropdown && (stationSearchTerm || filteredStations().length > 0) && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredStations().length > 0 ? (
+                      <div className="py-2">
+                        {filteredStations().map((station) => (
+                          <button
+                            key={station.id}
+                            type="button"
+                            onClick={() => handleStationSelect(station)}
+                            className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${
+                              isStationSelected(station.id) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-medium">{station.name}</div>
+                              <div className="text-sm text-gray-500">{station.line}</div>
+                            </div>
+                            {isStationSelected(station.id) && (
+                              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500 text-center">
+                        ไม่พบสถานีที่ค้นหา
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* แสดงสถานีที่เลือก */}
+              {formData.selectedStations && formData.selectedStations.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-blue-700">
+                      สถานีที่เลือก ({formData.selectedStations.length} สถานี)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, selectedStations: [] }));
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      ลบทั้งหมด
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.selectedStations.map((stationId) => {
+                      const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
+                      const station = allStations.find(s => s.id === stationId);
+                      return station ? (
+                        <span
+                          key={stationId}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {station.name}
+                          <button
+                            type="button"
+                            onClick={() => handleStationToggle(stationId)}
+                            className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* คำแนะนำ */}
+              <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
+                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>พิมพ์ชื่อสถานีหรือสายรถไฟฟ้าเพื่อค้นหา เช่น "อโศก", "BTS", "MRT"</span>
+              </div>
             </div>
           </div>
         </Card>
@@ -845,6 +1166,198 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
               rows={5}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+        </Card>
+
+        {/* รูปภาพ */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <Camera className="h-6 w-6 mr-3 text-blue-600" />
+            รูปภาพ
+          </h2>
+          
+          {/* รูปภาพหน้าปก */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium mb-4 font-prompt flex items-center">
+              <Camera className="h-5 w-5 mr-2 text-blue-500" />
+              รูปภาพหน้าปก
+            </h3>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors">
+              {coverImage ? (
+                <div className="relative">
+                  <img
+                    src={coverImage.preview}
+                    alt="Cover"
+                    className="w-full h-64 object-cover rounded-lg shadow-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(coverImage.id, true)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors duration-200 shadow-lg"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer block text-center hover:bg-gray-50 rounded-lg p-4 transition-colors">
+                  <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <span className="text-gray-600 font-prompt font-medium">คลิกเพื่อเลือกรูปภาพหน้าปก</span>
+                  <p className="text-sm text-gray-500 mt-2">รองรับไฟล์ JPG, PNG, WebP</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Multiple Images Upload */}
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              รูปภาพเพิ่มเติม (สูงสุด 100 รูป)
+            </label>
+            
+            {/* Drag & Drop Area */}
+            <div 
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                const files = Array.from(e.dataTransfer.files).filter(file => 
+                  file.type.startsWith('image/')
+                )
+                if (files.length > 0) {
+                  handleMultipleImageUpload(files)
+                }
+              }}
+            >
+              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-600">
+                ลากและวางรูปภาพที่นี่ หรือ
+              </p>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                id="multiple-images"
+                onChange={handleImagesUpload}
+              />
+              <label 
+                htmlFor="multiple-images"
+                className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+              >
+                เลือกรูปภาพ
+              </label>
+            </div>
+
+            {/* Image Preview Grid */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.preview}
+                      alt={`Image ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(image.id, false)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Upload Progress */}
+          {/* {uploadProgress > 0 && ( // Removed as per new_code
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )} */}
+          
+          {/* {images.length > 0 && ( // Removed as per new_code
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('คุณต้องการลบรูปภาพทั้งหมดใช่หรือไม่?')) {
+                    setImages([])
+                  }
+                }}
+                className="text-red-600 hover:text-red-700 font-prompt text-sm transition-colors"
+              >
+                ลบทั้งหมด
+              </button>
+            </div>
+          )} */}
+          
+          {/* {uploadProgress > 0 && ( // Removed as per new_code
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )} */}
+          
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 font-prompt">
+              <span className="font-medium">💡 คำแนะนำ:</span> รูปภาพหน้าปกจะแสดงเป็นรูปหลักในรายการ 
+              รูปภาพเพิ่มเติมจะแสดงในแกลลอรี่ของประกาศ สามารถอัปโหลดได้สูงสุด 100 รูป
+            </p>
+          </div>
+        </Card>
+
+        {/* SEO Tag และ YouTube */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
+            <Search className="h-6 w-6 mr-3 text-blue-600" />
+            SEO Tag และ YouTube
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* SEO Tag */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
+                SEO Tag
+              </label>
+              <Input
+                value={formData.seoTags}
+                onChange={(e) => handleInputChange('seoTags', e.target.value)}
+                placeholder="เช่น ที่ดิน, รามคำแหง, ลุมพินี, ขาย, เช่า"
+              />
+              <p className="text-sm text-gray-500 mt-1">ช่องให้กรอก tag สำหรับ SEO (แยกแท็กด้วยเครื่องหมายจุลภาค)</p>
+            </div>
+
+            {/* ลิงก์ YouTube */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt flex items-center">
+                <svg className="h-5 w-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                ลิงก์ YouTube
+              </label>
+              <Input
+                value={formData.youtubeUrl}
+                onChange={(e) => handleInputChange('youtubeUrl', e.target.value)}
+                placeholder="เช่น https://www.youtube.com/watch?v=..."
+                className="focus:ring-red-500 focus:border-red-500"
+              />
+              <p className="text-sm text-gray-500 mt-1">ลิงก์วิดีโอ YouTube สำหรับแสดงในหน้ารายละเอียด</p>
+            </div>
           </div>
         </Card>
 
@@ -1048,199 +1561,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
           </div>
         </Card>
 
-        {/* SEO Tag และ YouTube */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
-            <Search className="h-6 w-6 mr-3 text-blue-600" />
-            SEO Tag และ YouTube
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* SEO Tag */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                SEO Tag
-              </label>
-              <Input
-                value={formData.seoTags}
-                onChange={(e) => handleInputChange('seoTags', e.target.value)}
-                placeholder="เช่น ที่ดิน, รามคำแหง, ลุมพินี, ขาย, เช่า"
-              />
-              <p className="text-sm text-gray-500 mt-1">ช่องให้กรอก tag สำหรับ SEO (แยกแท็กด้วยเครื่องหมายจุลภาค)</p>
-            </div>
 
-            {/* ลิงก์ YouTube */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt flex items-center">
-                <svg className="h-5 w-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                ลิงก์ YouTube
-              </label>
-              <Input
-                value={formData.youtubeUrl}
-                onChange={(e) => handleInputChange('youtubeUrl', e.target.value)}
-                placeholder="เช่น https://www.youtube.com/watch?v=..."
-                className="focus:ring-red-500 focus:border-red-500"
-              />
-              <p className="text-sm text-gray-500 mt-1">ลิงก์วิดีโอ YouTube สำหรับแสดงในหน้ารายละเอียด</p>
-            </div>
-          </div>
-        </Card>
-
-
-
-        {/* รูปภาพ */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-6 font-prompt flex items-center">
-            <Camera className="h-6 w-6 mr-3 text-blue-600" />
-            รูปภาพ
-          </h2>
-          
-          {/* รูปภาพหน้าปก */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium mb-4 font-prompt flex items-center">
-              <Camera className="h-5 w-5 mr-2 text-blue-500" />
-              รูปภาพหน้าปก
-            </h3>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors">
-              {coverImage ? (
-                <div className="relative">
-                  <img
-                    src={coverImage.preview}
-                    alt="Cover"
-                    className="w-full h-64 object-cover rounded-lg shadow-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(coverImage.id, true)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors duration-200 shadow-lg"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              ) : (
-                <label className="cursor-pointer block text-center hover:bg-gray-50 rounded-lg p-4 transition-colors">
-                  <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <span className="text-gray-600 font-prompt font-medium">คลิกเพื่อเลือกรูปภาพหน้าปก</span>
-                  <p className="text-sm text-gray-500 mt-2">รองรับไฟล์ JPG, PNG, WebP</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-
-          {/* Multiple Images Upload */}
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              รูปภาพเพิ่มเติม (สูงสุด 100 รูป)
-            </label>
-            
-            {/* Drag & Drop Area */}
-            <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault()
-                const files = Array.from(e.dataTransfer.files).filter(file => 
-                  file.type.startsWith('image/')
-                )
-                if (files.length > 0) {
-                  handleMultipleImageUpload(files)
-                }
-              }}
-            >
-              <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
-                ลากและวางรูปภาพที่นี่ หรือ
-              </p>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                id="multiple-images"
-                onChange={handleImagesUpload}
-              />
-              <label 
-                htmlFor="multiple-images"
-                className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
-              >
-                เลือกรูปภาพ
-              </label>
-            </div>
-
-            {/* Image Preview Grid */}
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={image.id} className="relative group">
-                    <img
-                      src={image.preview}
-                      alt={`Image ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(image.id, false)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Upload Progress */}
-          {/* {uploadProgress > 0 && ( // Removed as per new_code
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-          )} */}
-          
-          {/* {images.length > 0 && ( // Removed as per new_code
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm('คุณต้องการลบรูปภาพทั้งหมดใช่หรือไม่?')) {
-                    setImages([])
-                  }
-                }}
-                className="text-red-600 hover:text-red-700 font-prompt text-sm transition-colors"
-              >
-                ลบทั้งหมด
-              </button>
-            </div>
-          )} */}
-          
-          {/* {uploadProgress > 0 && ( // Removed as per new_code
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-          )} */}
-          
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 font-prompt">
-              <span className="font-medium">💡 คำแนะนำ:</span> รูปภาพหน้าปกจะแสดงเป็นรูปหลักในรายการ 
-              รูปภาพเพิ่มเติมจะแสดงในแกลลอรี่ของประกาศ สามารถอัปโหลดได้สูงสุด 100 รูป
-            </p>
-          </div>
-        </Card>
 
         {/* Submit Buttons */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
