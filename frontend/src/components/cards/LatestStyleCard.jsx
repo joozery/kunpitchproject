@@ -64,7 +64,7 @@ const LatestStyleCard = ({ property, type = 'condo', onClick }) => {
     >
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
 
-      <div className="relative overflow-hidden h-52 flex-shrink-0">
+      <div className="relative overflow-hidden h-44 sm:h-52 flex-shrink-0">
         <img
           src={getPropertyImage(property)}
           alt={property.title || property.name}

@@ -1,6 +1,7 @@
+import axios from 'axios';
 // Banner API functions for managing banner slides and settings
 // Use a dedicated env for banner backend; fallback to the working Heroku backend
-const API_BASE_URL = import.meta.env.VITE_BANNER_API_URL || 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api'
+const API_BASE_URL = import.meta.env.VITE_BANNER_API_URL || 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api'
 
 export const bannerApi = {
   // Get all slides

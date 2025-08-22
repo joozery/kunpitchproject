@@ -810,7 +810,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     const checkInitialApiStatus = async () => {
       try {
         setApiStatus('checking')
-        const response = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/health', {
+        const response = await fetch('https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api/health', {
           method: 'GET',
           timeout: 10000
         })
@@ -1397,7 +1397,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               onClick={async () => {
                 try {
                   setApiStatus('checking')
-                  const response = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/health', {
+                  const response = await fetch('https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api/health', {
                     timeout: 10000
                   })
                   setApiStatus(response.ok ? 'online' : 'offline')
@@ -2569,7 +2569,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                     try {
                       console.log('🧪 ทดสอบ Upload API...')
                       setApiStatus('checking')
-                      const testResponse = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/upload/test', {
+                      const testResponse = await fetch('https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api/upload/test', {
                         method: 'GET',
                         timeout: 10000
                       })
@@ -2614,7 +2614,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                   onClick={async () => {
                     try {
                       console.log('☁️ ทดสอบ Cloudinary...')
-                      const testResponse = await fetch('https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/health/cloudinary', {
+                      const testResponse = await fetch('https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/health/cloudinary', {
                         method: 'GET',
                         timeout: 10000
                       })

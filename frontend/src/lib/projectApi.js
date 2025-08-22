@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {

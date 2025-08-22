@@ -605,11 +605,10 @@ const Rent = () => {
       </section>
 
       {/* Properties Grid */}
-      <section className="py-12 relative">
+      <section className="py-8 sm:py-12 relative">
         {/* Section background with overlay */}
         <div className="absolute inset-0 overflow-hidden">
           <img src={sectionBg} alt="section-bg" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.06 }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Results Header */}
@@ -672,7 +671,7 @@ const Rent = () => {
           )}
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center mt-10 gap-2 select-none">
+            <div className="flex items-center justify-center mt-10 gap-2 select-none overflow-x-auto px-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"

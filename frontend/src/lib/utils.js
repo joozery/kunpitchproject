@@ -7,7 +7,7 @@ export function cn(...inputs) {
 
 // Currency helpers
 let cachedFx = { timestamp: 0, base: 'THB', symbolsKey: '', rates: {} }
-const HEROKU_BASE = 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com'
+const HEROKU_BASE = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com'
 const LOCAL_BASE = 'http://localhost:1991'
 
 export async function getFxRates(base = 'THB', symbols = 'USD,EUR,JPY,GBP') {

@@ -439,7 +439,7 @@ const FeaturedPropertiesSection = () => {
   const featuredProperties = properties;
 
   return (
-    <section className="py-16 relative overflow-hidden" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <section className="pt-8 pb-16 relative overflow-hidden" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       {/* Background Overlay */}
       <div className="absolute inset-0 bg-white bg-opacity-30"></div>
       

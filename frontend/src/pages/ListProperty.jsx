@@ -19,6 +19,10 @@ import {
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import PublicPropertyForm from '../components/PublicPropertyForm'
+import CondoForm from '../components/admin/CondoForm'
+import HouseForm from '../components/admin/HouseForm'
+import LandForm from '../components/admin/LandForm'
+import CommercialForm from '../components/admin/CommercialForm'
 
 const ListProperty = () => {
   const navigate = useNavigate()
@@ -270,11 +274,53 @@ const ListProperty = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <PublicPropertyForm
-            propertyType={selectedType}
-            onBack={handleBackToSelection}
-            onSubmit={handleFormSubmit}
-          />
+          {selectedType.id === 'condo' ? (
+            <CondoForm
+              condo={null}
+              isEditing={false}
+              onBack={handleBackToSelection}
+              onSave={() => {
+                alert('ส่งข้อมูลคอนโดเรียบร้อย ทีมงานจะตรวจสอบและเผยแพร่ให้เร็วที่สุด')
+                navigate('/')
+              }}
+            />
+          ) : selectedType.id === 'house' ? (
+            <HouseForm
+              house={null}
+              isEditing={false}
+              onBack={handleBackToSelection}
+              onSave={() => {
+                alert('ส่งข้อมูลบ้าน/ทาวน์เฮ้าส์เรียบร้อย ทีมงานจะตรวจสอบและเผยแพร่ให้เร็วที่สุด')
+                navigate('/')
+              }}
+            />
+          ) : selectedType.id === 'land' ? (
+            <LandForm
+              land={null}
+              isEditing={false}
+              onBack={handleBackToSelection}
+              onSave={() => {
+                alert('ส่งข้อมูลที่ดินเรียบร้อย ทีมงานจะตรวจสอบและเผยแพร่ให้เร็วที่สุด')
+                navigate('/')
+              }}
+            />
+          ) : selectedType.id === 'commercial' ? (
+            <CommercialForm
+              commercial={null}
+              isEditing={false}
+              onBack={handleBackToSelection}
+              onSave={() => {
+                alert('ส่งข้อมูลเชิงพาณิชย์เรียบร้อย ทีมงานจะตรวจสอบและเผยแพร่ให้เร็วที่สุด')
+                navigate('/')
+              }}
+            />
+          ) : (
+            <PublicPropertyForm
+              propertyType={selectedType}
+              onBack={handleBackToSelection}
+              onSubmit={handleFormSubmit}
+            />
+          )}
         </motion.div>
       </div>
     )

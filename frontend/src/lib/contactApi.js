@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
 
 // ตรวจสอบสถานะการเชื่อมต่อ API
 export const checkApiConnection = async () => {

@@ -3,8 +3,8 @@
 # Handle client-side routing
 /*    /index.html   200
 
-# CORS headers for API calls
-/api/*  https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api/:splat  200
+# API redirects
+/api/*  https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api/:splat  200
 
 # Force HTTPS
 http://whalespace.netlify.app/* https://whalespace.netlify.app/:splat 301!

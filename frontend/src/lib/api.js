@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API Configuration - Use production API with HTTPS
-const API_BASE_URL = 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
+const API_BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
 
 // Create axios instance
 const api = axios.create({

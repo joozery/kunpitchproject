@@ -1,9 +1,9 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com';
+const BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com';
 
 async function testRealUpload() {
   console.log('🧪 Testing Real Image Upload...\n');
@@ -29,15 +29,13 @@ async function testRealUpload() {
     });
 
     // Upload the image
-    const uploadResponse = await fetch(`${BASE_URL}/api/upload/single`, {
-      method: 'POST',
-      body: formData,
+    const uploadResponse = await axios.post(`${BASE_URL}/api/upload/single`, formData, {
       headers: formData.getHeaders()
     });
 
-    const uploadData = await uploadResponse.json();
+    const uploadData = uploadResponse.data;
     
-    if (uploadResponse.ok && uploadData.success) {
+    if (uploadResponse.status === 200 && uploadData.success) {
       console.log('✅ Single Image Upload: PASSED');
       console.log(`   Message: ${uploadData.message}`);
       console.log(`   URL: ${uploadData.data.url}`);
@@ -47,13 +45,11 @@ async function testRealUpload() {
       
       // Test deletion
       console.log('\n2. Testing Image Deletion...');
-      const deleteResponse = await fetch(`${BASE_URL}/api/upload/${uploadData.data.public_id}`, {
-        method: 'DELETE'
-      });
+      const deleteResponse = await axios.delete(`${BASE_URL}/api/upload/${uploadData.data.public_id}`);
       
-      const deleteData = await deleteResponse.json();
+      const deleteData = deleteResponse.data;
       
-      if (deleteResponse.ok && deleteData.success) {
+      if (deleteResponse.status === 200 && deleteData.success) {
         console.log('✅ Image Deletion: PASSED');
         console.log(`   Message: ${deleteData.message}`);
       } else {
@@ -73,7 +69,7 @@ async function testRealUpload() {
 
     console.log('\n📊 Test Summary:');
     console.log('================');
-    console.log(`Upload: ${uploadResponse.ok && uploadData.success ? '✅ PASS' : '❌ FAIL'}`);
+    console.log(`Upload: ${uploadResponse.status === 200 && uploadData.success ? '✅ PASS' : '❌ FAIL'}`);
 
   } catch (error) {
     console.error('❌ Test failed with error:', error.message);

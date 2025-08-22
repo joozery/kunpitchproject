@@ -1,7 +1,6 @@
-const API_BASE_URL =
-  import.meta.env.VITE_YOUTUBE_API_URL ||
-  import.meta.env.VITE_API_URL ||
-  'https://backendkunpitch-app-43efa3b2a3ab.herokuapp.com/api';
+import axios from 'axios';
+
+const API_BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
 
 const parseApiJson = async (response) => {
   const json = await response.json();
