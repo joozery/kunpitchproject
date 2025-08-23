@@ -17,7 +17,8 @@ import {
   MessageCircle,
   FolderOpen,
   Image,
-  Youtube
+  Youtube,
+  FileText
 } from 'lucide-react'
 
 const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
@@ -101,6 +102,13 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       description: 'จัดการ YouTube videos ในหน้า home',
       path: '/admin/youtube',
       icon: Youtube
+    },
+    {
+      id: 'articles',
+      title: 'จัดการบทความ',
+      description: 'จัดการบทความและเนื้อหาบล็อก',
+      path: '/admin/articles',
+      icon: FileText
     },
     {
       id: 'settings',

@@ -12,6 +12,7 @@ import BannerSlideManagement from '../components/admin/BannerSlideManagement'
 import ProjectManagement from '../components/admin/ProjectManagement'
 import UserManagement from '../components/admin/UserManagement'
 import YouTubeManagement from '../components/admin/YouTubeManagement'
+import ArticlesManagement from '../components/admin/ArticlesManagement'
 
 // Route configuration for admin pages organized by categories
 export const adminRoutes = [
@@ -167,6 +168,16 @@ export const adminRoutes = [
     breadcrumb: ['ระบบ', 'จัดการ YouTube'],
     icon: 'Youtube',
     component: YouTubeManagement
+  },
+  {
+    path: '/admin/articles',
+    name: 'articles',
+    title: 'จัดการบทความ',
+    description: 'จัดการบทความและเนื้อหาบล็อก',
+    category: 'system',
+    breadcrumb: ['ระบบ', 'จัดการบทความ'],
+    icon: 'FileText',
+    component: ArticlesManagement
   },
   
   {

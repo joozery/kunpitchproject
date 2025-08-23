@@ -24,6 +24,12 @@ export const PERMISSIONS = {
   CONTENT_UPDATE: 'content:update',
   CONTENT_DELETE: 'content:delete',
   
+  // Article Management
+  ARTICLE_CREATE: 'article:create',
+  ARTICLE_READ: 'article:read',
+  ARTICLE_UPDATE: 'article:update',
+  ARTICLE_DELETE: 'article:delete',
+  
   // System Settings
   SETTINGS_READ: 'settings:read',
   SETTINGS_UPDATE: 'settings:update',
@@ -55,6 +61,11 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CONTENT_READ,
     PERMISSIONS.CONTENT_UPDATE,
     
+    // Article Management - Create, Read, Update (no delete)
+    PERMISSIONS.ARTICLE_CREATE,
+    PERMISSIONS.ARTICLE_READ,
+    PERMISSIONS.ARTICLE_UPDATE,
+    
     // Settings - Read only
     PERMISSIONS.SETTINGS_READ,
   ],
@@ -65,6 +76,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.PROPERTY_READ,
     PERMISSIONS.PROJECT_READ,
     PERMISSIONS.CONTENT_READ,
+    PERMISSIONS.ARTICLE_READ,
     PERMISSIONS.SETTINGS_READ,
   ]
 };
