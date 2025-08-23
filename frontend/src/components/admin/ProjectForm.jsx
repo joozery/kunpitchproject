@@ -308,18 +308,35 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   // โหลดข้อมูล project ถ้ามี
   useEffect(() => {
     if (project) {
+      // จัดการ building_type
+      let projectBuildingType = project.building_type;
+      
+      // ตรวจสอบว่า building_type เป็น string (JSON) หรือไม่
+      if (typeof projectBuildingType === 'string') {
+        try {
+          projectBuildingType = JSON.parse(projectBuildingType);
+        } catch (e) {
+          projectBuildingType = [];
+        }
+      }
+      
+      // ตรวจสอบว่า building_type เป็น array หรือไม่
+      if (!Array.isArray(projectBuildingType)) {
+        projectBuildingType = [];
+      }
+      
       setFormData({
         ...project,
         video_review_2: project.video_review_2 || '',
         official_website_2: project.official_website_2 || '',
-        selected_stations: project.selected_stations || [],
-        building_type: project.building_type || [],
+        selected_stations: Array.isArray(project.selected_stations) ? project.selected_stations : [],
+        building_type: projectBuildingType,
         seo_title: project.seo_title || '',
         seo_description: project.seo_description || '',
         seo_keywords: project.seo_keywords || '',
-        project_images: project.project_images || [],
+        project_images: Array.isArray(project.project_images) ? project.project_images : [],
         cover_image: project.cover_image || null,
-        facilities: project.facilities || []
+        facilities: Array.isArray(project.facilities) ? project.facilities : []
       });
       
       // จัดการ facilities
@@ -823,7 +840,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                 </div>
                 
                 {/* แสดงประเภทที่เลือก */}
-                {formData.building_type && formData.building_type.length > 0 && (
+                {formData.building_type && Array.isArray(formData.building_type) && formData.building_type.length > 0 && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm font-medium text-blue-700 mb-2">ประเภทอาคารที่เลือก:</p>
                     <div className="flex flex-wrap gap-2">
