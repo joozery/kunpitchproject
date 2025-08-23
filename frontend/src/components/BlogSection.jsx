@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const BlogSection = () => {
@@ -8,6 +9,19 @@ const BlogSection = () => {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [currentSlide, setCurrentSlide] = useState(0)
   const sliderRef = useRef(null)
+
+  // Function to generate article slug based on title and category
+  const getArticleSlug = (title, category) => {
+    const slugMap = {
+      'Investment': 'investment-tips',
+      'Market Trends': 'market-trends-2025',
+      'Tips': 'staging-tips',
+      'Legal': 'legal-guide',
+      'Design': 'design-inspiration',
+      'Finance': 'finance-guide'
+    }
+    return slugMap[category] || 'investment-tips'
+  }
 
   // Mock blog data - ในอนาคตสามารถเชื่อมต่อกับ API ได้
   useEffect(() => {
@@ -351,10 +365,13 @@ const BlogSection = () => {
                       </div>
 
                       {/* Read More Button */}
-                      <button className="w-full bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center group-hover:from-blue-50 group-hover:to-indigo-50 group-hover:text-blue-600 mt-auto">
+                      <Link 
+                        to={`/articles/${getArticleSlug(blog.title, blog.category)}`}
+                        className="w-full bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center group-hover:from-blue-50 group-hover:to-indigo-50 group-hover:text-blue-600 mt-auto"
+                      >
                         Read More
                         <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </motion.article>
@@ -387,11 +404,14 @@ const BlogSection = () => {
           transition={{ duration: 0.8, delay: 1.0 }}
           className="text-center mt-12"
         >
-          <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30">
+          <Link 
+            to="/articles"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30"
+          >
             <BookOpen className="h-4 w-4" />
             View All Articles
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </Link>
         </motion.div>
       </div>
     </section>

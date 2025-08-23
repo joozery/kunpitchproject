@@ -75,6 +75,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     { id: 'passengerLift', label: 'Passenger Lift', category: 'transport', icon: 'lift' },
     { id: 'shuttleService', label: 'Shuttle Service', category: 'transport', icon: 'shuttle' },
     { id: 'evCharger', label: 'EV Charger', category: 'transport', icon: 'ev-charger' },
+    { id: 'parking', label: 'Parking', category: 'transport', icon: 'parking' },
     
     // Security
     { id: 'security24h', label: '24-hour security with CCTV', category: 'security', icon: 'cctv' },
@@ -261,6 +262,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       'lift': <img src="https://img.icons8.com/dotty/80/elevator-doors.png" alt="Passenger Lift" className="w-5 h-5" />,
       'shuttle': <FaShuttleVan className="w-5 h-5" />,
       'ev-charger': <FaBolt className="w-5 h-5" />,
+      'parking': <FaCar className="w-5 h-5" />,
       
       // Security
       'cctv': <FaVideo className="w-5 h-5" />,
