@@ -308,6 +308,10 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   // โหลดข้อมูล project ถ้ามี
   useEffect(() => {
     if (project) {
+      console.log('🔍 Project data received:', project);
+      console.log('🔍 Building type:', project.building_type, 'Type:', typeof project.building_type);
+      console.log('🔍 Selected stations:', project.selected_stations, 'Type:', typeof project.selected_stations);
+      
       // จัดการ building_type
       let projectBuildingType = project.building_type;
       
@@ -315,21 +319,46 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       if (typeof projectBuildingType === 'string') {
         try {
           projectBuildingType = JSON.parse(projectBuildingType);
+          console.log('✅ Parsed building_type:', projectBuildingType);
         } catch (e) {
-          projectBuildingType = [];
+          console.warn('⚠️ Failed to parse building_type as JSON, treating as single value:', e);
+          // ถ้า parse JSON ไม่ได้ ให้ถือว่าเป็นค่าเดียว
+          projectBuildingType = [projectBuildingType];
         }
       }
       
       // ตรวจสอบว่า building_type เป็น array หรือไม่
       if (!Array.isArray(projectBuildingType)) {
-        projectBuildingType = [];
+        console.warn('⚠️ building_type is not array, converting to array:', projectBuildingType);
+        // ถ้าไม่ใช่ array ให้แปลงเป็น array
+        projectBuildingType = projectBuildingType ? [projectBuildingType] : [];
+      }
+      
+      // จัดการ selected_stations
+      let projectSelectedStations = project.selected_stations;
+      
+      // ตรวจสอบว่า selected_stations เป็น string (JSON) หรือไม่
+      if (typeof projectSelectedStations === 'string') {
+        try {
+          projectSelectedStations = JSON.parse(projectSelectedStations);
+          console.log('✅ Parsed selected_stations:', projectSelectedStations);
+        } catch (e) {
+          console.warn('⚠️ Failed to parse selected_stations:', e);
+          projectSelectedStations = [];
+        }
+      }
+      
+      // ตรวจสอบว่า selected_stations เป็น array หรือไม่
+      if (!Array.isArray(projectSelectedStations)) {
+        console.warn('⚠️ selected_stations is not array:', projectSelectedStations);
+        projectSelectedStations = [];
       }
       
       setFormData({
         ...project,
         video_review_2: project.video_review_2 || '',
         official_website_2: project.official_website_2 || '',
-        selected_stations: Array.isArray(project.selected_stations) ? project.selected_stations : [],
+        selected_stations: projectSelectedStations,
         building_type: projectBuildingType,
         seo_title: project.seo_title || '',
         seo_description: project.seo_description || '',
@@ -337,6 +366,16 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         project_images: Array.isArray(project.project_images) ? project.project_images : [],
         cover_image: project.cover_image || null,
         facilities: Array.isArray(project.facilities) ? project.facilities : []
+      });
+      
+      console.log('✅ Form data set:', {
+        selected_stations: projectSelectedStations,
+        building_type: projectBuildingType,
+        building_type_original: project.building_type,
+        building_type_type: typeof project.building_type,
+        project_type: project.project_type,
+        project_type_type: typeof project.project_type,
+        all_project_data: project
       });
       
       // จัดการ facilities
@@ -414,7 +453,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
   // ฟังก์ชันตรวจสอบสถานีที่เลือก
   const isStationSelected = (stationId) => {
-    return formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.includes(stationId);
+    const isSelected = formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.includes(stationId);
+    console.log(`🔍 Station ${stationId} selected:`, isSelected, 'Available stations:', formData.selected_stations);
+    return isSelected;
   };
 
   // ฟังก์ชันจัดการการเลือกประเภทอาคาร
@@ -438,12 +479,16 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
   // ฟังก์ชันตรวจสอบประเภทอาคารที่เลือก
   const isBuildingTypeSelected = (type) => {
-    return formData.building_type && Array.isArray(formData.building_type) && formData.building_type.includes(type);
+    const isSelected = formData.building_type && Array.isArray(formData.building_type) && formData.building_type.includes(type);
+    console.log(`🔍 Building type ${type} selected:`, isSelected, 'Available types:', formData.building_type);
+    return isSelected;
   };
 
   // ฟังก์ชันตรวจสอบว่าควรแสดงประเภทอาคารหรือไม่
   const shouldShowBuildingType = () => {
-    return formData.project_type === 'คอนโดมิเนียม' || formData.project_type === 'อพาร์ตเมนท์';
+    const shouldShow = formData.project_type === 'คอนโดมิเนียม' || formData.project_type === 'อพาร์ตเมนท์';
+    console.log('🔍 Should show building type:', shouldShow, 'Project type:', formData.project_type, 'Form data:', formData);
+    return shouldShow;
   };
 
   // State สำหรับการค้นหาสถานี

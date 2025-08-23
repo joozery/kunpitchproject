@@ -2,6 +2,20 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { 
+  Eye, 
+  MessageCircle, 
+  ArrowRight, 
+  Calendar, 
+  Clock, 
+  Star,
+  TrendingUp,
+  Lightbulb,
+  Scale,
+  Palette,
+  DollarSign,
+  Building2
+} from 'lucide-react'
 
 const mockArticles = [
   {
@@ -14,7 +28,8 @@ const mockArticles = [
     readTime: '5 min',
     views: 1250,
     comments: 23,
-    author: 'Whale Space Team'
+    author: 'Whale Space Team',
+    featured: true
   },
   {
     id: 'market-trends-2025',
@@ -26,7 +41,8 @@ const mockArticles = [
     readTime: '8 min',
     views: 2100,
     comments: 45,
-    author: 'Market Analyst'
+    author: 'Market Analyst',
+    featured: false
   },
   {
     id: 'staging-tips',
@@ -38,7 +54,8 @@ const mockArticles = [
     readTime: '6 min',
     views: 1800,
     comments: 31,
-    author: 'Property Expert'
+    author: 'Property Expert',
+    featured: false
   },
   {
     id: 'legal-guide',
@@ -50,7 +67,8 @@ const mockArticles = [
     readTime: '7 min',
     views: 950,
     comments: 12,
-    author: 'Legal Expert'
+    author: 'Legal Expert',
+    featured: false
   },
   {
     id: 'design-inspiration',
@@ -62,7 +80,8 @@ const mockArticles = [
     readTime: '4 min',
     views: 1650,
     comments: 28,
-    author: 'Design Specialist'
+    author: 'Design Specialist',
+    featured: false
   },
   {
     id: 'finance-guide',
@@ -74,7 +93,8 @@ const mockArticles = [
     readTime: '9 min',
     views: 2200,
     comments: 56,
-    author: 'Financial Advisor'
+    author: 'Financial Advisor',
+    featured: false
   }
 ]
 
@@ -99,14 +119,40 @@ const Articles = () => {
     return colors[category] || 'bg-gray-500'
   }
 
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Investment': Building2,
+      'Market Trends': TrendingUp,
+      'Tips': Lightbulb,
+      'Legal': Scale,
+      'Design': Palette,
+      'Finance': DollarSign
+    }
+    return icons[category] || Building2
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('th-TH', {
+      day: '2-digit',
+      month: '1-digit',
+      year: 'numeric'
+    }).replace('/', '/')
+  }
+
+  // Get featured article for hero section
+  const featuredArticle = mockArticles.find(article => article.featured)
+  const regularArticles = mockArticles.filter(article => !article.featured)
+
   return (
     <div className="min-h-screen bg-gray-50 font-prompt">
       <Header />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Articles & News</h1>
         
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-12">
           {categories.map((category) => (
             <button
               key={category}
@@ -121,6 +167,53 @@ const Articles = () => {
             </button>
           ))}
         </div>
+
+        {/* Featured Article Hero Section */}
+        {featuredArticle && activeFilter === 'All' && (
+          <div className="mb-16">
+            <div className="relative h-96 rounded-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
+              <img 
+                src={featuredArticle.cover} 
+                alt={featuredArticle.title} 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-8 z-20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                  <span className="text-yellow-400 text-sm font-medium">บทความแนะนำ</span>
+                </div>
+                <h2 className="text-4xl font-bold text-white mb-4 leading-tight max-w-4xl">
+                  {featuredArticle.title}
+                </h2>
+                <p className="text-gray-200 text-lg mb-6 max-w-3xl">
+                  {featuredArticle.excerpt}
+                </p>
+                <div className="flex items-center gap-6 text-gray-300 mb-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>{formatDate(featuredArticle.publishedAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span>{featuredArticle.readTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4" />
+                    <span>{featuredArticle.views.toLocaleString()}</span>
+                  </div>
+                </div>
+                <Link 
+                  to={`/articles/${featuredArticle.id}`}
+                  className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition-colors duration-200"
+                >
+                  อ่านบทความ
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -133,7 +226,8 @@ const Articles = () => {
                   alt={article.title} 
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className={`absolute top-3 left-3 ${getCategoryColor(article.category)} text-white px-3 py-1 rounded-full text-xs font-medium`}>
+                <div className={`absolute top-3 left-3 ${getCategoryColor(article.category)} text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1`}>
+                  {React.createElement(getCategoryIcon(article.category), { className: 'w-3 h-3' })}
                   {article.category}
                 </div>
               </div>
@@ -141,8 +235,14 @@ const Articles = () => {
               <div className="p-6">
                 {/* Date and Read Time */}
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                  <span>{new Date(article.publishedAt).toLocaleDateString('th-TH')}</span>
-                  <span>{article.readTime}</span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(article.publishedAt)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {article.readTime}
+                  </span>
                 </div>
                 
                 {/* Title */}
@@ -159,10 +259,12 @@ const Articles = () => {
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
-                      👁️ {article.views.toLocaleString()}
+                      <Eye className="w-3 h-3" />
+                      {article.views.toLocaleString()}
                     </span>
                     <span className="flex items-center gap-1">
-                      💬 {article.comments}
+                      <MessageCircle className="w-3 h-3" />
+                      {article.comments}
                     </span>
                   </div>
                   <span className="text-blue-600 font-medium">{article.author}</span>
@@ -173,8 +275,8 @@ const Articles = () => {
                   to={`/articles/${article.id}`} 
                   className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200 group-hover:gap-3"
                 >
-                  Read More 
-                  <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                  อ่านเพิ่มเติม
+                  <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </div>
             </article>
@@ -184,12 +286,15 @@ const Articles = () => {
         {/* Empty State */}
         {filteredArticles.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📰</div>
+            <div className="text-gray-400 mb-4">
+              <Building2 className="w-16 h-16 mx-auto" />
+            </div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">ไม่พบบทความในหมวดนี้</h3>
             <p className="text-gray-500">ลองเปลี่ยนตัวกรองหรือกลับไปดูบทความทั้งหมด</p>
           </div>
         )}
       </div>
+      
       <Footer />
     </div>
   )

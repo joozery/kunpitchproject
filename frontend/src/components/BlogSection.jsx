@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, ChevronLeft, ChevronRight, Star, Building2, TrendingUp, Lightbulb, Scale, Palette, DollarSign } from 'lucide-react'
 
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([])
@@ -21,6 +21,19 @@ const BlogSection = () => {
       'Finance': 'finance-guide'
     }
     return slugMap[category] || 'investment-tips'
+  }
+
+  // Function to get category icon
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Investment': Building2,
+      'Market Trends': TrendingUp,
+      'Tips': Lightbulb,
+      'Legal': Scale,
+      'Design': Palette,
+      'Finance': DollarSign
+    }
+    return icons[category] || Building2
   }
 
   // Mock blog data - ในอนาคตสามารถเชื่อมต่อกับ API ได้
@@ -228,7 +241,7 @@ const BlogSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-slate-600 text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            
+            ค้นพบข้อมูลเชิงลึกและข่าวสารล่าสุดเกี่ยวกับตลาดอสังหาริมทรัพย์ไทย
           </motion.p>
         </div>
 
@@ -246,12 +259,13 @@ const BlogSection = () => {
                 setSelectedCategory(category)
                 setCurrentSlide(0)
               }}
-              className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105 ${
+              className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105 flex items-center gap-2 ${
                 selectedCategory === category
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
                   : 'bg-white/80 backdrop-blur-sm text-slate-600 hover:bg-white hover:text-slate-900 shadow-md hover:shadow-lg'
               }`}
             >
+              {category !== 'All' && React.createElement(getCategoryIcon(category), { className: 'h-4 w-4' })}
               {category}
             </button>
           ))}
@@ -310,11 +324,18 @@ const BlogSection = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(blog.category)}`}>
-                          <Tag className="h-3 w-3 inline mr-1" />
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(blog.category)} text-white flex items-center gap-1`}>
+                          {React.createElement(getCategoryIcon(blog.category), { className: 'h-3 w-3' })}
                           {blog.category}
                         </span>
                       </div>
+                      {blog.featured && (
+                        <div className="absolute top-4 right-4">
+                          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                            <Star className="h-4 w-4 text-white fill-current" />
+                          </div>
+                        </div>
+                      )}
                       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center">
                           <ArrowRight className="h-5 w-5 text-slate-700" />
@@ -369,7 +390,7 @@ const BlogSection = () => {
                         to={`/articles/${getArticleSlug(blog.title, blog.category)}`}
                         className="w-full bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center group-hover:from-blue-50 group-hover:to-indigo-50 group-hover:text-blue-600 mt-auto"
                       >
-                        Read More
+                        อ่านเพิ่มเติม
                         <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </div>
@@ -409,7 +430,7 @@ const BlogSection = () => {
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30"
           >
             <BookOpen className="h-4 w-4" />
-            View All Articles
+            ดูบทความทั้งหมด
             <ArrowRight className="h-4 w-4" />
           </Link>
         </motion.div>
