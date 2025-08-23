@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
@@ -252,35 +252,33 @@ const ArticlesManagement = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกหมวดหมู่" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {getCategoryLabel(category)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select 
+                value={categoryFilter} 
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">ทั้งหมด</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {getCategoryLabel(category)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">สถานะ</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกสถานะ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ทั้งหมด</SelectItem>
-                  {statuses.map(status => (
-                    <SelectItem key={status} value={status}>
-                      {getStatusLabel(status)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">ทั้งหมด</option>
+                {statuses.map(status => (
+                  <option key={status} value={status}>
+                    {getStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-end">
               <Button 
@@ -470,22 +468,19 @@ const ArticlesManagement = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       หมวดหมู่ *
                     </label>
-                    <Select 
+                    <select 
                       value={formData.category} 
-                      onValueChange={(value) => setFormData({...formData, category: value})}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
                       required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกหมวดหมู่" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {getCategoryLabel(category)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="">เลือกหมวดหมู่</option>
+                      {categories.map(category => (
+                        <option key={category} value={category}>
+                          {getCategoryLabel(category)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -515,21 +510,17 @@ const ArticlesManagement = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       สถานะ
                     </label>
-                    <Select 
+                    <select 
                       value={formData.status} 
-                      onValueChange={(value) => setFormData({...formData, status: value})}
+                      onChange={(e) => setFormData({...formData, status: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statuses.map(status => (
-                          <SelectItem key={status} value={status}>
-                            {getStatusLabel(status)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {statuses.map(status => (
+                        <option key={status} value={status}>
+                          {getStatusLabel(status)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
