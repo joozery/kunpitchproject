@@ -930,7 +930,7 @@ const ArticleDetail = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="relative h-[60vh] overflow-hidden"
+        className="relative h-[50vh] md:h-[60vh] overflow-hidden"
       >
         <div className="absolute inset-0">
           <img 
@@ -938,60 +938,61 @@ const ArticleDetail = () => {
             alt={article.title} 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         </div>
         
         <div className="relative h-full flex items-end">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12 w-full">
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-4"
             >
               <Link 
                 to="/articles" 
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 transition-colors duration-300 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl"
+                className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors duration-300 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
                 กลับไปบทความทั้งหมด
               </Link>
               
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className={`px-4 py-2 rounded-xl text-sm font-semibold border ${getCategoryColor(article.category)}`}>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(article.category)}`}>
                   {article.category}
                 </span>
-                {article.tags?.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm rounded-lg">
+                {article.tags?.slice(0, 3).map((tag, index) => (
+                  <span key={index} className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
                     #{tag}
                   </span>
                 ))}
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
                 {article.title}
               </h1>
               
               {article.subtitle && (
-                <p className="text-xl md:text-2xl text-white/90 mb-6 leading-relaxed">
+                <p className="text-base md:text-lg lg:text-xl text-white/90 leading-relaxed">
                   {article.subtitle}
                 </p>
               )}
               
-              <div className="flex flex-wrap items-center gap-6 text-white/80">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  <span className="font-medium">{article.author}</span>
+              <div className="flex flex-wrap items-center gap-4 text-white/70 text-sm">
+                <div className="flex items-center gap-1">
+                  <User className="h-4 w-4" />
+                  <span>{article.author}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
                   <span>{formatDate(article.date)}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
                   <span>{article.readTime}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
+                <div className="flex items-center gap-1">
+                  <Eye className="h-4 w-4" />
                   <span>{article.views?.toLocaleString()}</span>
                 </div>
               </div>
@@ -1005,101 +1006,101 @@ const ArticleDetail = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10"
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 md:-mt-16 relative z-10"
       >
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden">
           {/* Action Bar */}
-          <div className="border-b border-gray-100 px-8 py-6">
+          <div className="border-b border-gray-100 px-4 md:px-8 py-4 md:py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl transition-all duration-300 ${
                     isLiked 
-                      ? 'bg-red-50 text-red-600 border-2 border-red-200' 
-                      : 'bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                      ? 'bg-red-50 text-red-600' 
+                      : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-600'
                   }`}
                 >
-                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-                  <span className="font-medium">{likes}</span>
+                  <Heart className={`h-4 w-4 md:h-5 md:w-5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="text-sm md:text-base font-medium">{likes}</span>
                 </button>
                 
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl transition-all duration-300 ${
                     isBookmarked 
-                      ? 'bg-yellow-50 text-yellow-600 border-2 border-yellow-200' 
-                      : 'bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'
+                      ? 'bg-yellow-50 text-yellow-600' 
+                      : 'bg-gray-50 text-gray-600 hover:bg-yellow-50 hover:text-yellow-600'
                   }`}
                 >
-                  <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
-                  <span className="font-medium">บันทึก</span>
+                  <Bookmark className={`h-4 w-4 md:h-5 md:w-5 ${isBookmarked ? 'fill-current' : ''}`} />
+                  <span className="text-sm md:text-base font-medium">บันทึก</span>
                 </button>
               </div>
               
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-all duration-300"
+                  className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl hover:bg-blue-100 transition-all duration-300"
                 >
-                  <Share2 className="h-5 w-5" />
-                  <span className="font-medium">แชร์</span>
+                  <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-sm md:text-base font-medium">แชร์</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Article Body */}
-          <div className="px-8 md:px-12 py-12">
-            <div className="prose prose-lg max-w-none">
+          <div className="px-4 md:px-8 lg:px-12 py-6 md:py-12">
+            <div className="prose prose-sm md:prose-lg max-w-none">
               {article.body.split('\n').map((line, index) => {
                 if (line.startsWith('## ')) {
                   return (
-                    <h2 key={index} className="text-3xl font-bold text-gray-900 mt-12 mb-6 font-prompt border-l-4 border-blue-600 pl-6 bg-blue-50 py-4 rounded-r-xl">
+                    <h2 key={index} className="text-xl md:text-3xl font-bold text-gray-900 mt-8 md:mt-12 mb-4 md:mb-6 font-prompt border-l-4 border-blue-600 pl-4 md:pl-6 bg-blue-50 py-3 md:py-4 rounded-r-lg md:rounded-r-xl">
                       {line.replace('## ', '')}
                     </h2>
                   )
                 } else if (line.startsWith('### ')) {
                   return (
-                    <h3 key={index} className="text-2xl font-semibold text-gray-900 mt-10 mb-4 font-prompt">
+                    <h3 key={index} className="text-lg md:text-2xl font-semibold text-gray-900 mt-6 md:mt-10 mb-3 md:mb-4 font-prompt">
                       {line.replace('### ', '')}
                     </h3>
                   )
                 } else if (line.startsWith('**') && line.endsWith('**')) {
                   return (
-                    <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-4 rounded-r-xl mt-6 mb-4">
-                      <p className="font-bold text-gray-900 text-lg">
+                    <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-3 md:p-4 rounded-r-lg md:rounded-r-xl mt-4 md:mt-6 mb-3 md:mb-4">
+                      <p className="font-bold text-gray-900 text-base md:text-lg">
                         {line.replace(/\*\*/g, '')}
                       </p>
                     </div>
                   )
                 } else if (line.startsWith('- ')) {
                   return (
-                    <li key={index} className="ml-6 mb-2 text-gray-700 leading-relaxed list-disc marker:text-blue-600">
+                    <li key={index} className="ml-4 md:ml-6 mb-2 text-gray-700 leading-relaxed list-disc marker:text-blue-600 text-sm md:text-base">
                       {line.replace('- ', '')}
                     </li>
                   )
                 } else if (line.includes('**') && line.includes(':')) {
                   const [bold, rest] = line.split(':**');
                   return (
-                    <p key={index} className="mt-4 mb-3">
-                      <strong className="text-gray-900 font-semibold text-lg">
+                    <p key={index} className="mt-3 md:mt-4 mb-2 md:mb-3">
+                      <strong className="text-gray-900 font-semibold text-base md:text-lg">
                         {bold.replace('**', '')}:
                       </strong>
-                      <span className="text-gray-700 ml-2">{rest}</span>
+                      <span className="text-gray-700 ml-2 text-sm md:text-base">{rest}</span>
                     </p>
                   )
                 } else if (line.trim() === '') {
-                  return <div key={index} className="h-4" />
+                  return <div key={index} className="h-3 md:h-4" />
                 } else if (line.match(/^\d+\./)) {
                   return (
-                    <li key={index} className="ml-6 mb-3 text-gray-700 leading-relaxed list-decimal marker:text-blue-600 marker:font-bold">
+                    <li key={index} className="ml-4 md:ml-6 mb-2 md:mb-3 text-gray-700 leading-relaxed list-decimal marker:text-blue-600 marker:font-bold text-sm md:text-base">
                       {line.replace(/^\d+\.\s*/, '')}
                     </li>
                   )
                 } else {
                   return (
-                    <p key={index} className="mb-4 text-gray-700 leading-relaxed text-lg">
+                    <p key={index} className="mb-3 md:mb-4 text-gray-700 leading-relaxed text-sm md:text-base lg:text-lg">
                       {line}
                     </p>
                   )
@@ -1117,16 +1118,16 @@ const ArticleDetail = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16"
       >
-        <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">บทความที่เกี่ยวข้อง</h3>
+        <h3 className="text-xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">บทความที่เกี่ยวข้อง</h3>
         <div className="text-center">
           <Link 
             to="/articles"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-xl"
+            className="inline-flex items-center gap-2 md:gap-3 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl md:rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg md:shadow-xl text-sm md:text-base"
           >
             ดูบทความทั้งหมด
-            <ArrowLeft className="h-5 w-5 rotate-180" />
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 rotate-180" />
           </Link>
         </div>
       </motion.div>

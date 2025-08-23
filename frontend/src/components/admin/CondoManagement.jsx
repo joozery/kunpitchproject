@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import CondoForm from './CondoForm'
 import { condoAPI } from '../../lib/api'
+import { checkPermission, PERMISSIONS, PermissionGuard } from '../../lib/permissions'
 import Swal from 'sweetalert2'
 
 const CondoManagement = () => {
@@ -306,13 +307,15 @@ const CondoManagement = () => {
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลคอนโดมิเนียมทั้งหมดในระบบ</p>
         </div>
         <div className="flex items-center space-x-4">
-          <Button
-            onClick={handleAddCondo}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            + เพิ่มคอนโด
-          </Button>
+          <PermissionGuard permission={PERMISSIONS.PROPERTY_CREATE}>
+            <Button
+              onClick={handleAddCondo}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              + เพิ่มคอนโด
+            </Button>
+          </PermissionGuard>
           
           <Button
             onClick={() => window.location.reload()}
@@ -500,20 +503,24 @@ const CondoManagement = () => {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleEditCondo(condo)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteCondo(condo.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <PermissionGuard permission={PERMISSIONS.PROPERTY_UPDATE}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditCondo(condo)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard permission={PERMISSIONS.PROPERTY_DELETE}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteCondo(condo.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
                         </div>
                       </TableCell>
                     </TableRow>

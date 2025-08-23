@@ -4,6 +4,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { usersAPI } from '../../lib/api'
+import { checkPermission, PERMISSIONS, PermissionGuard } from '../../lib/permissions'
 import { 
   Users, 
   UserPlus, 
@@ -144,13 +145,15 @@ const UserManagement = () => {
             <p className="text-sm text-gray-600">จัดการบัญชีผู้ใช้และสิทธิ์การเข้าถึง</p>
           </div>
         </div>
-        <Button 
-          onClick={startCreate}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          <UserPlus className="w-4 h-4 mr-2" />
-          สร้างผู้ใช้
-        </Button>
+        <PermissionGuard permission={PERMISSIONS.USER_CREATE}>
+          <Button 
+            onClick={startCreate}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            สร้างผู้ใช้
+          </Button>
+        </PermissionGuard>
       </div>
 
       {/* Search and Filter */}
@@ -348,22 +351,26 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => startEdit(u)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => remove(u)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <PermissionGuard permission={PERMISSIONS.USER_UPDATE}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => startEdit(u)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </PermissionGuard>
+                        <PermissionGuard permission={PERMISSIONS.USER_DELETE}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => remove(u)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </TableCell>
                   </TableRow>
