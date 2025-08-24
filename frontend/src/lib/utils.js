@@ -53,7 +53,7 @@ export async function getFxRates(base = 'THB', symbols = 'USD,EUR,JPY,GBP') {
 
 export function formatCurrency(value, currency = 'THB', locale = 'th-TH') {
   try {
-    return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: currency === 'JPY' ? 0 : 2 }).format(value)
+    return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
   } catch {
     return `${value}`
   }

@@ -135,7 +135,7 @@ const Articles = () => {
     const date = new Date(dateString)
     return date.toLocaleDateString('th-TH', {
       day: '2-digit',
-      month: '1-digit',
+      month: '2-digit',
       year: 'numeric'
     }).replace('/', '/')
   }
@@ -148,48 +148,51 @@ const Articles = () => {
     <div className="min-h-screen bg-gray-50 font-prompt">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Articles & News</h1>
-        
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-12">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveFilter(category)}
-              className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-                activeFilter === category
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        {/* Page Header */}
+        <div className="mb-12">
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveFilter(category)}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
+                  activeFilter === category
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Featured Article Hero Section */}
         {featuredArticle && activeFilter === 'All' && (
-          <div className="mb-16">
-            <div className="relative h-96 rounded-2xl overflow-hidden">
+          <div className="mb-12">
+            <div className="relative h-80 rounded-2xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
               <img 
                 src={featuredArticle.cover} 
                 alt={featuredArticle.title} 
                 className="absolute inset-0 w-full h-full object-cover"
               />
+              
+              {/* Article Content */}
               <div className="absolute bottom-0 left-0 right-0 p-8 z-20">
                 <div className="flex items-center gap-2 mb-3">
                   <Star className="w-5 h-5 text-yellow-400 fill-current" />
                   <span className="text-yellow-400 text-sm font-medium">บทความแนะนำ</span>
                 </div>
-                <h2 className="text-4xl font-bold text-white mb-4 leading-tight max-w-4xl">
+                <h2 className="text-3xl font-bold text-white mb-3 leading-tight max-w-3xl">
                   {featuredArticle.title}
                 </h2>
-                <p className="text-gray-200 text-lg mb-6 max-w-3xl">
+                <p className="text-gray-200 text-base mb-4 max-w-2xl line-clamp-2">
                   {featuredArticle.excerpt}
                 </p>
-                <div className="flex items-center gap-6 text-gray-300 mb-6">
+                <div className="flex items-center gap-4 text-gray-300 mb-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(featuredArticle.publishedAt)}</span>
@@ -205,15 +208,17 @@ const Articles = () => {
                 </div>
                 <Link 
                   to={`/articles/${featuredArticle.id}`}
-                  className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition-colors duration-200"
+                  className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full transition-colors duration-200 text-sm"
                 >
                   อ่านบทความ
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
           </div>
         )}
+        
+
         
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

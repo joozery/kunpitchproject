@@ -502,6 +502,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         location: condo.location || '',
         googleMapUrl: condo.google_map_url || '',
         nearbyTransport: condo.nearby_transport || '',
+        selectedStations: condo.selected_stations || [], // เพิ่มการ map ข้อมูลสถานีรถไฟฟ้า
         listingType: condo.listing_type || 'sale',
         description: condo.description || '',
         area: condo.area !== undefined && condo.area !== null ? String(condo.area) : '',
@@ -1187,10 +1188,11 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         status: formData.status,
         price: parseFloat(formData.price) || 0,
         rent_price: parseFloat(formData.rentPrice) || 0,
-        announcer_status: formData.announcerStatus, // เพิ่มการส่งข้อมูลสถานะผู้ประกาศ
+        announcer_status: formData.announcerStatus, // สถานะผู้ประกาศ
         location: formData.location,
         google_map_url: formData.googleMapUrl,
         nearby_transport: formData.nearbyTransport,
+        selected_stations: formData.selectedStations, // สถานีรถไฟฟ้าที่เลือก
         listing_type: formData.listingType,
         description: formData.description,
         area: parseFloat(formData.area),

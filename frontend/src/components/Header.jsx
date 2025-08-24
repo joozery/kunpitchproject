@@ -60,8 +60,7 @@ const Header = () => {
     { name: 'Property type', href: '/properties' },
     { name: 'Projects', href: '/projects' },
     { name: 'Buy', href: '/buy' },
-    { name: 'Rent', href: '/rent' },
-    { name: 'Articles', href: '/articles' }
+    { name: 'Rent', href: '/rent' }
   ]
 
   return (

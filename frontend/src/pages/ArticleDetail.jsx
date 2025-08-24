@@ -901,7 +901,7 @@ const ArticleDetail = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
         >
           <div className="text-center bg-white rounded-3xl shadow-xl p-12">
             <div className="text-6xl mb-6">📰</div>
@@ -942,7 +942,7 @@ const ArticleDetail = () => {
         </div>
         
         <div className="relative h-full flex items-end">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12 w-full">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1006,11 +1006,11 @@ const ArticleDetail = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 md:-mt-16 relative z-10"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 md:-mt-8 relative z-10"
       >
         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden">
           {/* Action Bar */}
-          <div className="border-b border-gray-100 px-4 md:px-8 py-4 md:py-6">
+          <div className="border-b border-gray-100 px-6 md:px-12 py-4 md:py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 md:gap-4">
                 <button
@@ -1051,7 +1051,7 @@ const ArticleDetail = () => {
           </div>
 
           {/* Article Body */}
-          <div className="px-4 md:px-8 lg:px-12 py-6 md:py-12">
+          <div className="px-8 md:px-16 lg:px-20 py-8 md:py-16">
             <div className="prose prose-sm md:prose-lg max-w-none">
               {article.body.split('\n').map((line, index) => {
                 if (line.startsWith('## ')) {
@@ -1118,7 +1118,7 @@ const ArticleDetail = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16"
       >
         <h3 className="text-xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">บทความที่เกี่ยวข้อง</h3>
         <div className="text-center">

@@ -14,6 +14,7 @@ import Buy from './pages/Buy'
 import Rent from './pages/Rent'
 import Articles from './pages/Articles'
 import ArticleDetail from './pages/ArticleDetail'
+import Contact from './pages/Contact'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './contexts/LanguageContext'
 
@@ -119,6 +120,7 @@ const AppContent = () => {
         <Route path="/join" element={<Join />} />
         <Route path="/articles" element={<Articles />} />
         <Route path="/articles/:id" element={<ArticleDetail />} />
+        <Route path="/contact" element={<Contact />} />
         
         {/* Auth */}
         <Route path="/login" element={<Login />} />
