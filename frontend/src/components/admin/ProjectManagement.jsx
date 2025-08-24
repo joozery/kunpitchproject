@@ -137,7 +137,11 @@ const ProjectManagement = () => {
                 ...project, 
                 ...response.data,
                 // ตรวจสอบว่า facilities มีใน response หรือไม่
-                facilities: response.data.facilities || project.facilities || []
+                facilities: response.data.facilities || project.facilities || [],
+                // ตรวจสอบว่า selected_stations มีใน response หรือไม่
+                selected_stations: response.data.selected_stations || project.selected_stations || [],
+                // ตรวจสอบว่า building_type มีใน response หรือไม่
+                building_type: response.data.building_type || project.building_type || []
               }
             : project
         ));

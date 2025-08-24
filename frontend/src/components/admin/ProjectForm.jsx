@@ -486,7 +486,8 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
   // ฟังก์ชันตรวจสอบว่าควรแสดงประเภทอาคารหรือไม่
   const shouldShowBuildingType = () => {
-    const shouldShow = formData.project_type === 'คอนโดมิเนียม' || formData.project_type === 'อพาร์ตเมนท์';
+    // แสดงสำหรับทุกประเภทโครงการ
+    const shouldShow = true;
     console.log('🔍 Should show building type:', shouldShow, 'Project type:', formData.project_type, 'Form data:', formData);
     return shouldShow;
   };
@@ -848,9 +849,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <button
                     type="button"
-                    onClick={() => handleBuildingTypeToggle('High-rise')}
+                    onClick={() => handleBuildingTypeToggle('high-rise')}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      isBuildingTypeSelected('High-rise')
+                      isBuildingTypeSelected('high-rise')
                         ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'
                     }`}
@@ -867,9 +868,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                   
                   <button
                     type="button"
-                    onClick={() => handleBuildingTypeToggle('Low-rise')}
+                    onClick={() => handleBuildingTypeToggle('low-rise')}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      isBuildingTypeSelected('Low-rise')
+                      isBuildingTypeSelected('low-rise')
                         ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'
                     }`}
