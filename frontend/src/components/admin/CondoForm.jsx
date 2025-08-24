@@ -1164,8 +1164,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   const validateForm = () => {
     const newErrors = {}
 
-    // ผ่อนการบังคับกรอก: ให้บังคับเฉพาะชื่อโครงการเท่านั้น
-    if (!formData.title) newErrors.title = 'กรุณากรอกชื่อโครงการ'
+    // ไม่บังคับกรอกข้อมูลใดๆ - ให้บันทึกได้แม้ไม่กรอกข้อมูล
+    // if (!formData.title) newErrors.title = 'กรุณากรอกชื่อโครงการ'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -1472,7 +1472,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ชื่อโครงการ */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ชื่อโครงการ *
+                ชื่อโครงการ
               </label>
               <Input
                 value={formData.title}
@@ -1512,7 +1512,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt flex items-center">
                 <User className="h-5 w-5 mr-2 text-red-500" />
-                สถานะผู้ประกาศ *
+                สถานะผู้ประกาศ
               </label>
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
@@ -1560,7 +1560,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ประเภททรัพย์ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
-                ประเภททรัพย์ *
+                ประเภททรัพย์
               </label>
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
@@ -1602,7 +1602,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* สถานะ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
-                สถานะ * (เลือกประเภท เช่า หรือ ขาย)
+                สถานะ (เลือกประเภท เช่า หรือ ขาย)
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {[
@@ -1647,7 +1647,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ราคา (บาท) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ราคา (บาท) * {formData.status !== 'rent' && '(กรณีขาย)'}
+                ราคา (บาท) {formData.status !== 'rent' && '(กรณีขาย)'}
               </label>
               <div className="relative">
                 <Input
@@ -1694,7 +1694,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* สถานที่ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                โลเคชั่น : สถานที่ *
+                โลเคชั่น : สถานที่
               </label>
               <div className="relative">
                 <Input
@@ -1877,7 +1877,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* พื้นที่ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                พื้นที่ (ตารางเมตร) *
+                พื้นที่ (ตารางเมตร)
               </label>
               <div className="relative">
                 <Input
@@ -1897,7 +1897,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ห้องนอน */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ห้องนอน *
+                ห้องนอน
               </label>
               <div className="relative">
                 <Input
@@ -1917,7 +1917,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* ห้องน้ำ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                ห้องน้ำ *
+                ห้องน้ำ
               </label>
               <div className="relative">
                 <Input
@@ -1937,7 +1937,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* จำนวนชั้นคอนโด */}
             <div className="md:col-span-2 lg:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                จำนวนชั้นคอนโดต้องเป็น ชั้นที่ *
+                จำนวนชั้นคอนโดต้องเป็น ชั้นที่
               </label>
               <div className="relative">
                 <Input
@@ -2022,7 +2022,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             {/* โปรเจค */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
-                โปรเจค *
+                โปรเจค
               </label>
               
               {/* ช่องค้นหาโปรเจค */}
