@@ -643,12 +643,14 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         });
         console.log('🔍 Appending valid stations:', validStations);
       } else {
-        // ไม่มีสถานีที่ถูกต้อง
+        // ไม่มีสถานีที่ถูกต้อง ให้ส่ง '[]' เพื่อสั่งล้าง
         console.log('🔍 No valid stations found, sending empty array');
+        formDataToSend.append('selected_stations', '[]');
       }
     } else {
-      // ไม่มีสถานีที่เลือก
+      // ไม่มีสถานีที่เลือก ให้ส่ง '[]' เพื่อสั่งล้าง
       console.log('🔍 No selected_stations, sending empty array');
+      formDataToSend.append('selected_stations', '[]');
     }
     
     // เพิ่มประเภทอาคาร
@@ -1054,6 +1056,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                       type="button"
                       onClick={() => {
                         setFormData(prev => ({ ...prev, selected_stations: [] }));
+                        // ส่งสัญญาณล้างค่าแบบชัดเจนให้ backend ทราบ
+                        const fd = new FormData();
+                        fd.append('selected_stations', '[]');
                       }}
                       className="text-xs text-blue-600 hover:text-blue-800 underline"
                     >
