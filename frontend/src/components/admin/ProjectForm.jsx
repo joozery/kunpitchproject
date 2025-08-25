@@ -6,19 +6,13 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import Swal from 'sweetalert2';
 import { 
-  FaBuilding, FaCar, FaShieldAlt, FaHeart, FaBriefcase, FaUtensils, 
-  FaArrowUp, FaLock, FaShuttleVan, FaBolt,
+  FaBuilding, FaCar, FaLock, FaShuttleVan, FaBolt,
   FaVideo, FaUsers, FaDumbbell, FaSwimmingPool, FaBath,
-  FaFutbol, FaTrophy, FaChild, FaFilm, FaPaw, FaTv, FaWineBottle,
-  FaHandshake, FaLaptop, FaHamburger, FaCoffee,
-  FaDoorOpen, FaCouch, FaHome, FaStore, FaBook, FaTshirt, FaSeedling, FaWifi, FaSubway
+  FaChild, FaFilm, FaPaw, FaLaptop, FaHamburger, FaCoffee,
+  FaDoorOpen, FaCouch, FaHome, FaStore, FaBook, FaTshirt, FaSeedling, FaWifi, FaSubway, FaUtensils
 } from 'react-icons/fa';
 
-import { MdKitchen, MdMicrowave, MdLocalLaundryService, MdHotTub, MdBalcony, MdCheckroom, MdElevator, MdLocalDining, MdSportsTennis } from 'react-icons/md';
-import { RiHomeWifiLine, RiFilterLine } from 'react-icons/ri';
-import { PiCookingPot, PiThermometerHot, PiOven } from 'react-icons/pi';
-import { TbAirConditioning } from 'react-icons/tb';
-import { LuFan } from 'react-icons/lu';
+import { MdLocalDining, MdSportsTennis } from 'react-icons/md';
 import { GiGolfTee } from 'react-icons/gi';
 
 const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
@@ -38,7 +32,6 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     floors_info: '',
     
     // ที่ตั้ง
-    nearby_bts: '',
     selected_stations: [],
     address: '',
     google_map_embed: '',
@@ -56,8 +49,6 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     
     // สิ่งอำนวยความสะดวก
     facilities: [],
-    
-    
     
     // สื่อ
     video_review: '',
@@ -114,7 +105,6 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   ]);
 
   const [selectedFacilities, setSelectedFacilities] = useState([]);
-  const [dragActive, setDragActive] = useState(false);
 
   // ข้อมูลสถานีรถไฟฟ้า
   const btsStations = [
@@ -310,10 +300,10 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     if (project) {
       console.log('🔍 Project data received:', project);
       console.log('🔍 Building type:', project.building_type, 'Type:', typeof project.building_type);
-      console.log('🔍 Selected stations:', project.selected_stations, 'Type:', typeof project.selected_stations);
       
       // จัดการ building_type
       let projectBuildingType = project.building_type;
+      console.log('🔍 Original building_type:', projectBuildingType, 'Type:', typeof projectBuildingType);
       
       // ตรวจสอบว่า building_type เป็น string (JSON) หรือไม่
       if (typeof projectBuildingType === 'string') {
@@ -321,7 +311,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
           projectBuildingType = JSON.parse(projectBuildingType);
           console.log('✅ Parsed building_type:', projectBuildingType);
         } catch (e) {
-          console.warn('⚠️ Failed to parse building_type as JSON, treating as single value:', e);
+          console.warn('Failed to parse building_type as JSON, treating as single value:', e);
           // ถ้า parse JSON ไม่ได้ ให้ถือว่าเป็นค่าเดียว
           projectBuildingType = [projectBuildingType];
         }
@@ -329,10 +319,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       
       // ตรวจสอบว่า building_type เป็น array หรือไม่
       if (!Array.isArray(projectBuildingType)) {
-        console.warn('⚠️ building_type is not array, converting to array:', projectBuildingType);
+        console.warn('building_type is not array, converting to array:', projectBuildingType);
         // ถ้าไม่ใช่ array ให้แปลงเป็น array
         projectBuildingType = projectBuildingType ? [projectBuildingType] : [];
       }
+      
+      console.log('🔍 Final processed building_type:', projectBuildingType);
       
       // จัดการ selected_stations
       let projectSelectedStations = project.selected_stations;
@@ -343,14 +335,14 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
           projectSelectedStations = JSON.parse(projectSelectedStations);
           console.log('✅ Parsed selected_stations:', projectSelectedStations);
         } catch (e) {
-          console.warn('⚠️ Failed to parse selected_stations:', e);
+          console.warn('Failed to parse selected_stations:', e);
           projectSelectedStations = [];
         }
       }
       
       // ตรวจสอบว่า selected_stations เป็น array หรือไม่
       if (!Array.isArray(projectSelectedStations)) {
-        console.warn('⚠️ selected_stations is not array:', projectSelectedStations);
+        console.warn('selected_stations is not array:', projectSelectedStations);
         projectSelectedStations = [];
       }
       
@@ -368,15 +360,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         facilities: Array.isArray(project.facilities) ? project.facilities : []
       });
       
-      console.log('✅ Form data set:', {
-        selected_stations: projectSelectedStations,
-        building_type: projectBuildingType,
-        building_type_original: project.building_type,
-        building_type_type: typeof project.building_type,
-        project_type: project.project_type,
-        project_type_type: typeof project.project_type,
-        all_project_data: project
-      });
+      console.log('✅ Form data set with building_type:', projectBuildingType);
       
       // จัดการ facilities
       let projectFacilities = project.facilities;
@@ -386,6 +370,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         try {
           projectFacilities = JSON.parse(projectFacilities);
         } catch (e) {
+          console.warn('Failed to parse facilities:', e);
           projectFacilities = [];
         }
       }
@@ -396,8 +381,6 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       } else {
         setSelectedFacilities([]);
       }
-
-
     }
   }, [project]);
 
@@ -410,8 +393,6 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       }));
     }
   }, [selectedFacilities]);
-
-
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -454,26 +435,34 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   // ฟังก์ชันตรวจสอบสถานีที่เลือก
   const isStationSelected = (stationId) => {
     const isSelected = formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.includes(stationId);
-    console.log(`🔍 Station ${stationId} selected:`, isSelected, 'Available stations:', formData.selected_stations);
     return isSelected;
   };
 
   // ฟังก์ชันจัดการการเลือกประเภทอาคาร
   const handleBuildingTypeToggle = (type) => {
+    console.log('🔍 Toggling building type:', type);
+    console.log('🔍 Current formData.building_type:', formData.building_type);
+    
     setFormData(prev => {
       const currentTypes = prev.building_type && Array.isArray(prev.building_type) ? prev.building_type : [];
+      console.log('🔍 Current building types from prev:', currentTypes);
       
+      let newTypes;
       if (currentTypes.includes(type)) {
-        return {
-          ...prev,
-          building_type: currentTypes.filter(t => t !== type)
-        };
+        newTypes = currentTypes.filter(t => t !== type);
+        console.log('🔍 Removing type, new types:', newTypes);
       } else {
-        return {
-          ...prev,
-          building_type: [...currentTypes, type]
-        };
+        newTypes = [...currentTypes, type];
+        console.log('🔍 Adding type, new types:', newTypes);
       }
+      
+      const updatedFormData = {
+        ...prev,
+        building_type: newTypes
+      };
+      
+      console.log('🔍 Updated form data building_type:', updatedFormData.building_type);
+      return updatedFormData;
     });
   };
 
@@ -487,9 +476,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   // ฟังก์ชันตรวจสอบว่าควรแสดงประเภทอาคารหรือไม่
   const shouldShowBuildingType = () => {
     // แสดงสำหรับทุกประเภทโครงการ
-    const shouldShow = true;
-    console.log('🔍 Should show building type:', shouldShow, 'Project type:', formData.project_type, 'Form data:', formData);
-    return shouldShow;
+    return true;
   };
 
   // State สำหรับการค้นหาสถานี
@@ -654,13 +641,16 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     }
     
     // เพิ่มประเภทอาคาร
+    console.log('🔍 Submitting building_type:', formData.building_type);
     if (formData.building_type && Array.isArray(formData.building_type) && formData.building_type.length > 0) {
       formData.building_type.forEach(type => {
         formDataToSend.append('building_type', type);
+        console.log('🔍 Appending building_type:', type);
       });
     } else {
       // ส่ง array ว่างถ้าไม่มีประเภทอาคาร
       formDataToSend.append('building_type', '[]');
+      console.log('🔍 Appending empty building_type array');
     }
     
     // เพิ่ม SEO
@@ -709,6 +699,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
           <p><strong>ชื่อโครงการ:</strong> ${formData.name_th}</p>
           <p><strong>ประเภท:</strong> ${formData.project_type}</p>
           <p><strong>ผู้พัฒนา:</strong> ${formData.developer}</p>
+          <p><strong>ประเภทอาคาร:</strong> ${formData.building_type && Array.isArray(formData.building_type) ? formData.building_type.join(', ') : 'ไม่มี'}</p>
           <p><strong>รูปปก:</strong> ${formData.cover_image ? 'มี' : 'ไม่มี'}</p>
           <p><strong>รูปภาพโครงการ:</strong> ${formData.project_images ? formData.project_images.length : 0} รูป</p>
           <p><strong>สิ่งอำนวยความสะดวก:</strong> ${selectedFacilities && Array.isArray(selectedFacilities) ? selectedFacilities.length : 0} รายการ</p>
@@ -863,6 +854,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                       </svg>
                       <div className="font-medium">High-rise</div>
                       <div className="text-xs opacity-75">อาคารสูง</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {isBuildingTypeSelected('high-rise') ? '✅ เลือกแล้ว' : '❌ ไม่ได้เลือก'}
+                      </div>
                     </div>
                   </button>
                   
@@ -881,6 +875,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                       </svg>
                       <div className="font-medium">Low-rise</div>
                       <div className="text-xs opacity-75">อาคารต่ำ</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {isBuildingTypeSelected('low-rise') ? '✅ เลือกแล้ว' : '❌ ไม่ได้เลือก'}
+                      </div>
                     </div>
                   </button>
                 </div>
@@ -888,7 +885,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                 {/* แสดงประเภทที่เลือก */}
                 {formData.building_type && Array.isArray(formData.building_type) && formData.building_type.length > 0 && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm font-medium text-blue-700 mb-2">ประเภทอาคารที่เลือก:</p>
+                    <p className="text-sm font-medium text-blue-700 mb-2">
+                      ประเภทอาคารที่เลือก: {JSON.stringify(formData.building_type)}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {formData.building_type.map((type) => (
                         <span
@@ -1620,6 +1619,25 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                     )}
                   </div>
                 ) : null}
+              </div>
+            </div>
+
+            {/* Debug Section - แสดงข้อมูลทั้งหมด */}
+            <div className="p-4 bg-gray-100 border border-gray-300 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-800 mb-3">🔍 Debug Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p><strong>Building Type:</strong> {JSON.stringify(formData.building_type)}</p>
+                  <p><strong>Building Type Type:</strong> {typeof formData.building_type}</p>
+                  <p><strong>Is Array:</strong> {Array.isArray(formData.building_type) ? 'Yes' : 'No'}</p>
+                  <p><strong>Length:</strong> {formData.building_type ? formData.building_type.length : 0}</p>
+                </div>
+                <div>
+                  <p><strong>High-rise Selected:</strong> {isBuildingTypeSelected('high-rise') ? 'Yes' : 'No'}</p>
+                  <p><strong>Low-rise Selected:</strong> {isBuildingTypeSelected('low-rise') ? 'Yes' : 'No'}</p>
+                  <p><strong>Selected Facilities:</strong> {JSON.stringify(selectedFacilities)}</p>
+                  <p><strong>Project ID:</strong> {project ? project.id : 'New Project'}</p>
+                </div>
               </div>
             </div>
 
