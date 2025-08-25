@@ -960,9 +960,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* ที่ตั้งรถไฟฟ้า */}
+            {/* ที่ตั้งรถไฟฟ้า (ไม่บังคับ) */}
             <div className="space-y-4">
-              <Label>ที่ตั้งรถไฟฟ้า</Label>
+              <div>
+                <Label>ที่ตั้งรถไฟฟ้า (ไม่บังคับ)</Label>
+                <p className="text-sm text-gray-600 mt-1">เลือกสถานีรถไฟฟ้าที่ใกล้เคียงกับโครงการ (สามารถข้ามได้)</p>
+              </div>
               
               {/* ช่องค้นหาสถานี */}
               <div className="relative station-search-container">
