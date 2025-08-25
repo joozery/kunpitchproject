@@ -253,6 +253,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     { id: 'bang_pakok', name: 'MRT Bang Pakok (บางปะกอก)', line: 'MRT' },
     { id: 'yaek_pracha_uthit', name: 'MRT Yaek Pracha Uthit (แยกประชาอุทิศ)', line: 'MRT' },
     { id: 'rat_burana', name: 'MRT Rat Burana (ราษฎร์บูรณะ)', line: 'MRT' },
+    { id: 'charoen_nakhon', name: 'MRT Charoen Nakhon (เจริญนคร)', line: 'MRT' },
+    { id: 'khlong_san', name: 'MRT Khlong San (คลองสาน)', line: 'MRT' },
     // Blue Line Thonburi side additions
     { id: 'bang_phai', name: 'MRT Bang Phai (บางไผ่)', line: 'MRT' },
     { id: 'bang_wa_mrt', name: 'MRT Bang Wa (บางหว้า)', line: 'MRT' },
