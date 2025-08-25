@@ -111,7 +111,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     { id: 'kheha', name: 'BTS Kheha (เคหะฯ)', line: 'BTS' },
     { id: 'phraek_sa', name: 'BTS Phraek Sa (แพรกษา)', line: 'BTS' },
     { id: 'sai_luat', name: 'BTS Sai Luat (สายลวด)', line: 'BTS' },
-    { id: 'erawan_museum', name: 'BTS Erawan Museum (พิพิธภัณฑ์ช้างสามเศียร)', line: 'BTS' },
+    { id: 'chang_erawan', name: 'BTS Chang Erawan (ช้างเอราวัณ)', line: 'BTS' },
     { id: 'pu_chao', name: 'BTS Pu Chao (ปู่เจ้า)', line: 'BTS' },
     { id: 'samrong', name: 'BTS Samrong (สำโรง)', line: 'BTS' },
     { id: 'bearing', name: 'BTS Bearing (แบริ่ง)', line: 'BTS' },
@@ -156,6 +156,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     { id: 'ratchadamri', name: 'BTS Ratchadamri (ราชดำริ)', line: 'BTS' },
     { id: 'sala_daeng', name: 'BTS Sala Daeng (ศาลาแดง)', line: 'BTS' },
     { id: 'chong_nonsi', name: 'BTS Chong Nonsi (ช่องนนทรี)', line: 'BTS' },
+    { id: 'saint_louis', name: 'BTS Saint Louis (เซนต์หลุยส์)', line: 'BTS' },
     { id: 'surasak', name: 'BTS Surasak (สุรศักดิ์)', line: 'BTS' },
     { id: 'saphan_taksin', name: 'BTS Saphan Taksin (สะพานตากสิน)', line: 'BTS' },
     { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
@@ -163,7 +164,10 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     { id: 'pho_nimit', name: 'BTS Pho Nimit (โพธิ์นิมิตร)', line: 'BTS' },
     { id: 'talat_phlu', name: 'BTS Talat Phlu (ตลาดพลู)', line: 'BTS' },
     { id: 'wutthakat', name: 'BTS Wutthakat (วุฒากาศ)', line: 'BTS' },
-    { id: 'bang_wa', name: 'BTS Bang Wa (บางหว้า)', line: 'BTS' }
+    { id: 'bang_wa', name: 'BTS Bang Wa (บางหว้า)', line: 'BTS' },
+    { id: 'royal_thai_naval_academy', name: 'BTS Royal Thai Naval Academy (โรงเรียนนายเรือ)', line: 'BTS' },
+    { id: 'pak_nam', name: 'BTS Pak Nam (ปากน้ำ)', line: 'BTS' },
+    { id: 'srinakarin', name: 'BTS Srinakarin (ศรีนครินทร์)', line: 'BTS' }
   ];
 
   const mrtStations = [
@@ -231,18 +235,93 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     { id: 'bang_pakaeo', name: 'MRT Bang Pakaeo (บางปะแก้ว)', line: 'MRT' },
     { id: 'bang_pakok', name: 'MRT Bang Pakok (บางปะกอก)', line: 'MRT' },
     { id: 'yaek_pracha_uthit', name: 'MRT Yaek Pracha Uthit (แยกประชาอุทิศ)', line: 'MRT' },
-    { id: 'rat_burana', name: 'MRT Rat Burana (ราษฎร์บูรณะ)', line: 'MRT' }
+    { id: 'rat_burana', name: 'MRT Rat Burana (ราษฎร์บูรณะ)', line: 'MRT' },
+    // Missing Blue Line Thonburi side
+    { id: 'bang_phai', name: 'MRT Bang Phai (บางไผ่)', line: 'MRT' },
+    { id: 'bang_wa_mrt', name: 'MRT Bang Wa (บางหว้า)', line: 'MRT' },
+    // Blue Line extensions Thonburi side already included above
+    // Yellow Line (Lat Phrao – Samrong)
+    { id: 'phawana', name: 'MRT Phawana (ภาวนา)', line: 'MRT' },
+    { id: 'chok_chai_4', name: 'MRT Chok Chai 4 (โชคชัย 4)', line: 'MRT' },
+    { id: 'lat_phrao_71', name: 'MRT Lat Phrao 71 (ลาดพร้าว 71)', line: 'MRT' },
+    { id: 'lat_phrao_83', name: 'MRT Lat Phrao 83 (ลาดพร้าว 83)', line: 'MRT' },
+    { id: 'mahat_thai', name: 'MRT Mahat Thai (มหาดไทย)', line: 'MRT' },
+    { id: 'lat_phrao_101', name: 'MRT Lat Phrao 101 (ลาดพร้าว 101)', line: 'MRT' },
+    { id: 'bang_kapi', name: 'MRT Bang Kapi (บางกะปิ)', line: 'MRT' },
+    { id: 'yaek_lam_sali', name: 'MRT Yaek Lam Sali (แยกลำสาลี)', line: 'MRT' },
+    { id: 'si_kritha', name: 'MRT Si Kritha (ศรีกรีฑา)', line: 'MRT' },
+    { id: 'hua_mak', name: 'MRT Hua Mak (หัวหมาก)', line: 'MRT' },
+    { id: 'kalantan', name: 'MRT Kalantan (กลันตัน)', line: 'MRT' },
+    { id: 'si_nut', name: 'MRT Si Nut (ศรีนุช)', line: 'MRT' },
+    { id: 'si_phachin', name: 'MRT Si Phachin (ศรีนครินทร์ 38)', line: 'MRT' },
+    { id: 'suan_luang_rama_ix', name: 'MRT Suan Luang Rama IX (สวนหลวง ร.9)', line: 'MRT' },
+    { id: 'si_udom', name: 'MRT Si Udom (ศรีอุดม)', line: 'MRT' },
+    { id: 'si_iam', name: 'MRT Si Iam (ศรีเอี่ยม)', line: 'MRT' },
+    { id: 'si_lasalle', name: 'MRT Si La Salle (ศรีลาซาล)', line: 'MRT' },
+    { id: 'si_bearing', name: 'MRT Si Bearing (ศรีแบริ่ง)', line: 'MRT' },
+    { id: 'si_dan', name: 'MRT Si Dan (ศรีด่าน)', line: 'MRT' },
+    { id: 'si_thepha', name: 'MRT Si Thepha (ศรีเทพา)', line: 'MRT' },
+    { id: 'thipphawan', name: 'MRT Thipphawan (ทิพพาวัน)', line: 'MRT' },
+    { id: 'samrong_yellow', name: 'MRT Samrong (สำโรง)', line: 'MRT' },
+    // Pink Line (Khae Rai – Min Buri)
+    { id: 'khae_rai', name: 'MRT Khae Rai (แคราย)', line: 'MRT' },
+    { id: 'sanam_bin_nam', name: 'MRT Sanam Bin Nam (สนามบินน้ำ)', line: 'MRT' },
+    { id: 'samakkhi', name: 'MRT Samakkhi (สามัคคี)', line: 'MRT' },
+    { id: 'royal_irrigation_department', name: 'MRT Royal Irrigation Department (กรมชลประทาน)', line: 'MRT' },
+    { id: 'yaek_pak_kret', name: 'MRT Yaek Pak Kret (แยกปากเกร็ด)', line: 'MRT' },
+    { id: 'pak_kret_bypass', name: 'MRT Pak Kret Bypass (เลี่ยงเมืองปากเกร็ด)', line: 'MRT' },
+    { id: 'chaeng_watthana_pak_kret_28', name: 'MRT Chaeng Watthana - Pak Kret 28 (แจ้งวัฒนะ-ปากเกร็ด 28)', line: 'MRT' },
+    { id: 'si_rat', name: 'MRT Si Rat (ศรีรัช)', line: 'MRT' },
+    { id: 'muang_thong_thani', name: 'MRT Muang Thong Thani (เมืองทองธานี)', line: 'MRT' },
+    { id: 'impact_mueng_thong_thani', name: 'MRT Impact Muang Thong Thani (อิมแพ็ค เมืองทองธานี)', line: 'MRT' },
+    { id: 'chaeng_watthana_14', name: 'MRT Chaeng Watthana 14 (แจ้งวัฒนะ 14)', line: 'MRT' },
+    { id: 'government_complex', name: 'MRT Government Complex (ศูนย์ราชการแจ้งวัฒนะ)', line: 'MRT' },
+    { id: 'national_telecom', name: 'MRT National Telecom (NT) (NT)', line: 'MRT' },
+    { id: 'laksi', name: 'MRT Laksi (หลักสี่)', line: 'MRT' },
+    { id: 'rajabhat_phranakhon', name: 'MRT Rajabhat Phranakhon (ราชภัฏพระนคร)', line: 'MRT' },
+    { id: 'wat_phra_sri_mahathat_mrt', name: 'MRT Wat Phra Sri Mahathat (วัดพระศรีมหาธาตุ)', line: 'MRT' },
+    { id: 'ram_inthra_3', name: 'MRT Ram Inthra 3 (รามอินทรา 3)', line: 'MRT' },
+    { id: 'lat_pla_khao', name: 'MRT Lat Pla Khao (ลาดปลาเค้า)', line: 'MRT' },
+    { id: 'ram_inthra_31', name: 'MRT Ram Inthra 31 (รามอินทรา 31)', line: 'MRT' },
+    { id: 'maiyalap', name: 'MRT Maiyalap (มัยลาภ)', line: 'MRT' },
+    { id: 'vacharaphol', name: 'MRT Vacharaphol (วัชรพล)', line: 'MRT' },
+    { id: 'ram_inthra_40', name: 'MRT Ram Inthra 40 (รามอินทรา 40)', line: 'MRT' },
+    { id: 'khubon', name: 'MRT Khubon (คู้บอน)', line: 'MRT' },
+    { id: 'ram_inthra_83', name: 'MRT Ram Inthra 83 (รามอินทรา 83)', line: 'MRT' },
+    { id: 'fashion_island', name: 'MRT Fashion Island (แฟชั่นไอส์แลนด์)', line: 'MRT' },
+    { id: 'salat', name: 'MRT Salat (สลัด)', line: 'MRT' },
+    { id: 'noppharat_rajathani', name: 'MRT Noppharat Ratchathani (นพรัตน์ราชธานี)', line: 'MRT' },
+    { id: 'bang_chan', name: 'MRT Bang Chan (บางชัน)', line: 'MRT' },
+    { id: 'setthabutsab', name: 'MRT Setthabutsan (เศรษฐบุตรบำเพ็ญ)', line: 'MRT' },
+    { id: 'min_buri', name: 'MRT Min Buri (มีนบุรี)', line: 'MRT' }
   ];
 
   const arlStations = [
-    { id: 'phaya_thai', name: 'พญาไท', line: 'ARL' },
-    { id: 'ratchaprarop', name: 'ราชปรารภ', line: 'ARL' },
-    { id: 'makkasan', name: 'มักกะสัน', line: 'ARL' },
-    { id: 'ramkhamhaeng', name: 'รามคำแหง', line: 'ARL' },
-    { id: 'huamark', name: 'หัวหมาก', line: 'ARL' },
-    { id: 'ban_thap_chang', name: 'บ้านทับช้าง', line: 'ARL' },
-    { id: 'lat_krabang', name: 'ลาดกระบัง', line: 'ARL' },
-    { id: 'suvarnabhumi', name: 'สุวรรณภูมิ', line: 'ARL' }
+    { id: 'phaya_thai', name: 'Airport Rail Link Phaya Thai (พญาไท)', line: 'ARL' },
+    { id: 'ratchaprarop', name: 'Airport Rail Link Ratchaprarop (ราชปรารภ)', line: 'ARL' },
+    { id: 'makkasan', name: 'Airport Rail Link Makkasan (มักกะสัน)', line: 'ARL' },
+    { id: 'ramkhamhaeng', name: 'Airport Rail Link Ramkhamhaeng (รามคำแหง)', line: 'ARL' },
+    { id: 'huamark', name: 'Airport Rail Link Hua Mak (หัวหมาก)', line: 'ARL' },
+    { id: 'ban_thap_chang', name: 'Airport Rail Link Ban Thap Chang (บ้านทับช้าง)', line: 'ARL' },
+    { id: 'lat_krabang', name: 'Airport Rail Link Lat Krabang (ลาดกระบัง)', line: 'ARL' },
+    { id: 'suvarnabhumi', name: 'Airport Rail Link Suvarnabhumi (สุวรรณภูมิ)', line: 'ARL' }
+  ];
+
+  // State Railway of Thailand (SRT Red Line)
+  const srtStations = [
+    { id: 'rangsit', name: 'SRT Rangsit (รังสิต)', line: 'SRT' },
+    { id: 'khlong_rangsit', name: 'SRT Khlong Rangsit (คลองรังสิต)', line: 'SRT' },
+    { id: 'lak_hok', name: 'SRT Lak Hok (หลักหก)', line: 'SRT' },
+    { id: 'don_mueang', name: 'SRT Don Mueang (ดอนเมือง)', line: 'SRT' },
+    { id: 'kan_kheha', name: 'SRT Kan Kheha (การเคหะ)', line: 'SRT' },
+    { id: 'lak_si', name: 'SRT Lak Si (หลักสี่)', line: 'SRT' },
+    { id: 'thung_song_hong', name: 'SRT Thung Song Hong (ทุ่งสองห้อง)', line: 'SRT' },
+    { id: 'bang_khen', name: 'SRT Bang Khen (บางเขน)', line: 'SRT' },
+    { id: 'wat_samian_nari', name: 'SRT Wat Samian Nari (วัดเสมียนนารี)', line: 'SRT' },
+    { id: 'chatuchak', name: 'SRT Chatuchak (จตุจักร)', line: 'SRT' },
+    { id: 'bang_sue_grand', name: 'SRT Bang Sue Grand Station (สถานีกลางกรุงเทพอภิวัฒน์)', line: 'SRT' },
+    { id: 'taling_chan', name: 'SRT Taling Chan (ตลิ่งชัน)', line: 'SRT' },
+    { id: 'bang_bamru', name: 'SRT Bang Bamru (บางบำหรุ)', line: 'SRT' }
   ];
 
   // ฟังก์ชันสำหรับแสดง React Icons
@@ -485,7 +564,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
   // ฟังก์ชันกรองสถานีตามคำค้นหา
   const filteredStations = () => {
-    const allStations = [...btsStations, ...mrtStations, ...arlStations];
+    const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
     if (!stationSearchTerm) return allStations;
     
     return allStations.filter(station => 
@@ -1067,7 +1146,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {formData.selected_stations.map((stationId) => {
-                      const allStations = [...btsStations, ...mrtStations, ...arlStations];
+                      const allStations = [...btsStations, ...mrtStations, ...arlStations, ...srtStations];
                       const station = allStations.find(s => s.id === stationId);
                       return station ? (
                         <span

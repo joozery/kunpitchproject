@@ -1113,4 +1113,4 @@ const PropertyDetail = () => {
   )
 }
 
-export default PropertyDetail 
+export default PropertyDetail  
