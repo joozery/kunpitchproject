@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
+import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails'
+import 'yet-another-react-lightbox/plugins/thumbnails.css'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen'
+import Counter from 'yet-another-react-lightbox/plugins/counter'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
@@ -10,6 +15,7 @@ import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
+import LatestStyleCard from '../components/cards/LatestStyleCard'
 
 const PropertyDetail = () => {
   const { id } = useParams()
@@ -247,6 +253,62 @@ const PropertyDetail = () => {
     }
   };
 
+  // Nearby properties mock/fallback to showcase cards
+  const nearbyProperties = [
+    {
+      id: 'n1',
+      title: 'Studio Apartment',
+      images: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      price: 7010000,
+      rent_price: 0,
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 32,
+      floor: 10,
+      location: 'Bangkok',
+      status: 'for_sale'
+    },
+    {
+      id: 'n2',
+      title: 'Living Room',
+      images: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      price: 86750,
+      rent_price: 0,
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 28,
+      floor: 7,
+      location: 'Bangkok',
+      status: 'for_sale'
+    },
+    {
+      id: 'n3',
+      title: 'Bedroom',
+      images: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      price: 0,
+      rent_price: 25000,
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 30,
+      floor: 15,
+      location: 'Bangkok',
+      status: 'for_rent'
+    },
+    {
+      id: 'n4',
+      title: 'Living Room',
+      images: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      price: 0,
+      rent_price: 22000,
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 35,
+      floor: 12,
+      location: 'Bangkok',
+      status: 'for_rent'
+    }
+  ]
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -281,62 +343,90 @@ const PropertyDetail = () => {
       <Header />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
-        {/* Property Header */}
-        <div className="rounded-2xl p-8 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        {/* Property Header Card */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="flex-1">
-
-              
-              {/* Project Name */}
-              {property.selectedProject && (
-                <div className="mb-2">
-                  <span className="text-lg font-semibold text-[#917133] font-prompt">
-                    {property.selectedProject}
+              {/* Property Title and Reference Number Row */}
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold font-prompt">
+                  <span className="text-[#917133]">{property.status === 'for_sale' ? 'ขาย' : 'เช่า'}</span>
+                  <span className="text-gray-900"> {property.title}</span>
+                </h1>
+                
+                {/* Reference Number */}
+                <div className="border border-blue-600 rounded-lg px-3 py-1">
+                  <span className="text-sm text-gray-700 font-medium font-prompt">
+                    Ref: WS{property.id}
                   </span>
                 </div>
-              )}
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-prompt">{property.title}</h1>
-              <p className="text-gray-600 flex items-center mb-3">
-                <MapPin className="h-5 w-5 mr-2 text-blue-500" />
+              </div>
+              
+              {/* Location */}
+              <p className="text-gray-600 mb-3 font-prompt">
                 {property.location || property.address}
               </p>
-              <div className="flex items-center gap-4 text-sm text-gray-500 font-prompt">
-                <span className="font-semibold text-[#917133]">Property ID: WS{property.id}</span>
-                {property.projectCode && <span>Project: {property.projectCode}</span>}
-                {property.availableDate && (
-                  <span className="font-semibold text-[#917133]">
-                    Available on: {new Date(property.availableDate).toLocaleDateString('th-TH')}
+              
+              {/* Property Tags */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
+                  {getTypeLabel(property.type)}
+                </span>
+                {property.selectedStations && property.selectedStations.length > 0 && (
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
+                    ใกล้ {property.selectedStations[0]}
                   </span>
                 )}
-                <span>อัปเดต: {new Date(property.updatedAt).toLocaleDateString('th-TH')}</span>
+                {property.specialFeatures?.shortTerm && (
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
+                    เช่าช่วงสั้น
+                  </span>
+                )}
+                <div className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 cursor-pointer">
+                  <span className="font-bold">+</span>
               </div>
             </div>
+            </div>
+            
+            {/* Price Section */}
                           <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาขาย</div>
-                <div className="text-4xl font-normal text-[#917133] mb-2 font-prompt">
-                  {format(convert(property.price))} บาท
+              <div className="text-sm text-gray-600 mb-1 font-prompt">
+                {property.status === 'for_sale' ? 'ราคาขาย' : 'ราคาเช่า'}
                     </div>
-                {property.rent_price > 0 && (
-                  <div className="text-xl text-[#917133] mb-2 font-prompt">
+              <div className="text-3xl font-bold text-[#917133] mb-2 font-prompt">
+                {format(convert(property.status === 'for_sale' ? property.price : property.rent_price))}
+              </div>
+              {property.rent_price > 0 && property.status === 'for_sale' && (
+                <div className="text-lg text-[#917133] mb-2 font-prompt">
                     {format(convert(property.rent_price))}/เดือน
                     </div>
                 )}
-                <div className="flex items-center justify-end text-sm text-gray-600 mt-3">
-                  <Share2 className="h-5 w-5 text-gray-500 hover:text-[#917133] transition-colors cursor-pointer" />
+              
+              {/* Share Button */}
+              <div className="flex justify-end mt-3">
+                <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  <Share2 className="h-4 w-4 text-blue-700" />
+                </button>
                 </div>
               </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="w-full">
             {/* Professional Image Gallery */}
             <div className="mb-8">
               {property.images && property.images.length > 0 ? (
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-5 grid-rows-5 gap-2 h-96">
                   {/* Main Hero Image - Left Side (Large) */}
-                  <div className="col-span-2 aspect-[16/9] relative group overflow-hidden rounded-xl shadow-lg">
+                  <div 
+                    className="col-span-3 row-span-5 relative group overflow-hidden rounded-xl shadow-lg cursor-pointer"
+                    onClick={() => {
+                      setIndex(0);
+                      setOpen(true);
+                    }}
+                  >
                     <img
                       src={property.images[0]}
                       alt={property.title}
@@ -347,43 +437,55 @@ const PropertyDetail = () => {
                         {property.images.length} รูป
                       </div>
                     )}
+                    
                   </div>
                   
-                  {/* Right Side Grid - 4 Smaller Images (2x2 Grid) */}
-                  <div className="col-span-2 grid grid-cols-2 gap-4">
-                    {/* Top Row - 2 Images */}
-                    <div className="aspect-[16/9] group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  {/* Top Right Image */}
+                  <div 
+                    className="col-start-4 col-span-2 row-span-3 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      setIndex(1);
+                      setOpen(true);
+                    }}
+                  >
                       <img 
                         src={property.images[1] || property.images[0]} 
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
+                    
                     </div>
                     
-                    <div className="aspect-[16/9] group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                      <img 
-                        src={property.images[2] || property.images[0]} 
-                        alt="" 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      />
-                    </div>
-                    
-                    {/* Bottom Row - 2 Images */}
-                    <div className="aspect-[16/9] group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  {/* Bottom Left of Right Section */}
+                  <div 
+                    className="col-start-4 row-start-4 row-span-2 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      setIndex(3);
+                      setOpen(true);
+                    }}
+                  >
                       <img 
                         src={property.images[3] || property.images[0]} 
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
+                    
                     </div>
                     
-                    <div className="aspect-[16/9] group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  {/* Bottom Right of Right Section */}
+                  <div 
+                    className="col-start-5 row-start-4 row-span-2 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      setIndex(4);
+                      setOpen(true);
+                    }}
+                  >
                       <img 
                         src={property.images[4] || property.images[0]} 
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
-                    </div>
+                    
                   </div>
                 </div>
               ) : (
@@ -794,123 +896,10 @@ const PropertyDetail = () => {
                 {/* Nearby Properties */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Nearby Properties</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Property Card 1 */}
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <div className="relative">
-                        <img 
-                          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                          alt="Studio Apartment" 
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-2 left-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium flex items-center">
-                          <Building2 className="w-3 h-3 mr-1" />
-                          For sale
-                        </div>
-                        <div className="absolute top-2 right-2 flex space-x-2">
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <Heart className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="text-lg font-bold text-gray-900 font-prompt">฿7,010,000</div>
-                      </div>
-                    </div>
-
-                    {/* Property Card 2 */}
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <div className="relative">
-                        <img 
-                          src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                          alt="Living Room" 
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute inset-0 bg-red-500/30 flex items-center justify-center">
-                          <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-lg transform -rotate-12">
-                            SOLD
-                          </div>
-                        </div>
-                        <div className="absolute top-2 left-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium flex items-center">
-                          <Building2 className="w-3 h-3 mr-1" />
-                          For sale
-                        </div>
-                        <div className="absolute top-2 right-2 flex space-x-2">
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <Heart className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="text-lg font-bold text-gray-900 font-prompt">฿86,750</div>
-                      </div>
-                    </div>
-
-                    {/* Property Card 3 */}
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <div className="relative">
-                        <img 
-                          src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                          alt="Bedroom" 
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-2 left-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium flex items-center">
-                          <Building2 className="w-3 h-3 mr-1" />
-                          For rent
-                        </div>
-                        <div className="absolute top-2 right-2 flex space-x-2">
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <Heart className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="text-lg font-bold text-gray-900 font-prompt">฿25,000</div>
-                      </div>
-                    </div>
-
-                    {/* Property Card 4 */}
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <div className="relative">
-                        <img 
-                          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                          alt="Living Room" 
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-2 left-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium flex items-center">
-                          <Building2 className="w-3 h-3 mr-1" />
-                          For rent
-                        </div>
-                        <div className="absolute top-2 right-2 flex space-x-2">
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          <button className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                            <Heart className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="text-lg font-bold text-gray-900 font-prompt">฿22,000</div>
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {nearbyProperties.map((p, idx) => (
+                      <LatestStyleCard key={p.id || idx} property={p} type={p.type || 'condo'} onClick={() => { if (p.id) navigate(`/property/${p.id}`) }} />
+                    ))}
                   </div>
                 </div>
 
@@ -995,107 +984,8 @@ const PropertyDetail = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Property Info Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg mb-6 sticky top-8">
-              {/* Contact Info Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 text-center font-prompt">ข้อมูลติดต่อ</h3>
-                <div className="space-y-1">
-                  {contactInfo?.phone && (
-                    <a 
-                      href={`tel:${contactInfo.phone}`}
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaPhone className="h-4 w-4 text-white" />
+
                       </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">Call us</span>
-                    </a>
-                  )}
-                  
-                  {contactInfo?.line && (
-                    <a 
-                      href={`https://line.me/ti/p/${contactInfo.line}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaLine className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">Line@</span>
-                    </a>
-                  )}
-                  
-                  {contactInfo?.whatsapp && (
-                    <a 
-                      href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaWhatsapp className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">WhatsApp</span>
-                    </a>
-                  )}
-                  
-                  {contactInfo?.messenger && (
-                    <a 
-                      href={contactInfo.messenger} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaFacebookMessenger className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">Messenger</span>
-                    </a>
-                  )}
-                  
-                  {contactInfo?.facebook && (
-                    <a 
-                      href={contactInfo.facebook} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaFacebook className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">Facebook</span>
-                    </a>
-                  )}
-                  
-                  {contactInfo?.instagram && (
-                    <a 
-                      href={contactInfo.instagram} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-102 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                        <FaInstagram className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-gray-800 font-semibold text-sm font-prompt">Instagram</span>
-                    </a>
-                  )}
-                  
-                  <div className="flex items-center w-full bg-white rounded-lg p-2 shadow-sm">
-                    <div className="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center mr-2 shadow-sm">
-                      <Calendar className="h-4 w-4 text-white" />
-                    </div>
-                    <span className="text-gray-800 font-semibold text-sm font-prompt">อัปเดตล่าสุด: วันนี้</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       
       {/* Footer */}
@@ -1108,6 +998,11 @@ const PropertyDetail = () => {
         index={index}
         slides={property?.images?.map((image, idx) => ({ src: image })) || []}
         onIndexChange={(idx) => setIndex(idx)}
+        plugins={[Thumbnails, Zoom, Fullscreen, Counter]}
+        counter={{ className: 'font-prompt' }}
+        thumbnails={{ borderRadius: 8, width: 100, height: 64, padding: 4 }}
+        carousel={{ finite: false }}
+        animation={{ fade: 250 }}
       />
     </div>
   )
