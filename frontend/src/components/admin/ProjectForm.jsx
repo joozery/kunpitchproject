@@ -632,25 +632,45 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     
     // เพิ่มสถานีที่เลือก
     if (formData.selected_stations && Array.isArray(formData.selected_stations) && formData.selected_stations.length > 0) {
-      formData.selected_stations.forEach(station => {
-        formDataToSend.append('selected_stations', station);
-      });
+      // กรองเอาเฉพาะค่าที่ไม่ใช่ '[]' หรือ 'null'
+      const validStations = formData.selected_stations.filter(station => 
+        station !== '[]' && station !== 'null' && station !== null
+      );
+      
+      if (validStations.length > 0) {
+        validStations.forEach(station => {
+          formDataToSend.append('selected_stations', station);
+        });
+        console.log('🔍 Appending valid stations:', validStations);
+      } else {
+        // ไม่มีสถานีที่ถูกต้อง
+        console.log('🔍 No valid stations found, sending empty array');
+      }
     } else {
-      // ส่ง array ว่างถ้าไม่มีสถานีที่เลือก
-      formDataToSend.append('selected_stations', '[]');
+      // ไม่มีสถานีที่เลือก
+      console.log('🔍 No selected_stations, sending empty array');
     }
     
     // เพิ่มประเภทอาคาร
     console.log('🔍 Submitting building_type:', formData.building_type);
     if (formData.building_type && Array.isArray(formData.building_type) && formData.building_type.length > 0) {
-      formData.building_type.forEach(type => {
-        formDataToSend.append('building_type', type);
-        console.log('🔍 Appending building_type:', type);
-      });
+      // กรองเอาเฉพาะค่าที่ไม่ใช่ '[]' หรือ 'null'
+      const validBuildingTypes = formData.building_type.filter(type => 
+        type !== '[]' && type !== 'null' && type !== null
+      );
+      
+      if (validBuildingTypes.length > 0) {
+        validBuildingTypes.forEach(type => {
+          formDataToSend.append('building_type', type);
+          console.log('🔍 Appending building_type:', type);
+        });
+      } else {
+        // ไม่มีประเภทอาคารที่ถูกต้อง
+        console.log('🔍 No valid building types found, sending empty array');
+      }
     } else {
-      // ส่ง array ว่างถ้าไม่มีประเภทอาคาร
-      formDataToSend.append('building_type', '[]');
-      console.log('🔍 Appending empty building_type array');
+      // ไม่มีประเภทอาคารที่เลือก
+      console.log('🔍 No building_type, sending empty array');
     }
     
     // เพิ่ม SEO
