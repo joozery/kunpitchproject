@@ -1549,7 +1549,12 @@ const PropertyDetail = () => {
                       const parseLocationData = (text) => {
                         if (!text) return { transport: [], shopping: [], parks: [], hospitals: [], schools: [], others: [] }
                         
-                        const lines = text.split('\n').filter(line => line.trim())
+                        // Remove HTML tags and convert to plain text
+                        const plainText = text.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                        
+                        // Split by bullet points (•) first, then by newlines
+                        const items = plainText.split(/[•\-\*]/).filter(item => item.trim())
+                        
                         const categories = {
                           transport: [],
                           shopping: [],
@@ -1559,20 +1564,22 @@ const PropertyDetail = () => {
                           others: []
                         }
                         
-                        lines.forEach(line => {
-                          const cleanLine = line.trim().replace(/^[•\-\*]\s*/, '')
-                          if (cleanLine.toLowerCase().includes('bts') || cleanLine.toLowerCase().includes('mrt') || cleanLine.toLowerCase().includes('arl') || cleanLine.toLowerCase().includes('srt')) {
-                            categories.transport.push(cleanLine)
-                          } else if (cleanLine.toLowerCase().includes('mall') || cleanLine.toLowerCase().includes('shopping') || cleanLine.toLowerCase().includes('department store') || cleanLine.toLowerCase().includes('complex') || cleanLine.toLowerCase().includes('tower')) {
-                            categories.shopping.push(cleanLine)
-                          } else if (cleanLine.toLowerCase().includes('park') || cleanLine.toLowerCase().includes('สวน')) {
-                            categories.parks.push(cleanLine)
-                          } else if (cleanLine.toLowerCase().includes('hospital') || cleanLine.toLowerCase().includes('โรงพยาบาล')) {
-                            categories.hospitals.push(cleanLine)
-                          } else if (cleanLine.toLowerCase().includes('school') || cleanLine.toLowerCase().includes('โรงเรียน')) {
-                            categories.schools.push(cleanLine)
+                        items.forEach(item => {
+                          const cleanItem = item.trim()
+                          if (!cleanItem) return
+                          
+                          if (cleanItem.toLowerCase().includes('bts') || cleanItem.toLowerCase().includes('mrt') || cleanItem.toLowerCase().includes('arl') || cleanItem.toLowerCase().includes('srt') || cleanItem.toLowerCase().includes('pier') || cleanItem.toLowerCase().includes('expressway')) {
+                            categories.transport.push(cleanItem)
+                          } else if (cleanItem.toLowerCase().includes('mall') || cleanItem.toLowerCase().includes('shopping') || cleanItem.toLowerCase().includes('department store') || cleanItem.toLowerCase().includes('complex') || cleanItem.toLowerCase().includes('tower') || cleanItem.toLowerCase().includes('avenue') || cleanItem.toLowerCase().includes('commons') || cleanItem.toLowerCase().includes('emporium') || cleanItem.toLowerCase().includes('terminal')) {
+                            categories.shopping.push(cleanItem)
+                          } else if (cleanItem.toLowerCase().includes('park') || cleanItem.toLowerCase().includes('สวน')) {
+                            categories.parks.push(cleanItem)
+                          } else if (cleanItem.toLowerCase().includes('hospital') || cleanItem.toLowerCase().includes('โรงพยาบาล')) {
+                            categories.hospitals.push(cleanItem)
+                          } else if (cleanItem.toLowerCase().includes('school') || cleanItem.toLowerCase().includes('โรงเรียน')) {
+                            categories.schools.push(cleanItem)
                           } else {
-                            categories.others.push(cleanLine)
+                            categories.others.push(cleanItem)
                           }
                         })
                         
