@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
+import { MapPin, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Car, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
+import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
+import { LuBath } from 'react-icons/lu'
+import { IoBedOutline } from 'react-icons/io5'
 import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt } from 'react-icons/fa'
 import { propertyAPI, condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
@@ -25,6 +28,8 @@ const PropertyDetail = () => {
   const [photoViewerTab, setPhotoViewerTab] = useState('photos')
   const [unitsInProject, setUnitsInProject] = useState([])
   const [nearby, setNearby] = useState([])
+  const [descExpanded, setDescExpanded] = useState(false)
+  const [projectInfo, setProjectInfo] = useState(null)
 
   // Derived values for UI meta
   const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
@@ -286,43 +291,107 @@ const PropertyDetail = () => {
     }
   }, [id])
 
-  // Load Units in Project and Nearby Properties from API (no UI changes)
+  // Load Units in Project and Nearby Properties from multiple sources
   useEffect(() => {
     const loadRelated = async () => {
       if (!property) return
       try {
-        const response = await propertyAPI.getAll()
-        if (response && response.success && Array.isArray(response.data)) {
-          const allProperties = response.data
+        const [propS, condoS, houseS, landS, commS] = await Promise.allSettled([
+          propertyAPI.getAll(),
+          condoAPI.getAll({ limit: 100 }),
+          houseAPI.getAll({ limit: 100 }),
+          landAPI.getAll({ limit: 100 }),
+          commercialAPI.getAll({ limit: 100 })
+        ])
 
-          // Units in same project (match by selectedProject or projectCode)
-          const sameProject = allProperties.filter((p) => {
-            if (!p || p.id === property.id) return false
-            const sameBySelected = property.selectedProject && p.selectedProject === property.selectedProject
-            const sameByCode = property.projectCode && p.projectCode === property.projectCode
-            return Boolean(sameBySelected || sameByCode)
-          })
-          setUnitsInProject(sameProject.slice(0, 8))
+        const pull = (s) => (s && s.status === 'fulfilled' && s.value && s.value.success && Array.isArray(s.value.data)) ? s.value.data : []
+        const combined = [
+          ...pull(propS),
+          ...pull(condoS),
+          ...pull(houseS),
+          ...pull(landS),
+          ...pull(commS)
+        ]
 
-          // Nearby properties: naive match by first token of location/address
-          const baseLocation = (property.location || property.address || '')
-            .split(',')[0]
-            ?.trim()
-          const nearbyList = allProperties.filter((p) => {
+        // Units in same project (match by selectedProject/name or projectCode)
+        const sameProject = combined.filter((p) => {
+          if (!p || p.id === property.id) return false
+          const sameBySelected = (property.selectedProject && (p.selectedProject === property.selectedProject || p.selected_project === property.selectedProject))
+          const sameByCode = (property.projectCode && (p.projectCode === property.projectCode || p.project_code === property.projectCode))
+          return Boolean(sameBySelected || sameByCode)
+        })
+        const fallbackLatest = [...combined]
+          .sort((a,b) => new Date(b.updated_at || b.updatedAt || b.created_at || b.createdAt || 0) - new Date(a.updated_at || a.updatedAt || a.created_at || a.createdAt || 0))
+          .filter(p => p && p.id !== property.id)
+
+        setUnitsInProject((sameProject.length ? sameProject : fallbackLatest).slice(0,8))
+
+        // Nearby properties: naive match by first token of location/address across all types
+        const baseLocation = (property.location || property.address || '')
+          .split(',')[0]
+          ?.trim()
+        let nearbyList = []
+        if (baseLocation) {
+          nearbyList = combined.filter((p) => {
             if (!p || p.id === property.id) return false
-            if (!baseLocation) return false
             return (
-              (p.location && p.location.includes(baseLocation)) ||
-              (p.address && p.address.includes(baseLocation))
+              (p.location && String(p.location).includes(baseLocation)) ||
+              (p.address && String(p.address).includes(baseLocation))
             )
           })
-          setNearby(nearbyList.slice(0, 8))
         }
+        if (!nearbyList.length) {
+          nearbyList = fallbackLatest
+        }
+        setNearby(nearbyList.slice(0,8))
       } catch (err) {
         console.error('Failed to load related properties:', err)
       }
     }
     loadRelated()
+  }, [property])
+
+  // Fetch full project details from saved selection
+  useEffect(() => {
+    const loadProject = async () => {
+      try {
+        if (!property) return
+        const selectedRaw = property.selectedProject || property.selected_project || ''
+        const selectedName = typeof selectedRaw === 'string' ? selectedRaw : ''
+        const code = property.projectCode || property.project_code || ''
+        if (!selectedRaw && !code) {
+          setProjectInfo(null)
+          return
+        }
+        // If selected is numeric id → fetch directly
+        const isNumericId = (val) => String(val).trim().match(/^\d+$/)
+        if (isNumericId(selectedRaw)) {
+          const byId = await propertyAPI.getProjectById(String(selectedRaw).trim())
+          if (byId && byId.success && byId.data) {
+            setProjectInfo(byId.data)
+            return
+          }
+        }
+
+        // Fallback: load all and match by name/code/id
+        const res = await propertyAPI.getProjects()
+        const list = (res && res.success && Array.isArray(res.data)) ? res.data : []
+        const match = list.find(p => {
+          const name = p.name || p.title || p.project_name
+          const pcode = p.project_code || p.code
+          const pid = p.id || p.project_id
+          return (
+            (selectedName && name && String(name).toLowerCase() === String(selectedName).toLowerCase()) ||
+            (code && pcode && String(pcode).toLowerCase() === String(code).toLowerCase()) ||
+            (isNumericId(selectedRaw) && pid && String(pid) === String(selectedRaw))
+          )
+        })
+        if (match) setProjectInfo(match); else setProjectInfo(null)
+      } catch (e) {
+        setProjectInfo(null)
+      }
+    }
+    loadProject()
   }, [property])
 
   const formatPrice = (price) => {
@@ -340,8 +409,13 @@ const PropertyDetail = () => {
   // Parse long free-text description to readable bullet points
   const parseDescription = (text) => {
     if (!text || typeof text !== 'string') return []
-    // Normalize whitespace
-    const cleaned = text.replace(/\s+/g, ' ').trim()
+    // Normalize whitespace and strip redundant symbols/emojis/hashtags
+    const cleaned = text
+      .replace(/[\n\r\t]+/g, ' ')
+      .replace(/[#*_`~]+/g, ' ')
+      .replace(/[\u{1F300}-\u{1FAFF}]/gu, '') // most emojis
+      .replace(/\s{2,}/g, ' ') // collapse spaces
+      .trim()
     // Split by common separators found in imported posts (•, ·, |, newlines, spaced dashes)
     const parts = cleaned
       .split(/\n|\r|\t|\s•\s|\s\u2022\s|\s·\s|\s\|\s|\s–\s|\s-\s/g)
@@ -484,6 +558,160 @@ const PropertyDetail = () => {
 
   // Removed local mock data; using API-driven data via unitsInProject and nearby
 
+  // --- Shared card (same style as ExclusiveUnits) ---
+  const getPropertyImage = (p, fallbackKey = 'condo') => {
+    if (p.cover_image) {
+      let url = p.cover_image
+      if (typeof url === 'string') {
+        if (url.startsWith('http://')) url = url.replace('http://', 'https://')
+        if (url.startsWith('//')) url = 'https:' + url
+      }
+      return url
+    }
+    if (p.images) {
+      try {
+        const arr = Array.isArray(p.images) ? p.images : JSON.parse(p.images)
+        if (arr && arr.length) {
+          let url = typeof arr[0] === 'string' ? arr[0] : (arr[0]?.url || arr[0]?.image_url)
+          if (url) {
+            if (url.startsWith('http://')) url = url.replace('http://', 'https://')
+            if (url.startsWith('//')) url = 'https:' + url
+            return url
+          }
+        }
+      } catch {
+        let url = typeof p.images === 'string' ? p.images : ''
+        if (url.startsWith('http://')) url = url.replace('http://', 'https://')
+        if (url.startsWith('//')) url = 'https:' + url
+        return url
+      }
+    }
+    const fb = {
+      condo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      house: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      land: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      commercial: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+    }
+    return fb[fallbackKey] || fb.condo
+  }
+
+  const exGetTypeLabel = (type) => ({
+    condo: 'คอนโด',
+    house: 'บ้าน',
+    land: 'ที่ดิน',
+    commercial: 'โฮมออฟฟิศ'
+  }[type] || 'อสังหาฯ')
+
+  const exGetTypeColor = (type) => {
+    const colorMap = {
+      condo: '#0cc0df',
+      house: '#00bf63',
+      apartment: '#5271ff',
+      townhouse: '#2ea36b',
+      commercial: '#8c52ff',
+      building: '#b294ec',
+      land: '#ffb800'
+    }
+    return colorMap[type] || '#0cc0df'
+  }
+
+  const ExclusiveCard = ({ item, idx }) => {
+    const p = item || {}
+    const t = (p.type || p.property_type || p.__type || 'condo')
+    const hasSale = p.price && p.price > 0
+    const hasRent = p.rent_price && p.rent_price > 0
+    return (
+      <div className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4">
+        <div className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt shadow-lg hover:shadow-xl">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
+          <div className="relative overflow-hidden h-52 flex-shrink-0">
+            <img src={getPropertyImage(p, t)} alt={p.title || p.name} className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-4 left-4">
+              <div className="text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={{ backgroundColor: exGetTypeColor(t) }}>{exGetTypeLabel(t)}</div>
+            </div>
+            <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: '#ffffff' }}>
+              {p.status === 'for_sale' || p.status === 'sale' ? 'ขาย' : p.status === 'for_rent' || p.status === 'rent' ? 'เช่า' : 'ขาย/เช่า'}
+            </div>
+          </div>
+          <div className="p-6 flex-1 flex flex-col" onClick={() => { if (p.id) navigate(`/property/${p.id}`) }}>
+            <h3 className="text-base font-semibold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300 leading-snug line-clamp-2">{p.title || p.name}</h3>
+            <div className="space-y-2 mb-4 text-xs text-gray-600">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 whitespace-nowrap"><span className="truncate">ห้องนอน: {p.bedrooms || 'N/A'}</span></div>
+                <div className="flex items-center gap-2 whitespace-nowrap"><span className="truncate">ห้องน้ำ: {p.bathrooms || 'N/A'}</span></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 whitespace-nowrap"><span className="truncate">พื้นที่: {p.area ? `${p.area} ตร.ม.` : 'N/A'}</span></div>
+                <div className="flex items-center gap-2 whitespace-nowrap"><span className="truncate">ชั้นที่: {p.floor || 'N/A'}</span></div>
+              </div>
+              <div className="flex items-center gap-2 whitespace-nowrap"><span className="truncate" title={p.location || p.address || 'ไม่ระบุที่อยู่'}>{p.location || p.address || 'ไม่ระบุที่อยู่'}</span></div>
+            </div>
+            <div className="mt-auto">
+              {hasSale && hasRent ? (
+                <>
+                  <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPrice(p.price)}</div>
+                  <div className="text-lg font-semibold" style={{ color: '#243756' }}>฿{formatPrice(p.rent_price)}/เดือน</div>
+                </>
+              ) : hasSale ? (
+                <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPrice(p.price)}</div>
+              ) : hasRent ? (
+                <div className="text-xl font-bold" style={{ color: '#243756' }}>฿{formatPrice(p.rent_price)}/เดือน</div>
+              ) : (
+                <div className="text-lg text-gray-500">ราคาติดต่อ</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const getProjectCover = (proj, fallbackType = 'condo') => {
+    if (!proj) return getPropertyImage(property, fallbackType)
+    const cover = proj.cover_image || (Array.isArray(proj.project_images) ? (proj.project_images.find(i => i.is_cover)?.url || proj.project_images[0]?.url) : null)
+    return cover || getPropertyImage(property, fallbackType)
+  }
+
+  // Map amenity ids to readable Thai labels
+  const getAmenityLabel = (amenity) => {
+    const map = {
+      tv: 'ทีวี',
+      aircon: 'แอร์',
+      air_conditioner: 'แอร์',
+      refrigerator: 'ตู้เย็น',
+      microwave: 'ไมโครเวฟ',
+      oven: 'เตาอบ',
+      washing_machine: 'เครื่องซักผ้า',
+      dryer: 'เครื่องอบผ้า',
+      water_heater: 'เครื่องทำน้ำอุ่น',
+      balcony: 'ระเบียง',
+      wardrobe: 'ตู้เสื้อผ้า',
+      sofa: 'โซฟา',
+      dining_table: 'โต๊ะทานอาหาร',
+      bed: 'เตียง',
+      wifi: 'Wi‑Fi',
+      stove: 'เตาไฟฟ้า',
+      hood: 'เครื่องดูดควัน',
+      bathtub: 'อ่างอาบน้ำ',
+    }
+    if (!amenity) return ''
+    const key = String(amenity).trim()
+    return map[key] || key
+  }
+
+  const hasYoutubeVideo = () => {
+    try {
+      const u = property?.youtubeUrl || property?.youtube_url || ''
+      if (!u || typeof u !== 'string') return false
+      const trimmed = u.trim()
+      if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return false
+      return /(youtube\.com|youtu\.be)/i.test(trimmed)
+    } catch {
+      return false
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -522,31 +750,34 @@ const PropertyDetail = () => {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="flex-1">
-              {/* Property Title and Reference Number Row */}
+              {/* Property Title */}
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold font-prompt">
                   <span className="text-[#917133]">{property.status === 'for_sale' ? 'ขาย' : 'เช่า'}</span>
                   <span className="text-gray-900"> {property.title}</span>
                 </h1>
-                
-                {/* Reference Number */}
-                <div className="border border-blue-600 rounded-lg px-3 py-1">
-                  <span className="text-sm text-gray-700 font-medium font-prompt">
-                    Ref: WS{property.id}
-                  </span>
-                </div>
               </div>
               
               {/* Location */}
               <p className="text-gray-600 mb-3 font-prompt">
                 {property.location || property.address}
               </p>
+              {/* Reference Number under location (smaller, mobile-friendly) */}
+              <div className="mb-3">
+                <span className="inline-block border border-blue-600 rounded px-2 py-0.5 text-xs sm:text-sm text-gray-700 font-medium font-prompt bg-white/80">
+                  {(() => {
+                    const code = property.projectCode || property.project_code || property.id
+                    const codeStr = String(code || '')
+                    const hasWS = /^\s*ws/i.test(codeStr)
+                    const normalized = hasWS ? codeStr.replace(/^\s*/, '') : `WS${codeStr}`
+                    return `Ref: ${normalized}`
+                  })()}
+                </span>
+              </div>
               
               {/* Property Tags */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
-                  {getTypeLabel(property.type)}
-                </span>
+                {/* Ref badge removed per request */}
                 {property.selectedStations && property.selectedStations.length > 0 && (
                   <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
                     ใกล้ {property.selectedStations[0]}
@@ -557,25 +788,24 @@ const PropertyDetail = () => {
                     เช่าช่วงสั้น
                   </span>
                 )}
-                <div className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 cursor-pointer">
-                  <span className="font-bold">+</span>
-              </div>
+                {/* Extra tag removed per request */}
             </div>
             </div>
             
             {/* Price Section */}
                           <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1 font-prompt">
-                {property.status === 'for_sale' ? 'ราคาขาย' : 'ราคาเช่า'}
-                    </div>
-              <div className="text-3xl font-bold text-[#917133] mb-2 font-prompt">
-                {format(convert(property.status === 'for_sale' ? property.price : property.rent_price))}
-              </div>
-              {property.rent_price > 0 && property.status === 'for_sale' && (
-                <div className="text-lg text-[#917133] mb-2 font-prompt">
-                    {format(convert(property.rent_price))}/เดือน
-                    </div>
-                )}
+              {property.rent_price > 0 && (
+                <>
+                  <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาเช่า</div>
+                  <div className="text-xl sm:text-2xl font-bold text-[#917133] mb-2 font-prompt">{format(convert(property.rent_price))}</div>
+                </>
+              )}
+              {property.price > 0 && (
+                <>
+                  <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาขาย</div>
+                  <div className="text-xl sm:text-2xl font-bold text-[#917133] mb-2 font-prompt">{format(convert(property.price))}</div>
+                </>
+              )}
               
               {/* Share Button */}
               <div className="flex justify-end mt-3">
@@ -682,72 +912,23 @@ const PropertyDetail = () => {
             </div>
 
             {/* YouTube Videos & Location Section */}
+            {hasYoutubeVideo() && (
             <div className="mb-6">
               <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                {/* YouTube Videos */}
-                <div className="lg:col-span-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Video 1 */}
-                    <div className="relative group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300">
-                      <div className="aspect-[3/1] bg-gray-200 relative">
-                        <img 
-                          src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" 
-                          alt="Video 1" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          </div>
+                {/* YouTube Thumbnails (single) */}
+                <div className="lg:col-span-2 flex">
+                  <a href={(property.youtubeUrl || property.youtube_url)} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
+                    <div className="aspect-video bg-gray-200 relative">
+                      <img src={`https://img.youtube.com/vi/${String(property.youtubeUrl || property.youtube_url).split('v=')[1] || ''}/hqdefault.jpg`} alt="YouTube" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/15 group-hover:bg-black/30 transition-all duration-300"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </div>
-                        <div className="absolute top-1 left-1 flex items-center space-x-1">
-                          <div className="w-3 h-3 bg-gray-800 rounded-full flex items-center justify-center">
-                            <svg className="w-1.5 h-1.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                          </div>
-                          <span className="text-white text-xs font-medium bg-black/50 px-1 py-0.5 rounded">Dia...</span>
-                        </div>
-                      </div>
-                      <div className="p-1">
-                        <p className="text-xs text-gray-600 font-prompt">Video</p>
                       </div>
                     </div>
-
-                    {/* Video 2 */}
-                    <div className="relative group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300">
-                      <div className="aspect-[3/1] bg-gray-200 relative">
-                        <img 
-                          src="https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg" 
-                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg'; }}
-                          alt="Video 2" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="absolute top-1 left-1 flex items-center space-x-1">
-                          <div className="w-3 h-3 bg-gray-800 rounded-full flex items-center justify-center">
-                            <svg className="w-1.5 h-1.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                          </div>
-                          <span className="text-white text-xs font-medium bg-black/50 px-1 py-0.5 rounded">Dia...</span>
-                        </div>
-                      </div>
-                      <div className="p-1">
-                        <p className="text-xs text-gray-600 font-prompt">Video</p>
-                      </div>
-                    </div>
-                  </div>
+                    <div className="p-1"><p className="text-xs text-gray-600 font-prompt">Video</p></div>
+                  </a>
                 </div>
 
                 {/* Location */}
@@ -760,12 +941,23 @@ const PropertyDetail = () => {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-900 font-medium font-prompt">บางซื่อ วงศ์สว่าง เตาปูน, กรุงเทพมหานคร</p>
+                      <p className="text-sm text-gray-900 font-medium font-prompt">
+                        {(() => {
+                          const stations = (Array.isArray(property.selectedStations) && property.selectedStations.length)
+                            ? property.selectedStations
+                            : (Array.isArray(property.selected_stations) ? property.selected_stations : [])
+                          const transport = property.nearbyTransport || property.nearby_transport
+                          if (stations && stations.length) return stations.join(', ')
+                          if (transport) return transport
+                          return property.location || property.address || '-'
+                        })()}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            )}
 
             {/* Overview Content */}
             <div className="mb-8">
@@ -775,25 +967,25 @@ const PropertyDetail = () => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด ยูนิต</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="flex items-center space-x-3">
-                      <Bed className="h-6 w-6 text-gray-600" />
+                      <IoBedOutline className="h-6 w-6 text-gray-600" />
                       <div>
                         <div className="text-sm text-gray-600 font-prompt">{property.bedrooms || 'N/A'} ห้อง ห้องนอน</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Bath className="h-6 w-6 text-gray-600" />
+                      <LuBath className="h-6 w-6 text-gray-600" />
                       <div>
                         <div className="text-sm text-gray-600 font-prompt">{property.bathrooms || 'N/A'} ห้อง ห้องน้ำ</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Ruler className="h-6 w-6 text-gray-600" />
+                      <TbViewportWide className="h-6 w-6 text-gray-600" />
                       <div>
                         <div className="text-sm text-gray-600 font-prompt">{property.area ? `${property.area} ตร.ม. พื้นที่ใช้สอย` : 'N/A'}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Building2 className="h-6 w-6 text-gray-600" />
+                      <TbStairsUp className="h-6 w-6 text-gray-600" />
                       <div>
                         <div className="text-sm text-gray-600 font-prompt">{property.floor || 'N/A'} ลำดับชั้นที่</div>
                       </div>
@@ -803,19 +995,22 @@ const PropertyDetail = () => {
 
                 {/* Pricing & Tags Section */}
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                  {/* Pricing Information */}
+                  {/* In-room Amenities (replace price info) */}
                   <div className="flex-1">
                     <div className="space-y-2">
-                      {property.rent_price > 0 && (
-                        <div className="text-2xl font-bold text-[#243756] font-prompt">
-                          For rent {format(convert(property.rent_price))}/month
-                        </div>
-                      )}
-                      {property.price > 0 && (
-                        <div className="text-2xl font-bold text-[#243756] font-prompt">
-                          For sale {format(convert(property.price))} Bath
-                        </div>
-                      )}
+                      <div className="text-lg font-semibold text-gray-900 mb-2 font-prompt">สิ่งอำนวยความสะดวกภายในห้อง</div>
+                      <div className="flex flex-wrap gap-2">
+                        {(property.amenities && Array.isArray(property.amenities) && property.amenities.length > 0
+                          ? property.amenities
+                          : []).slice(0, 12).map((a, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border">
+                            {typeof a === 'string' ? getAmenityLabel(a) : (a.label || getAmenityLabel(a.id))}
+                          </span>
+                        ))}
+                        {(!property.amenities || !Array.isArray(property.amenities) || property.amenities.length === 0) && (
+                          <span className="text-gray-500 text-sm">ไม่ระบุ</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -838,15 +1033,24 @@ const PropertyDetail = () => {
                 {property.description && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด</h3>
-                    {parseDescription(property.description).length > 1 ? (
-                      <ul className="list-disc pl-6 space-y-1 text-gray-700">
-                        {parseDescription(property.description).map((item, idx) => (
-                          <li key={idx} className="font-prompt">{item}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-gray-700 leading-relaxed">{property.description}</p>
-                    )}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                      {parseDescription(property.description).length > 1 ? (
+                        <ul className={`list-disc pl-6 space-y-2 text-gray-700 leading-relaxed transition-all ${descExpanded ? '' : 'max-h-48 overflow-hidden'}`}>
+                          {parseDescription(property.description).map((item, idx) => (
+                            <li key={idx} className="font-prompt">
+                              <span className="whitespace-pre-wrap break-words">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className={`text-gray-700 leading-relaxed whitespace-pre-wrap break-words transition-all ${descExpanded ? '' : 'line-clamp-5'}`}>{property.description}</p>
+                      )}
+                      <div className="mt-3">
+                        <button onClick={() => setDescExpanded(v => !v)} className="text-blue-700 hover:underline text-sm font-prompt">
+                          {descExpanded ? 'ย่อรายละเอียด' : 'อ่านเพิ่มเติม'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -947,34 +1151,34 @@ const PropertyDetail = () => {
                     {/* Project Image */}
                     <div className="lg:w-1/2">
                       <img 
-                        src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                        alt="Project Rendering" 
-                        className="w-full h-64 object-cover rounded-lg"
+                        src={getProjectCover(projectInfo, property.type || property.property_type || 'condo')} 
+                        alt={(projectInfo && (projectInfo.name || projectInfo.title || projectInfo.project_name)) || property.selectedProject || property.title || 'Project'} 
+                        className="w-full h-72 sm:h-80 lg:h-96 object-cover rounded-xl"
                       />
                     </div>
 
                     {/* Project Information */}
-                    <div className="lg:w-1/2 space-y-4">
+                    <div className="lg:w-1/2 space-y-4 self-stretch flex flex-col justify-between">
                       <div className="space-y-3">
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Project name:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">Lumpini Place Rama9-Ratchada</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.name_th || projectInfo.name_en || projectInfo.name || projectInfo.title || projectInfo.project_name)) || property.selectedProject || property.projectCode || '-'}</div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Project Type:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">Codomenium</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.project_type || projectInfo.type)) || getTypeLabel(property.type || property.property_type)}</div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Developer:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">Lumpini Development</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.developer || projectInfo.developer_name)) || property.developer || '-'}</div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Skytrian/Subway:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">MRT RAMA9</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.selected_stations || projectInfo.stations)) ? (Array.isArray(projectInfo.selected_stations || projectInfo.stations) ? (projectInfo.selected_stations || projectInfo.stations).join(', ') : (projectInfo.selected_stations || projectInfo.stations)) : ((property.selectedStations && property.selectedStations.length) ? property.selectedStations.join(', ') : (property.nearbyTransport || '-'))}</div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Location:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">Rama IX Rd, Huai Khwang, Bangkok 10310</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.address || projectInfo.location)) || property.location || property.address || '-'}</div>
                         </div>
                       </div>
 
@@ -983,9 +1187,16 @@ const PropertyDetail = () => {
                         <button className="px-6 py-3 bg-[#917133] text-white rounded-lg font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
                           All Details
                         </button>
-                        <button className="px-6 py-3 bg-[#917133] text-white rounded-lg font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
-                          View <span className="underline">On Google map</span>
-                        </button>
+                        {property.googleMapUrl && (
+                          <a
+                            className="px-6 py-3 bg-[#917133] text-white rounded-lg font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
+                            href={property.googleMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View <span className="underline">On Google map</span>
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1082,43 +1293,24 @@ const PropertyDetail = () => {
                 </div>
 
                 {/* Units in Project */}
-                <div>
-                  <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Units in Project</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {unitsInProject.map((p, idx) => (
-                      <LatestStyleCard key={`project-${p.id || idx}`} property={p} type={p.type || 'condo'} onClick={() => { if (p.id) navigate(`/property/${p.id}`) }} />
-                    ))}
-                  </div>
-                </div>
+                {/* Units in Project - removed per request */}
 
                 {/* Nearby Properties */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Nearby Properties</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {nearby.map((p, idx) => (
-                      <LatestStyleCard key={p.id || idx} property={p} type={p.type || 'condo'} onClick={() => { if (p.id) navigate(`/property/${p.id}`) }} />
-                    ))}
-                  </div>
+                  {nearby && nearby.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {nearby.map((p, idx) => (
+                        <ExclusiveCard key={`nearby-${p.id || idx}`} item={p} idx={idx} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500">ไม่พบทรัพย์ใกล้เคียง</div>
+                  )}
                 </div>
 
                 {/* Project Information */}
-                {property.selectedProject && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">ข้อมูลโครงการ</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-sm text-gray-600">ชื่อโครงการ</div>
-                        <div className="font-semibold text-gray-900">{property.selectedProject}</div>
-                      </div>
-                      {property.availableDate && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm text-gray-600">วันที่ว่าง</div>
-                          <div className="font-semibold text-gray-900">{new Date(property.availableDate).toLocaleDateString('th-TH')}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Hide simple project info block per request */}
 
                 {/* Special Features */}
                 {property.specialFeatures && (
@@ -1165,19 +1357,7 @@ const PropertyDetail = () => {
                   </div>
                 )}
 
-                {/* SEO Tags */}
-                {property.seoTags && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">แท็ก SEO</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {property.seoTags.split(',').map((tag, index) => (
-                        <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* SEO Tags - hidden per request */}
               </div>
             </div>
           </div>
