@@ -510,11 +510,12 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
       const response = await uploadAPI.uploadMultiple([file])
       
       if (response.success) {
+        const uploaded = response.data?.[0] || response.data // Get first file from array
         const imageData = {
           id: Date.now().toString(),
-          preview: response.data.url,
-          url: response.data.url,
-          public_id: response.data.public_id,
+          preview: uploaded.url,
+          url: uploaded.url,
+          public_id: uploaded.public_id,
           uploading: false
         }
         setCoverImage(imageData)

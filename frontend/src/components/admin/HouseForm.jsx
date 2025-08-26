@@ -826,7 +826,7 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       
       // อัพโหลดไป Cloudinary ผ่าน API
       const result = await uploadAPI.uploadMultiple([file])
-      const uploaded = result?.data || result // interceptor returns response.data; guard for shape
+      const uploaded = result?.data?.[0] || result?.data || result // Get first file from array
       const imageUrl = uploaded.url
       const publicId = uploaded.public_id
       

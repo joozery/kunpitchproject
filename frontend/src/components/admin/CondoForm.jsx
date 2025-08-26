@@ -955,57 +955,57 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       
       console.log(`✅ ไฟล์ที่ผ่านการตรวจสอบ: ${validFiles.length}/${totalFiles}`)
       
-      // Upload valid files one by one
-      for (let i = 0; i < validFiles.length; i++) {
-        const file = validFiles[i]
-        try {
-          console.log(`🔄 อัพโหลดไฟล์ ${i + 1}/${validFiles.length}: ${file.name}`)
-          
-          // Create temporary preview
-          const tempImageData = {
-            id: `temp-${Date.now()}-${i}`,
-            preview: URL.createObjectURL(file),
-            url: null,
-            public_id: null,
-            uploading: true
-          }
-          setImages(prev => [...prev, tempImageData])
-          
-          // Upload to server
-          const response = await uploadAPI.uploadMultiple([file])
-          
-          if (response && response.success && response.data) {
-            const imageData = {
+      // Upload all valid files at once
+      try {
+        console.log(`🔄 อัพโหลดไฟล์ ${validFiles.length} ไฟล์พร้อมกัน`)
+        
+        // Create temporary previews for all files
+        const tempImageDataArray = validFiles.map((file, i) => ({
+          id: `temp-${Date.now()}-${i}`,
+          preview: URL.createObjectURL(file),
+          url: null,
+          public_id: null,
+          uploading: true
+        }))
+        setImages(prev => [...prev, ...tempImageDataArray])
+        
+        // Upload all files to server
+        const response = await uploadAPI.uploadMultiple(validFiles)
+        
+        if (response && response.success && response.data) {
+          // Process all uploaded images
+          response.data.forEach((imageData, i) => {
+            const finalImageData = {
               id: Date.now().toString() + '-' + i,
-              preview: response.data.url,
-              url: response.data.url,
-              public_id: response.data.public_id,
+              preview: imageData.url,
+              url: imageData.url,
+              public_id: imageData.public_id,
               uploading: false
             }
             
             // Replace temp image with real image
             setImages(prev => prev.map(img => 
-              img.id === tempImageData.id ? imageData : img
+              img.id === tempImageDataArray[i].id ? finalImageData : img
             ))
-            
-            uploadedCount++
-            console.log(`✅ อัพโหลดสำเร็จ ${uploadedCount}/${validFiles.length}: ${file.name}`)
-          } else {
-            throw new Error(response?.message || 'ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์')
-          }
+          })
           
-        } catch (error) {
-          console.error(`❌ อัพโหลดล้มเหลว ${file.name}:`, error)
-          failedFiles.push(`${file.name} (${error.message})`)
-          failedCount++
-          
-          // Remove temp image on error
-          setImages(prev => prev.filter(img => !img.uploading))
+          uploadedCount = response.data.length
+          console.log(`✅ อัพโหลดสำเร็จ ${uploadedCount}/${validFiles.length} ไฟล์`)
+        } else {
+          throw new Error(response?.message || 'ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์')
         }
         
-        // Update progress
-        setUploadProgress(((i + 1) / validFiles.length) * 100)
+      } catch (error) {
+        console.error(`❌ อัพโหลดล้มเหลว:`, error)
+        failedFiles.push(`อัพโหลดล้มเหลว: ${error.message}`)
+        failedCount = validFiles.length
+        
+        // Remove all temp images on error
+        setImages(prev => prev.filter(img => !img.uploading))
       }
+      
+      // Update progress
+      setUploadProgress(100)
       
       setUploadProgress(100)
       
