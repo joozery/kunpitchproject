@@ -201,7 +201,7 @@ const ExclusiveUnits = () => {
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider flex items-center gap-2">
+            <span style={{ fontWeight: "bold", color: "#545454" }} className="font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider flex items-center gap-2">
               <IoDiamondOutline className="w-5 h-5" />
               Exclusive Units
             </span>
@@ -211,7 +211,7 @@ const ExclusiveUnits = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
+            style={{ fontWeight: "bold", color: "#545454" }} className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center flex items-center justify-center"
           >
             <IoDiamondOutline className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" />
           </motion.h2>

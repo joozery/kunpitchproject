@@ -96,13 +96,13 @@ const Header = () => {
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center space-x-6 ml-8 font-prompt">
+              <nav className="hidden md:flex items-center space-x-6 ml-8 font-taviraj">
                 {navigation.map((item) => (
                   item.name === 'Property type' ? (
                     <div key={item.name} className="relative" ref={propertyRef}>
                       <button
                         onClick={() => setIsPropertyOpen(prev => !prev)}
-                        className={`font-normal transition-colors duration-300 font-prompt text-lg ${
+                        className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
                           location.pathname === item.href
                             ? 'text-white drop-shadow-md'
                             : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
@@ -120,10 +120,10 @@ const Header = () => {
                       {/* Dropdown - click to toggle */}
                       {isPropertyOpen && (
                         <div className="absolute left-0 mt-2 bg-white rounded-xl shadow-lg border py-2 min-w-[220px]">
-                          <Link to="/buy?type=condo" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Condo/Apartment</Link>
-                          <Link to="/buy?type=residential" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">House/Townhouse</Link>
-                          <Link to="/buy?type=commercial" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Commercial</Link>
-                          <Link to="/buy?type=land" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-prompt">Land</Link>
+                          <Link to="/buy?type=condo" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-taviraj">Condo/Apartment</Link>
+                          <Link to="/buy?type=residential" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-taviraj">House/Townhouse</Link>
+                          <Link to="/buy?type=commercial" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-taviraj">Commercial</Link>
+                          <Link to="/buy?type=land" onClick={() => setIsPropertyOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 font-taviraj">Land</Link>
                         </div>
                       )}
                     </div>
@@ -131,7 +131,7 @@ const Header = () => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`font-normal transition-colors duration-300 font-prompt text-lg ${
+                      className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
                         location.pathname === item.href
                           ? 'text-white drop-shadow-md'
                           : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
@@ -168,7 +168,7 @@ const Header = () => {
                       textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)'
                     }}
                   >
-                    <span className="font-prompt text-sm font-medium">
+                    <span className="font-taviraj text-sm font-medium">
                       {currencies.find(curr => curr.code === currency)?.symbol} {currency}
                     </span>
                     <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${
@@ -194,7 +194,7 @@ const Header = () => {
                          >
                            <span className="text-lg font-medium">{curr.symbol}</span>
                            <div className="flex-1 text-left">
-                            <div className="font-medium font-prompt">{curr.name}</div>
+                            <div className="font-medium font-taviraj">{curr.name}</div>
                              <div className="text-xs text-gray-500">{curr.code}</div>
                            </div>
                          </button>

@@ -92,17 +92,7 @@ const AppContent = () => {
               )}
               
               
-              <Link
-                to="/find-assets"
-                className="flex items-center space-x-2 text-white px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-prompt"
-                style={{ 
-                  background: 'linear-gradient(to right, #1c4d85, #051d40)',
-                  textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3)'
-                }}
-              >
-                <SearchIcon className="h-4 w-4" />
-                <span>ค้นหาที่อยู่ในฝัน</span>
-              </Link>
+
             </div>
           </div>
         </div>

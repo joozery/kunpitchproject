@@ -225,12 +225,7 @@ const BlogSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald"
-            style={{
-              background: 'linear-gradient(135deg, #1e293b 0%, #334155 25%, #475569 50%, #64748b 75%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
+            style={{ fontWeight: "bold", color: "#545454" }}
           >
             Articles & News
           </motion.h2>

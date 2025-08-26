@@ -501,7 +501,7 @@ const PropertyDetail = () => {
       case 'for_rent':
         return 'bg-blue-500 text-white';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white';
     }
   };
 
@@ -523,7 +523,7 @@ const PropertyDetail = () => {
       case 'agent':
         return 'bg-orange-500 text-white';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white';
     }
   };
 
@@ -657,7 +657,7 @@ const PropertyDetail = () => {
     const hasRent = p.rent_price && p.rent_price > 0
     return (
       <div className="flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/4">
-        <div className="relative bg-white rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt shadow-lg hover:shadow-xl">
+                        <div className="relative bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl overflow-hidden transition-all duration-700 transform hover:-translate-y-4 h-full flex flex-col group cursor-pointer font-prompt shadow-lg hover:shadow-xl border border-gray-200">
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
           <div className="relative overflow-hidden h-52 flex-shrink-0">
             <img src={getPropertyImage(p, t)} alt={p.title || p.name} className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" />
@@ -877,6 +877,15 @@ const PropertyDetail = () => {
     return `${y}-${m}-${day}`
   }
 
+  const formatMonthYear = (input) => {
+    if (!input) return ''
+    const d = new Date(input)
+    if (Number.isNaN(d.getTime())) return ''
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    return `${month}/${year}`
+  }
+
   const getYoutubeId = (url) => {
     if (!url || typeof url !== 'string') return null
     const trimmed = url.trim()
@@ -934,30 +943,30 @@ const PropertyDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       {/* Main Header */}
       <Header />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20 pb-32">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 mt-20 pb-32">
         {/* Property Header Card */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="mb-6 sm:mb-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 sm:gap-4">
             <div className="flex-1">
               {/* Property Title */}
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold font-prompt">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold font-prompt leading-tight">
                   <span className="text-[#917133]">{property.status === 'for_sale' ? 'ขาย' : 'เช่า'}</span>
                   <span className="text-gray-900"> {property.title}</span>
                 </h1>
               </div>
               
               {/* Location */}
-              <p className="text-gray-600 mb-3 font-prompt">
+              <p className="text-gray-600 mb-3 font-prompt text-sm sm:text-base">
                 {property.location || property.address}
               </p>
               {/* Reference Number under location (smaller, mobile-friendly) */}
               <div className="mb-3">
-                <span className="inline-block border border-blue-600 rounded px-2 py-0.5 text-xs sm:text-sm text-gray-700 font-medium font-prompt bg-white/80">
+                <span className="inline-block border border-blue-600 rounded px-2 py-1 text-xs sm:text-sm text-gray-700 font-medium font-prompt bg-blue-50/80">
                   {(() => {
                     const code = property.projectCode || property.project_code || property.id
                     const codeStr = String(code || '')
@@ -969,17 +978,17 @@ const PropertyDetail = () => {
               </div>
               
               {/* Property Tags */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-0">
                 {/* Ref badge removed per request */}
                 {property.selectedStations && property.selectedStations.length > 0 && (
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
+                  <span className="px-3 py-1 bg-blue-50 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
                     ใกล้ {formatStationName(property.selectedStations[0])}
                   </span>
                 )}
                 {/* Availability tag (replaces short-term if availableDate exists) */}
                 {property.availableDate ? (
                   <span className="px-3 py-1 text-white text-sm rounded-lg font-prompt bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm">
-                    Available: {formatISODate(property.availableDate)}
+                    Available: {formatMonthYear(property.availableDate)}
                   </span>
                 ) : (
                   property.specialFeatures?.shortTerm && (
@@ -988,43 +997,58 @@ const PropertyDetail = () => {
                   </span>
                   )
                 )}
-                {/* Extra tag removed per request */}
-            </div>
+              </div>
+
+              {/* Mobile Price Display - Same line as tags */}
+              <div className="sm:hidden mt-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  {property.rent_price > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600 font-prompt">เช่า:</span>
+                      <span className="text-lg font-bold text-blue-600 font-prompt">{format(convert(property.rent_price))}</span>
+                    </div>
+                  )}
+                  {property.price > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600 font-prompt">ขาย:</span>
+                      <span className="text-lg font-bold text-blue-600 font-prompt">{format(convert(property.price))}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             
-            {/* Price Section */}
-                          <div className="text-right">
+                        {/* Price Section - Hidden on mobile, shown on desktop */}
+            <div className="hidden sm:block text-center sm:text-right mt-4 sm:mt-0">
               {property.rent_price > 0 && (
                 <>
                   <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาเช่า/เดือน</div>
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.rent_price))}</div>
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.rent_price))}</div>
                 </>
               )}
               {property.price > 0 && (
                 <>
                   <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาขาย</div>
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.price))}</div>
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.price))}</div>
                 </>
               )}
-              
-              {/* Share Button removed per request */}
-              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8">
           {/* Main Content */}
           <div className="w-full">
             {/* Professional Image Gallery */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               {property.images && property.images.length > 0 ? (
                 (() => {
                   const images = property.images.slice(0, 100)
                   return (
-                <div className="grid grid-cols-5 grid-rows-5 gap-2 h-96">
+                <div className="grid grid-cols-5 grid-rows-5 gap-1 sm:gap-2 h-64 sm:h-80 lg:h-96">
                   {/* Main Hero Image - Left Side (Large) */}
                   <div 
-                    className="col-span-3 row-span-5 relative group overflow-hidden rounded-xl shadow-lg cursor-pointer"
+                    className="col-span-3 row-span-5 relative group overflow-hidden rounded-lg sm:rounded-xl shadow-lg cursor-pointer"
                     onClick={() => {
                       setIndex(0);
                       setOpen(true);
@@ -1063,7 +1087,7 @@ const PropertyDetail = () => {
                   
                   {/* Top Right Image */}
                   <div 
-                    className="col-start-4 col-span-2 row-span-3 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    className="col-start-4 col-span-2 row-span-3 group overflow-hidden rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                     onClick={() => {
                       setIndex(1);
                       setOpen(true);
@@ -1080,7 +1104,7 @@ const PropertyDetail = () => {
                     
                   {/* Bottom Left of Right Section */}
                   <div 
-                    className="col-start-4 row-start-4 row-span-2 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    className="col-start-4 row-start-4 row-span-2 group overflow-hidden rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                     onClick={() => {
                       setIndex(3);
                       setOpen(true);
@@ -1097,7 +1121,7 @@ const PropertyDetail = () => {
                     
                   {/* Bottom Right of Right Section */}
                   <div 
-                    className="col-start-5 row-start-4 row-span-2 group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    className="col-start-5 row-start-4 row-span-2 group overflow-hidden rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                     onClick={() => {
                       setIndex(4);
                       setOpen(true);
@@ -1115,9 +1139,9 @@ const PropertyDetail = () => {
                   )
                 })()
               ) : (
-                <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+                <div className="w-full h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl sm:rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full mx-auto mb-4 flex items-center justify-center">
                       <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -1154,7 +1178,7 @@ const PropertyDetail = () => {
                         <div className="flex gap-1">
                           {hasYT && (
                             <a href={(property.youtubeUrl || property.youtube_url)} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
-                              <div className="aspect-video bg-gray-200 relative">
+                              <div className="aspect-video bg-gradient-to-br from-gray-100 to-blue-100 relative">
                                 <img src={`https://img.youtube.com/vi/${String(property.youtubeUrl || property.youtube_url).split('v=')[1] || ''}/hqdefault.jpg`} alt="YouTube" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black/15 group-hover:bg-black/30 transition-all duration-300"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -1168,7 +1192,7 @@ const PropertyDetail = () => {
                             )}
                             {floorPlans && floorPlans.length > 0 && (
                               <a href={floorPlans[0]} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
-                                <div className="aspect-video bg-gray-200 relative">
+                                <div className="aspect-video bg-gradient-to-br from-gray-100 to-blue-100 relative">
                                   <img src={floorPlans[0]} alt="Floor plan" className="w-full h-full object-cover" />
                                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
                         </div>
@@ -1180,23 +1204,23 @@ const PropertyDetail = () => {
                     )}
 
                 {/* Location */}
-                    <div className="lg:col-span-2 flex justify-end">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="lg:col-span-2 flex justify-end">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-2">
+                    <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                       <MdOutlineTrain className="w-3 h-3 text-gray-600" />
                     </div>
-                    <div>
-                          <p className="text-sm text-gray-900 font-medium font-prompt">
-                            {(() => {
-                              const stations = (Array.isArray(property.selectedStations) && property.selectedStations.length)
-                                ? property.selectedStations
-                                : (Array.isArray(property.selected_stations) ? property.selected_stations : [])
-                              const transport = property.nearbyTransport || property.nearby_transport
-                              if (stations && stations.length) return formatStationsList(stations)
-                              if (transport) return transport
-                              return property.location || property.address || '-'
-                            })()}
-                          </p>
+                    <div className="text-left">
+                      <p className="text-sm text-gray-900 font-medium font-prompt">
+                        {(() => {
+                          const stations = (Array.isArray(property.selectedStations) && property.selectedStations.length)
+                            ? property.selectedStations
+                            : (Array.isArray(property.selected_stations) ? property.selected_stations : [])
+                          const transport = property.nearbyTransport || property.nearby_transport
+                          if (stations && stations.length) return formatStationsList(stations)
+                          if (transport) return transport
+                          return property.location || property.address || '-'
+                        })()}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1206,12 +1230,12 @@ const PropertyDetail = () => {
             })()}
 
             {/* Overview Content */}
-            <div className="mb-8">
-              <div className="space-y-8">
+            <div className="mb-6 sm:mb-8">
+              <div className="space-y-6 sm:space-y-8">
                 {/* Key Features */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด ยูนิต</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                     <div className="flex items-center space-x-3">
                       <IoBedOutline className="h-6 w-6 text-gray-600" />
                       <div>
@@ -1240,11 +1264,11 @@ const PropertyDetail = () => {
                 </div>
 
                 {/* Pricing & Tags Section */}
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
                   {/* In-room Amenities (replace price info) */}
                   <div className="flex-1">
-                    <div className="space-y-2">
-                      <div className="text-lg font-semibold text-gray-900 mb-2 font-prompt">Special Features</div>
+                    <div className="space-y-3 sm:space-y-2">
+                      <div className="text-lg font-semibold text-gray-900 mb-3 sm:mb-2 font-prompt">Special Features</div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {property.specialFeatures && Object.entries(property.specialFeatures).some(([, v]) => Boolean(v)) ? (
                           Object.entries(property.specialFeatures).map(([key, value]) => {
@@ -1288,7 +1312,7 @@ const PropertyDetail = () => {
                 {property.description && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด</h3>
-                    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
                       {parseDescription(property.description).length > 1 ? (
                         <ul className={`list-disc pl-6 space-y-2 text-gray-700 leading-relaxed transition-all ${descExpanded ? '' : 'max-h-48 overflow-hidden'}`}>
                           {parseDescription(property.description).map((item, idx) => (
@@ -1318,13 +1342,13 @@ const PropertyDetail = () => {
                     const list = projectAmenities.length ? projectAmenities : propertyAmenities
                     if (!list.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                     return (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         {list.slice(0, 24).map((a, idx) => {
                           const label = typeof a === 'string' ? getAmenityLabel(a) : (a?.label || getAmenityLabel(a?.id))
                           return (
                             <div key={idx} className="flex items-center text-gray-700 font-prompt">
                               <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                              <span>{capitalizeFirst(label)}</span>
+                              <span className="text-sm">{capitalizeFirst(label)}</span>
                         </div>
                           )
                         })}
@@ -1336,13 +1360,13 @@ const PropertyDetail = () => {
                 {/* Project Details */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">Project Details</h3>
-                  <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                     {/* Project Image */}
                     <div className="lg:w-1/2">
                       <img 
                         src={getProjectCover(projectInfo, property.type || property.property_type || 'condo')} 
                         alt={(projectInfo && (projectInfo.name || projectInfo.title || projectInfo.project_name)) || property.selectedProject || property.title || 'Project'} 
-                        className="w-full h-72 sm:h-80 lg:h-96 object-cover rounded-xl"
+                        className="w-full h-48 sm:h-64 lg:h-80 xl:h-96 object-cover rounded-lg sm:rounded-xl"
                       />
                     </div>
 
@@ -1362,8 +1386,51 @@ const PropertyDetail = () => {
                           <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.developer || projectInfo.developer_name)) || property.developer || '-'}</div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-600 font-prompt">Skytrian/Subway:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.selected_stations || projectInfo.stations)) ? (Array.isArray(projectInfo.selected_stations || projectInfo.stations) ? formatStationsList(projectInfo.selected_stations || projectInfo.stations) : (projectInfo.selected_stations || projectInfo.stations)) : ((property.selectedStations && property.selectedStations.length) ? formatStationsList(property.selectedStations) : (property.nearbyTransport || '-'))}</div>
+                          <span className="text-sm text-gray-600 font-prompt">สถานี BTS:</span>
+                          <div className="font-semibold text-gray-900 font-prompt">
+                            {(() => {
+                              // Priority: projectInfo.stations > property.selectedStations > property.nearbyTransport
+                              const projectStations = projectInfo?.stations || projectInfo?.selected_stations || []
+                              const propertyStations = property?.selectedStations || property?.selected_stations || []
+                              const nearbyTransport = property?.nearbyTransport || property?.nearby_transport || ''
+                              
+                              // Combine and filter stations
+                              let allStations = []
+                              if (Array.isArray(projectStations)) {
+                                allStations = [...allStations, ...projectStations]
+                              }
+                              if (Array.isArray(propertyStations)) {
+                                allStations = [...allStations, ...propertyStations]
+                              }
+                              
+                              // Clean and filter valid stations
+                              const cleanStations = allStations
+                                .filter(station => {
+                                  if (!station) return false
+                                  const stationStr = String(station).trim()
+                                  return stationStr.length > 0 && 
+                                         stationStr !== '[]' && 
+                                         stationStr !== 'null' && 
+                                         stationStr !== 'undefined' &&
+                                         stationStr !== '-'
+                                })
+                                .map(station => String(station).trim())
+                              
+                              // Remove duplicates
+                              const uniqueStations = [...new Set(cleanStations)]
+                              
+                              if (uniqueStations.length > 0) {
+                                return formatStationsList(uniqueStations)
+                              }
+                              
+                              // Fallback to nearby transport if no stations
+                              if (nearbyTransport && nearbyTransport !== '[]' && nearbyTransport !== 'null') {
+                                return nearbyTransport
+                              }
+                              
+                              return '-'
+                            })()}
+                          </div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Location:</span>
@@ -1373,12 +1440,12 @@ const PropertyDetail = () => {
 
                       {/* Buttons */}
                       <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                        <button className="px-4 py-2 bg-[#917133] text-white rounded-md text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
+                        <button className="px-3 sm:px-4 py-2 bg-[#917133] text-white rounded-md text-xs sm:text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
                           All Details
                         </button>
                         {property.googleMapUrl && (
                           <a
-                            className="px-4 py-2 bg-[#917133] text-white rounded-md text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
+                            className="px-3 sm:px-4 py-2 bg-[#917133] text-white rounded-md text-xs sm:text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
                             href={property.googleMapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -1396,11 +1463,26 @@ const PropertyDetail = () => {
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">ทำเลที่ตั้ง (โครงการ)</h3>
                   {projectInfo ? (
                     (() => {
-                      const stations = Array.isArray(projectInfo.selected_stations || projectInfo.stations)
-                        ? (projectInfo.selected_stations || projectInfo.stations).filter(Boolean)
-                        : []
+                      const rawStations = projectInfo.selected_stations || projectInfo.stations || []
+                      const stations = Array.isArray(rawStations) 
+                        ? rawStations
+                        : (typeof rawStations === 'string' ? [rawStations] : [])
+                      
+                      // Clean and filter valid stations
+                      const cleanStations = stations
+                        .filter(station => {
+                          if (!station) return false
+                          const stationStr = String(station).trim()
+                          return stationStr.length > 0 && 
+                                 stationStr !== '[]' && 
+                                 stationStr !== 'null' && 
+                                 stationStr !== 'undefined' &&
+                                 stationStr !== '-'
+                        })
+                        .map(station => String(station).trim())
+                      
                       const address = projectInfo.address || projectInfo.location || ''
-                      if (!address && stations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                      if (!address && cleanStations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                       return (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {address && (
@@ -1409,10 +1491,10 @@ const PropertyDetail = () => {
                               <span>{address}</span>
                         </div>
                           )}
-                          {stations.length > 0 && (
+                          {cleanStations.length > 0 && (
                       <div className="flex items-center text-gray-700 font-prompt">
                               <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                              <span>{formatStationsList(stations)}</span>
+                              <span>{formatStationsList(cleanStations)}</span>
                         </div>
                           )}
                       </div>
@@ -1430,11 +1512,11 @@ const PropertyDetail = () => {
                     const facilities = normalizeToArray(projectInfo?.facilities || projectInfo?.project_facilities || projectInfo?.common_facilities)
                     if (!facilities.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                     return (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         {facilities.slice(0, 24).map((f, idx) => (
                           <div key={idx} className="flex items-center text-gray-700 font-prompt">
                             <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                            <span>{capitalizeFirst(getProjectFacilityLabel(f))}</span>
+                            <span className="text-sm">{capitalizeFirst(getProjectFacilityLabel(f))}</span>
                         </div>
                         ))}
                       </div>
@@ -1449,7 +1531,7 @@ const PropertyDetail = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Nearby Properties</h3>
                   {nearby && nearby.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                     {nearby.map((p, idx) => (
                         <ExclusiveCard key={`nearby-${p.id || idx}`} item={p} idx={idx} />
                     ))}
@@ -1474,16 +1556,24 @@ const PropertyDetail = () => {
                         </div>
       
       {/* Centered CTA Buttons (Contact + Search) */}
-      <div className="fixed inset-x-0 bottom-6 z-40 flex items-center justify-center pointer-events-none">
-        <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-2xl pointer-events-auto">
-          <button
-            onClick={() => setShowContactModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-full gold-cta font-prompt"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>Contact Us now</span>
-            <span className="shine" />
-          </button>
+      <div className="fixed inset-x-0 bottom-4 sm:bottom-6 z-40 flex items-center justify-center pointer-events-none">
+        <div className="flex flex-col items-center gap-2 sm:gap-3">
+          {/* Header Text Above Button */}
+          <div className="text-center pointer-events-auto">
+            <div className="text-xs sm:text-sm text-gray-500 font-prompt">Interested in this property?</div>
+                        </div>
+          
+          {/* Contact Button */}
+          <div className="flex items-center rounded-full px-3 sm:px-4 py-2 pointer-events-auto">
+            <button
+              onClick={() => setShowContactModal(true)}
+              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-3 rounded-full gold-cta font-prompt text-sm sm:text-base"
+            >
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Contact Us now</span>
+              <span className="shine" />
+            </button>
+                        </div>
                         </div>
                         </div>
 
@@ -1493,16 +1583,19 @@ const PropertyDetail = () => {
       {/* Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-            <div className="flex items-start justify-between mb-4">
-                  <div>
-                <div className="text-sm text-gray-500 font-prompt">Interested in this property?</div>
-                <div className="text-lg font-bold text-gray-900 font-prompt">Contact Us now</div>
-                    </div>
-              <button onClick={() => setShowContactModal(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-gray-200">
+            <div className="flex items-start justify-end mb-4">
+                              <button onClick={() => setShowContactModal(false)} className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200">
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
+                    </div>
+            
+            {/* Header Text */}
+            <div className="text-center mb-6">
+              <div className="text-sm text-gray-500 font-prompt mb-1">Interested in this property?</div>
+              <div className="text-lg font-bold text-gray-900 font-prompt">Contact Us now</div>
                   </div>
+            
             <div className="space-y-3">
               <a href={contactInfo?.line ? `https://line.me/R/ti/p/~${contactInfo.line}` : '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: '#06c755' }}>
                 <FaLine className="w-5 h-5" />
@@ -1524,25 +1617,25 @@ const PropertyDetail = () => {
                 <Phone className="w-5 h-5" />
                 <span>Call</span>
               </a>
-              </div>
+                    </div>
             <div className="mt-6">
               <div className="text-center text-gray-600 text-sm font-prompt mb-3">Can't find your right space?</div>
               <a href="/properties" className="w-full inline-flex items-center justify-center px-4 py-3 rounded-full text-white font-semibold font-prompt" style={{ background: '#6b7280' }}>
                 Let us help you find it
               </a>
+                  </div>
+              </div>
             </div>
-          </div>
-                      </div>
       )}
       
       {/* Custom Photo Viewer */}
       {open && (
-        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-blue-50 z-50 flex items-center justify-center">
           <div className="w-full h-full flex flex-col">
             {/* Header with Tabs */}
-            <div className="flex items-center justify-center p-4 bg-white border-b border-gray-200">
+                          <div className="flex items-center justify-center p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
               {/* Tabs - Centered */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-blue-100 rounded-lg p-1">
                 <button
                   onClick={() => setPhotoViewerTab('photos')}
                   className={`px-6 py-3 rounded-md text-sm font-medium transition-colors ${
@@ -1568,7 +1661,7 @@ const PropertyDetail = () => {
               {/* Close Button - Absolute positioned */}
               <button
                 onClick={() => setOpen(false)}
-                className="absolute right-4 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+                className="absolute right-4 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors"
               >
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1639,7 +1732,7 @@ const PropertyDetail = () => {
               ) : (
                 /* Location Tab */
                 <div className="w-full max-w-2xl text-center">
-                  <div className="bg-white rounded-lg p-8 shadow-lg">
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-8 shadow-lg border border-gray-200">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <FaMapMarkerAlt className="w-8 h-8 text-blue-600" />
                     </div>

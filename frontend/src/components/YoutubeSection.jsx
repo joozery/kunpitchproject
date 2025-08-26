@@ -40,7 +40,7 @@ const YoutubeSection = () => {
               <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
             </div>
             
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-slate-800">
+            <h2 style={{ fontWeight: "bold", color: "#545454" }} className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald">
               Recommended Youtube
             </h2>
           </div>

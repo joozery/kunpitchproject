@@ -391,7 +391,7 @@ const PropertyTypeSections = () => {
               className="inline-flex items-center gap-3 mb-4"
             >
               <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-              <span className="text-blue-600 font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Lastest Update</span>
+                              <span style={{ fontWeight: "bold", color: "#545454" }} className="font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Lastest Update</span>
               <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
             </motion.div>
             
