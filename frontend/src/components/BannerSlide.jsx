@@ -22,17 +22,23 @@ const BannerSlide = () => {
 
   const loadData = async () => {
     try {
+      console.log('🔄 Loading banner data...');
       const [slidesData, settingsData] = await Promise.all([
         bannerApi.getSlides(),
         bannerApi.getSettings()
       ])
       
+      console.log('📊 Raw slides data:', slidesData);
+      console.log('⚙️  Raw settings data:', settingsData);
+      
       // Filter only active slides
       const activeSlides = slidesData.filter(slide => slide.is_active)
+      console.log('🎯 Active slides:', activeSlides);
+      
       setSlides(activeSlides)
       setSettings(settingsData)
     } catch (error) {
-      console.error('Error loading banner data:', error)
+      console.error('❌ Error loading banner data:', error)
       setError(error.message)
     } finally {
       setIsLoading(false)
@@ -91,7 +97,18 @@ const BannerSlide = () => {
   }
 
   if (slides.length === 0) {
-    return null
+    console.log('⚠️  No banner slides found, showing fallback UI');
+    return (
+      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-600 mb-4">Banner Section</h3>
+            <p className="text-gray-500">No banner slides configured yet.</p>
+            <p className="text-sm text-gray-400 mt-2">Check the admin panel to add banner slides.</p>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (

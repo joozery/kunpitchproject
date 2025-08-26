@@ -7,12 +7,18 @@ export const bannerApi = {
   // Get all slides
   getSlides: async () => {
     try {
+      console.log('🌐 Calling banner API:', `${API_BASE_URL}/banner-slides`);
       const response = await fetch(`${API_BASE_URL}/banner-slides`)
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+      
       const data = await response.json()
+      console.log('📄 Response data:', data);
+      
       if (!data.success) throw new Error(data.message || 'Failed to load slides')
       return data.data
     } catch (error) {
-      console.error('Error fetching slides:', error)
+      console.error('❌ Error fetching slides:', error)
       throw error
     }
   },

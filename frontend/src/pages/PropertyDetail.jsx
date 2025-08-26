@@ -761,7 +761,50 @@ const PropertyDetail = () => {
 
   const formatStationsList = (list) => {
     if (!Array.isArray(list)) return ''
-    return list.map(formatStationName).filter(Boolean).join(', ')
+    return list.map((s) => getStationFormLabel(s)).filter(Boolean).join(', ')
+  }
+
+  // Use the exact labels from the Project form when possible
+  const getStationFormLabel = (station) => {
+    if (!station) return ''
+    if (typeof station === 'object') {
+      return station.name || station.name_th || station.label || station.title || ''
+    }
+    const id = String(station).trim()
+    // Partial map aligned with admin ProjectForm station ids → labels
+    const map = {
+      // BTS core
+      kheha: 'BTS Kheha (เคหะฯ)',
+      phraek_sa: 'BTS Phraek Sa (แพรกษา)',
+      sai_luat: 'BTS Sai Luat (สายลวด)',
+      bearing: 'BTS Bearing (แบริ่ง)',
+      udom_suk: 'BTS Udom Suk (อุดมสุข)',
+      bang_na: 'BTS Bang Na (บางนา)',
+      punnawithi: 'BTS Punnawithi (ปุณณวิถี)',
+      on_nut: 'BTS On Nut (อ่อนนุช)',
+      phra_khanong: 'BTS Phra Khanong (พระโขนง)',
+      ekkamai: 'BTS Ekkamai (เอกมัย)',
+      thong_lor: 'BTS Thong Lo (ทองหล่อ)',
+      phrom_phong: 'BTS Phrom Phong (พร้อมพงษ์)',
+      asok: 'BTS Asok (อโศก)',
+      nana: 'BTS Nana (นานา)',
+      phloen_chit: 'BTS Phloen Chit (เพลินจิต)',
+      chit_lom: 'BTS Chit Lom (ชิดลม)',
+      siam: 'BTS Siam (สยาม)',
+      ratchathewi: 'BTS Ratchathewi (ราชเทวี)',
+      phaya_thai: 'BTS Phaya Thai (พญาไท)',
+      mo_chit: 'BTS Mo Chit (หมอชิต)',
+      ari: 'BTS Ari (อารีย์)',
+      sala_daeng: 'BTS Sala Daeng (ศาลาแดง)',
+      silom: 'MRT Silom (สีลม)',
+      // MRT core
+      phetchaburi: 'MRT Phetchaburi (เพชรบุรี)',
+      sukhumvit: 'MRT Sukhumvit (สุขุมวิท)',
+      sam_yan: 'MRT Sam Yan (สามย่าน)',
+      lumphini: 'MRT Lumphini (ลุมพินี)',
+      hua_lamphong: 'MRT Hua Lamphong (หัวลำโพง)'
+    }
+    return map[id] || formatStationName(id)
   }
 
   // Map amenity ids to readable Thai labels
@@ -943,13 +986,13 @@ const PropertyDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-white">
       {/* Main Header */}
       <Header />
 
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 mt-20 pb-32">
         {/* Property Header Card */}
-        <div className="mb-6 sm:mb-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
+        <div className="mb-6 sm:mb-8 bg-gray-50 rounded-2xl p-6 border border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 sm:gap-4">
             <div className="flex-1">
               {/* Property Title */}
@@ -1006,17 +1049,17 @@ const PropertyDetail = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-600 font-prompt">เช่า:</span>
                       <span className="text-lg font-bold text-blue-600 font-prompt">{format(convert(property.rent_price))}</span>
-                    </div>
+            </div>
                   )}
                   {property.price > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-600 font-prompt">ขาย:</span>
                       <span className="text-lg font-bold text-blue-600 font-prompt">{format(convert(property.price))}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
+                  )}
+                    </div>
+              </div>
+                    </div>
             
                         {/* Price Section - Hidden on mobile, shown on desktop */}
             <div className="hidden sm:block text-center sm:text-right mt-4 sm:mt-0">
@@ -1032,7 +1075,7 @@ const PropertyDetail = () => {
                   <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.price))}</div>
                 </>
               )}
-            </div>
+              </div>
           </div>
         </div>
 
@@ -1458,12 +1501,34 @@ const PropertyDetail = () => {
                   </div>
                 </div>
 
+                                
+
+                {/* Project Facilities */}
+                <div>
+                  <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">Project Facilities</h3>
+                  {(() => {
+                    const facilities = normalizeToArray(projectInfo?.facilities || projectInfo?.project_facilities || projectInfo?.common_facilities)
+                    if (!facilities.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                    return (
+                      <div className="grid grid-cols-2 gap-3">
+                        {facilities.slice(0, 24).map((f, idx) => (
+                          <div key={idx} className="flex items-center text-gray-700 font-prompt">
+                            <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
+                            <span className="text-sm">{capitalizeFirst(getProjectFacilityLabel(f))}</span>
+                        </div>
+                    ))}
+                  </div>
+                    )
+                  })()}
+                </div>
+
                 {/* Project Location (from Project Details) */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">ทำเลที่ตั้ง (โครงการ)</h3>
                   {projectInfo ? (
                     (() => {
-                      const rawStations = projectInfo.selected_stations || projectInfo.stations || []
+                      // ใช้ฟิลด์ที่ถูกต้องจากฟอร์มโครงการ
+                      const rawStations = projectInfo.selected_stations || []
                       const stations = Array.isArray(rawStations) 
                         ? rawStations
                         : (typeof rawStations === 'string' ? [rawStations] : [])
@@ -1481,47 +1546,195 @@ const PropertyDetail = () => {
                         })
                         .map(station => String(station).trim())
                       
-                      const address = projectInfo.address || projectInfo.location || ''
-                      if (!address && cleanStations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                      // ใช้ location_highlights จากฟอร์มโครงการ (จุดเด่นทำเล)
+                      const locationHighlights = projectInfo.location_highlights || ''
+                      if (!locationHighlights && cleanStations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                      
+                      // แยกข้อมูลตามประเภท
+                      const parseLocationData = (text) => {
+                        if (!text) return { transport: [], shopping: [], parks: [], hospitals: [], schools: [], others: [] }
+                        
+                        const lines = text.split('\n').filter(line => line.trim())
+                        const categories = {
+                          transport: [],
+                          shopping: [],
+                          parks: [],
+                          hospitals: [],
+                          schools: [],
+                          others: []
+                        }
+                        
+                        lines.forEach(line => {
+                          const cleanLine = line.trim().replace(/^[•\-\*]\s*/, '')
+                          if (cleanLine.toLowerCase().includes('bts') || cleanLine.toLowerCase().includes('mrt') || cleanLine.toLowerCase().includes('arl') || cleanLine.toLowerCase().includes('srt')) {
+                            categories.transport.push(cleanLine)
+                          } else if (cleanLine.toLowerCase().includes('mall') || cleanLine.toLowerCase().includes('shopping') || cleanLine.toLowerCase().includes('department store') || cleanLine.toLowerCase().includes('complex') || cleanLine.toLowerCase().includes('tower')) {
+                            categories.shopping.push(cleanLine)
+                          } else if (cleanLine.toLowerCase().includes('park') || cleanLine.toLowerCase().includes('สวน')) {
+                            categories.parks.push(cleanLine)
+                          } else if (cleanLine.toLowerCase().includes('hospital') || cleanLine.toLowerCase().includes('โรงพยาบาล')) {
+                            categories.hospitals.push(cleanLine)
+                          } else if (cleanLine.toLowerCase().includes('school') || cleanLine.toLowerCase().includes('โรงเรียน')) {
+                            categories.schools.push(cleanLine)
+                          } else {
+                            categories.others.push(cleanLine)
+                          }
+                        })
+                        
+                        return categories
+                      }
+                      
+                      const locationData = parseLocationData(locationHighlights)
+                      const hasData = Object.values(locationData).some(cat => cat.length > 0) || cleanStations.length > 0
+                      
+                      if (!hasData) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                      
                       return (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {address && (
-                      <div className="flex items-center text-gray-700 font-prompt">
-                              <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                              <span>{address}</span>
-                        </div>
+                        <div className="space-y-6">
+                          {/* แถวแรก: สถานีขนส่ง + การเดินทาง */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* สถานีขนส่ง */}
+                            {cleanStations.length > 0 && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                  <MdOutlineTrain className="w-5 h-5 text-[#917133]" />
+                                  สถานีขนส่ง
+                                </h4>
+                                <div className="space-y-2">
+                                  {cleanStations.map((station, idx) => (
+                                    <div key={idx} className="flex items-center text-gray-700 font-prompt">
+                                      <FaRegCheckCircle className="w-4 h-4 mr-2 text-[#917133]" />
+                                      <span className="text-sm">{getStationFormLabel(station)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* การเดินทาง */}
+                            {locationData.transport.length > 0 && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                  <MdOutlineTrain className="w-5 h-5 text-[#917133]" />
+                                  การเดินทาง
+                                </h4>
+                                <div className="space-y-2">
+                                  {locationData.transport.map((item, idx) => (
+                                    <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                      <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                      <span className="text-sm leading-relaxed">{item}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* แถวที่สอง: ห้างสรรพสินค้า + สวนสาธารณะ */}
+                          {(locationData.shopping.length > 0 || locationData.parks.length > 0) && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              {/* ห้างสรรพสินค้า */}
+                              {locationData.shopping.length > 0 && (
+                                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                  <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                    <FaStore className="w-5 h-5 text-[#917133]" />
+                                    ห้างสรรพสินค้า & ศูนย์การค้า
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {locationData.shopping.map((item, idx) => (
+                                      <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                        <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                        <span className="text-sm leading-relaxed">{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* สวนสาธารณะ */}
+                              {locationData.parks.length > 0 && (
+                                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                  <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                    <FaSeedling className="w-5 h-5 text-[#917133]" />
+                                    สวนสาธารณะ
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {locationData.parks.map((item, idx) => (
+                                      <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                        <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                        <span className="text-sm leading-relaxed">{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
-                          {cleanStations.length > 0 && (
-                      <div className="flex items-center text-gray-700 font-prompt">
-                              <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                              <span>{formatStationsList(cleanStations)}</span>
-                        </div>
+                          
+                          {/* แถวที่สาม: โรงพยาบาล + โรงเรียน */}
+                          {(locationData.hospitals.length > 0 || locationData.schools.length > 0) && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              {/* โรงพยาบาล */}
+                              {locationData.hospitals.length > 0 && (
+                                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                  <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                    <FaShieldAlt className="w-5 h-5 text-[#917133]" />
+                                    โรงพยาบาล
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {locationData.hospitals.map((item, idx) => (
+                                      <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                        <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                        <span className="text-sm leading-relaxed">{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* โรงเรียน */}
+                              {locationData.schools.length > 0 && (
+                                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                  <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                    <FaBook className="w-5 h-5 text-[#917133]" />
+                                    โรงเรียน
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {locationData.schools.map((item, idx) => (
+                                      <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                        <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                        <span className="text-sm leading-relaxed">{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
-                      </div>
+                          
+                          {/* แถวที่สี่: อื่นๆ (เต็มความกว้าง) */}
+                          {locationData.others.length > 0 && (
+                            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                              <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
+                                <FaHome className="w-5 h-5 text-[#917133]" />
+                                สิ่งอำนวยความสะดวกอื่นๆ
+                              </h4>
+                              <div className="space-y-2">
+                                {locationData.others.map((item, idx) => (
+                                  <div key={idx} className="flex items-start text-gray-700 font-prompt">
+                                    <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
+                                    <span className="text-sm leading-relaxed">{item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )
                     })()
                   ) : (
                     <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                   )}
-                    </div>
-
-                {/* Project Facilities */}
-                <div>
-                  <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">Project Facilities</h3>
-                  {(() => {
-                    const facilities = normalizeToArray(projectInfo?.facilities || projectInfo?.project_facilities || projectInfo?.common_facilities)
-                    if (!facilities.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
-                    return (
-                      <div className="grid grid-cols-2 gap-3">
-                        {facilities.slice(0, 24).map((f, idx) => (
-                          <div key={idx} className="flex items-center text-gray-700 font-prompt">
-                            <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
-                            <span className="text-sm">{capitalizeFirst(getProjectFacilityLabel(f))}</span>
-                        </div>
-                        ))}
-                      </div>
-                    )
-                  })()}
                 </div>
 
                 {/* Units in Project */}
