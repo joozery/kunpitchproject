@@ -857,13 +857,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
             {/* ข้อมูลพื้นฐาน */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name_th">ชื่อโครงการ (ภาษาไทย) *</Label>
+                <Label htmlFor="name_th">ชื่อโครงการ (ภาษาไทย)</Label>
                 <Input
                   id="name_th"
                   value={formData.name_th}
                   onChange={(e) => handleInputChange('name_th', e.target.value)}
                   placeholder="ชื่อโครงการภาษาไทย"
-                  required
                 />
               </div>
               
@@ -880,13 +879,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="project_type">ประเภทโครงการ *</Label>
+                <Label htmlFor="project_type">ประเภทโครงการ</Label>
                 <select
                   id="project_type"
                   value={formData.project_type}
                   onChange={(e) => handleInputChange('project_type', e.target.value)}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
                 >
                   <option value="">เลือกประเภทโครงการ</option>
                   {projectTypes.map(type => (
@@ -896,13 +894,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="developer">เจ้าของโครงการ / ผู้พัฒนา *</Label>
+                <Label htmlFor="developer">เจ้าของโครงการ / ผู้พัฒนา</Label>
                 <Input
                   id="developer"
                   value={formData.developer}
                   onChange={(e) => handleInputChange('developer', e.target.value)}
                   placeholder="ชื่อบริษัทผู้พัฒนา"
-                  required
                 />
               </div>
             </div>
@@ -922,13 +919,12 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="status">สถานะโครงการ *</Label>
+                <Label htmlFor="status">สถานะโครงการ</Label>
                 <select
                   id="status"
                   value={formData.status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
                 >
                   <option value="">เลือกสถานะโครงการ</option>
                   {projectStatuses.map(status => (

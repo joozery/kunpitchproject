@@ -566,6 +566,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         status: condo.status || 'sale',
         price: condo.price !== undefined && condo.price !== null ? String(condo.price) : '',
         rentPrice: condo.rent_price !== undefined && condo.rent_price !== null ? String(condo.rent_price) : '',
+        propertyType: condo.property_type || 'condo', // ประเภททรัพย์สิน
         announcerStatus: condo.announcer_status || 'agent', // เพิ่มการ map ข้อมูลสถานะผู้ประกาศ
         location: condo.location || '',
         googleMapUrl: condo.google_map_url || '',
@@ -1273,6 +1274,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         status: formData.status,
         price: parseFloat(formData.price) || 0,
         rent_price: parseFloat(formData.rentPrice) || 0,
+        property_type: formData.propertyType, // ประเภททรัพย์สิน
         announcer_status: formData.announcerStatus, // สถานะผู้ประกาศ
         location: formData.location,
         google_map_url: formData.googleMapUrl,
@@ -1301,6 +1303,9 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
 
       console.log('ข้อมูลที่จะส่งไปยัง backend:', condoData)
+      console.log('🎯 สถานะผู้ประกาศ:', formData.announcerStatus)
+      console.log('🏠 ประเภททรัพย์สิน:', formData.propertyType)
+      console.log('🚇 สถานีรถไฟฟ้าที่เลือก:', formData.selectedStations)
       console.log('ราคาขายต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
       console.log('ราคาเช่าต่อตารางเมตรที่คำนวณได้:', formData.rentPricePerSqm)
       console.log('Amenities ที่จะส่งไป:', selectedAmenities)
