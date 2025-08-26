@@ -102,7 +102,7 @@ const Header = () => {
                     <div key={item.name} className="relative" ref={propertyRef}>
                       <button
                         onClick={() => setIsPropertyOpen(prev => !prev)}
-                        className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
+                        className={`font-normal transition-colors duration-300 font-prompt text-lg ${
                           location.pathname === item.href
                             ? 'text-white drop-shadow-md'
                             : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
@@ -131,7 +131,7 @@ const Header = () => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`font-normal transition-colors duration-300 font-taviraj text-lg ${
+                      className={`font-normal transition-colors duration-300 font-prompt text-lg ${
                         location.pathname === item.href
                           ? 'text-white drop-shadow-md'
                           : isScrolled ? 'text-white' : 'text-white hover:text-blue-200 drop-shadow-sm'
@@ -162,52 +162,53 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                    className="flex items-center space-x-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full px-4 py-2 cursor-pointer transition-all duration-300 h-10"
+                    className="flex items-center space-x-2 cursor-pointer transition-all duration-300 h-10"
                     style={{
-                      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+                      color: '#ffffff',
+                      textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)'
                     }}
                   >
-                    <span className="text-white font-taviraj text-sm font-medium">
+                    <span className="font-prompt text-sm font-medium">
                       {currencies.find(curr => curr.code === currency)?.symbol} {currency}
                     </span>
-                    <ChevronDown className={`h-3 w-3 text-white transition-transform duration-200 ${
+                    <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${
                       isCurrencyOpen ? 'rotate-180' : ''
                     }`} />
                   </button>
-
-                  {/* Currency Dropdown Menu */}
-                  {isCurrencyOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border py-2 min-w-[160px] z-50"
-                    >
-                      {currencies.map((curr) => (
-                        <button
-                          key={curr.code}
-                          onClick={() => handleCurrencyChange(curr)}
-                          className={`w-full flex items-center space-x-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 ${
-                            currency === curr.code ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
-                          }`}
-                        >
-                          <span className="text-lg font-medium">{curr.symbol}</span>
-                          <div className="flex-1 text-left">
-                            <div className="font-medium font-taviraj">{curr.name}</div>
-                            <div className="text-xs text-gray-500">{curr.code}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </div>
+                   
+                   {/* Currency Dropdown Menu */}
+                   {isCurrencyOpen && (
+                     <motion.div
+                       initial={{ opacity: 0, y: -10 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       exit={{ opacity: 0, y: -10 }}
+                       className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border py-2 min-w-[160px] z-50"
+                     >
+                       {currencies.map((curr) => (
+                         <button
+                           key={curr.code}
+                           onClick={() => handleCurrencyChange(curr)}
+                           className={`w-full flex items-center space-x-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 ${
+                             currency === curr.code ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                           }`}
+                         >
+                           <span className="text-lg font-medium">{curr.symbol}</span>
+                           <div className="flex-1 text-left">
+                            <div className="font-medium font-prompt">{curr.name}</div>
+                             <div className="text-xs text-gray-500">{curr.code}</div>
+                           </div>
+                         </button>
+                       ))}
+                     </motion.div>
+                   )}
+                 </div>
               </div>
 
               {/* CTA Buttons */}
               <div className="flex items-center space-x-3">
                 <Link
                   to="/list-property"
-                  className="hidden md:block text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-taviraj"
+                  className="hidden md:block text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-prompt"
                   style={{ 
                     backgroundColor: '#b08d57',
                     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3)'
@@ -217,7 +218,7 @@ const Header = () => {
                 </Link>
                 <Link
                   to="/join"
-                  className="hidden md:block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-taviraj"
+                  className="hidden md:block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 font-prompt"
                 >
                   Join us
                 </Link>
@@ -252,7 +253,7 @@ const Header = () => {
                 <div key={item.name} className="px-2">
                   <button
                     onClick={() => setIsPropertyOpen(!isPropertyOpen)}
-                    className="w-full flex items-center justify-between px-2 py-2 rounded-lg font-taviraj text-lg text-gray-700 hover:bg-gray-50"
+                    className="w-full flex items-center justify-between px-2 py-2 rounded-lg font-prompt text-lg text-gray-700 hover:bg-gray-50"
                   >
                     <span>Property type</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isPropertyOpen ? 'rotate-180' : ''}`} />
@@ -271,7 +272,7 @@ const Header = () => {
                   key={item.name}
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`block px-4 py-2 rounded-lg font-taviraj text-lg ${
+                  className={`block px-4 py-2 rounded-lg font-prompt text-lg ${
                     location.pathname === item.href
                       ? 'bg-white text-gray-900 shadow-md'
                       : 'text-gray-700 hover:bg-gray-50'
@@ -300,7 +301,7 @@ const Header = () => {
                   <span className="text-lg font-medium text-gray-700">
                     {currencies.find(curr => curr.code === currency)?.symbol}
                   </span>
-                  <span className="font-taviraj text-sm font-medium text-gray-700">
+                  <span className="font-prompt text-sm font-medium text-gray-700">
                     {currency}
                   </span>
                 </div>
@@ -339,7 +340,7 @@ const Header = () => {
             <Link
               to="/list-property"
               onClick={() => setIsOpen(false)}
-              className="block text-white px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-taviraj"
+              className="block text-white px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-prompt"
               style={{ 
                 backgroundColor: '#b08d57',
                 textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3)'
@@ -350,7 +351,7 @@ const Header = () => {
             <Link
               to="/join"
               onClick={() => setIsOpen(false)}
-              className="block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-taviraj"
+              className="block bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-8 py-2 rounded-full font-semibold text-center transition-colors duration-300 font-prompt"
             >
               Join us
             </Link>

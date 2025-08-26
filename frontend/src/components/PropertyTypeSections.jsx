@@ -250,7 +250,11 @@ const PropertyTypeSections = () => {
           
           {/* Top Right Status */}
           <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: '#ffffff' }}>
-            {property.rent_price > 0 ? 'เช่า' : 'ขาย'}
+            {property.status === 'for_sale' || property.status === 'sale'
+              ? 'ขาย'
+              : property.status === 'for_rent' || property.status === 'rent'
+              ? 'เช่า'
+              : 'ขาย/เช่า'}
           </div>
         </div>
 

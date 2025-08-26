@@ -39,15 +39,15 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/20" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-6 pt-20 pb-12">
+      <div className="relative z-10 container mx-auto px-6 h-full">
         {/* Centered Title */}
-        <div className="text-center mb-8 text-white">
+        <div className="text-center text-white h-full flex items-center justify-center">
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-xl md:text-2xl font-bold text-white mb-3 font-oswald mt-0 md:mt-2"
+            className="text-xl md:text-2xl font-bold text-white mb-0 font-oswald"
             style={{
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)'
             }}

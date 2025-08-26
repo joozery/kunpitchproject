@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, ChevronLeft, ChevronRight } from 'lucide-react'
 import LatestStyleCard from '../components/cards/LatestStyleCard'
-import { propertyAPI } from '../lib/api'
+import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
@@ -38,17 +38,32 @@ const Buy = () => {
     console.log(`Buy page card clicked: ${propertyType} - ID: ${propertyId}, Clicks: ${(clickCounts[propertyId] || 0) + 1}`)
   }
 
-  // Fetch properties for sale
+  // Fetch properties for sale (from all types)
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const result = await propertyAPI.getAll()
-        if (result.success) {
-          // Filter only properties for sale
-          let saleProperties = result.data.filter(property => 
-            property.status === 'for_sale' || property.listingType === 'sale'
-          )
+        const [c, h, l, cm] = await Promise.all([
+          condoAPI.getAll({ limit: 50 }),
+          houseAPI.getAll({ limit: 50 }),
+          landAPI.getAll({ limit: 50 }),
+          commercialAPI.getAll({ limit: 50 })
+        ])
+
+        const normalize = (res, type) => (res && res.success ? res.data || [] : []).map(p => ({ ...p, type: p.type || type }))
+        const all = [
+          ...normalize(c, 'condo'),
+          ...normalize(h, 'residential'),
+          ...normalize(l, 'land'),
+          ...normalize(cm, 'commercial')
+        ]
+
+        // Filter properties that can be sold (status or has price)
+        let saleProperties = all.filter(property => {
+          const statusSale = property.status === 'for_sale' || property.listingType === 'sale' || property.status === 'sale'
+          const hasSalePrice = Number(property.price) > 0
+          return statusSale || hasSalePrice
+        })
 
           // Top-up with mocks to ensure multiple rows
           const saleMocks = [
@@ -69,7 +84,6 @@ const Buy = () => {
 
           setProperties(saleProperties)
           setFilteredProperties(saleProperties)
-        }
       } catch (error) {
         console.error('Failed to fetch properties:', error)
         // Fallback data - richer mock list (at least 8 for multiple rows)
@@ -154,7 +168,8 @@ const Buy = () => {
         const merged = initial.length >= targetCount ? initial : [...initial, ...topup.slice(0, targetCount - initial.length)]
         setProperties(merged)
         setFilteredProperties(merged)
-      } finally {
+      }
+      finally {
         setLoading(false)
       }
     }

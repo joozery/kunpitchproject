@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, Calendar, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import LatestStyleCard from '../components/cards/LatestStyleCard'
  
-import { propertyAPI } from '../lib/api'
+import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
@@ -40,17 +40,32 @@ const Rent = () => {
     console.log(`Rent page card clicked: ${propertyType} - ID: ${propertyId}, Clicks: ${(clickCounts[propertyId] || 0) + 1}`)
   }
 
-  // Fetch properties for rent
+  // Fetch properties for rent (from all types)
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const result = await propertyAPI.getAll()
-        if (result.success) {
-          // Filter only properties for rent
-          let rentProperties = result.data.filter(property => 
-            property.status === 'for_rent' || property.listingType === 'rent'
-          )
+        const [c, h, l, cm] = await Promise.all([
+          condoAPI.getAll({ limit: 50 }),
+          houseAPI.getAll({ limit: 50 }),
+          landAPI.getAll({ limit: 50 }),
+          commercialAPI.getAll({ limit: 50 })
+        ])
+
+        const normalize = (res, type) => (res && res.success ? res.data || [] : []).map(p => ({ ...p, type: p.type || type }))
+        const all = [
+          ...normalize(c, 'condo'),
+          ...normalize(h, 'residential'),
+          ...normalize(l, 'land'),
+          ...normalize(cm, 'commercial')
+        ]
+
+        // Filter properties that can be rented (status or has rent_price)
+        let rentProperties = all.filter(property => {
+          const statusRent = property.status === 'for_rent' || property.listingType === 'rent' || property.status === 'rent'
+          const hasRent = Number(property.rent_price) > 0
+          return statusRent || hasRent
+        })
 
           // Top-up with mocks to ensure multiple rows
           const rentMocks = [
@@ -71,100 +86,99 @@ const Rent = () => {
 
           setProperties(rentProperties)
           setFilteredProperties(rentProperties)
+        } catch (error) {
+          console.error('Failed to fetch properties:', error)
+          // Fallback data - richer mock list (at least 8 for multiple rows)
+          const initialFallback = [
+            {
+              id: 1,
+              title: 'คอนโดหรู 1 ห้องนอน พร้อมเฟอร์นิเจอร์',
+              address: 'สีลม, กรุงเทพฯ',
+              location: 'สีลม, กรุงเทพฯ',
+              price: 3500000,
+              rent_price: 25000,
+              bedrooms: 1,
+              bathrooms: 1,
+              floor: 12,
+              area: 35,
+              parking: 1,
+              type: 'condo',
+              status: 'for_rent',
+              images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
+              amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'อินเทอร์เน็ต'],
+              projectCode: 'WS001',
+              announcerStatus: 'agent',
+              specialFeatures: {
+                shortTerm: true,
+                allowPet: false,
+                allowCompanyRegistration: true
+              }
+            },
+            {
+              id: 2,
+              title: 'บ้านเดี่ยว 2 ห้องนอน สวนสวย',
+              address: 'สุขุมวิท, กรุงเทพฯ',
+              location: 'สุขุมวิท, กรุงเทพฯ',
+              price: 8500000,
+              rent_price: 45000,
+              bedrooms: 2,
+              bathrooms: 2,
+              floor: 1,
+              area: 80,
+              parking: 2,
+              type: 'residential',
+              status: 'for_rent',
+              images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
+              amenities: ['สวนส่วนตัว', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต'],
+              projectCode: 'WS002',
+              announcerStatus: 'owner',
+              specialFeatures: {
+                shortTerm: false,
+                allowPet: true,
+                allowCompanyRegistration: false
+              }
+            },
+            {
+              id: 3,
+              title: 'ออฟฟิศ 1 ห้อง พร้อมเฟอร์นิเจอร์',
+              address: 'สาทร, กรุงเทพฯ',
+              location: 'สาทร, กรุงเทพฯ',
+              price: 5000000,
+              rent_price: 35000,
+              bedrooms: 0,
+              bathrooms: 1,
+              floor: 8,
+              area: 50,
+              parking: 1,
+              type: 'commercial',
+              status: 'for_rent',
+              images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
+              amenities: ['ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต', 'เครื่องปรับอากาศ'],
+              projectCode: 'WS003',
+              announcerStatus: 'agent',
+              specialFeatures: {
+                shortTerm: true,
+                allowPet: false,
+                allowCompanyRegistration: true
+              }
+            },
+            { id: 4, title: 'คอนโดสตูดิโอ เฟอร์ครบ ติด BTS', address: 'อ่อนนุช, กรุงเทพฯ', location: 'อ่อนนุช, กรุงเทพฯ', price: 2200000, rent_price: 18000, bedrooms: 0, bathrooms: 1, floor: 10, area: 28, parking: 1, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c52f?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 5, title: 'บ้านเดี่ยวพร้อมอยู่ ใกล้ห้าง', address: 'บางนา, กรุงเทพฯ', location: 'บางนา, กรุงเทพฯ', price: 9500000, rent_price: 55000, bedrooms: 3, bathrooms: 2, floor: 2, area: 160, parking: 2, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1560184897-ae75f418493e?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 6, title: 'โฮมออฟฟิศให้เช่า 4 ชั้น', address: 'ลาดพร้าว, กรุงเทพฯ', location: 'ลาดพร้าว, กรุงเทพฯ', price: 12000000, rent_price: 65000, bedrooms: 3, bathrooms: 3, floor: 4, area: 220, parking: 2, type: 'commercial', status: 'for_rent', images: ['https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 7, title: 'เพนท์เฮาส์ วิวพาโนรามา', address: 'ทองหล่อ, กรุงเทพฯ', location: 'ทองหล่อ, กรุงเทพฯ', price: 19000000, rent_price: 95000, bedrooms: 3, bathrooms: 3, floor: 35, area: 180, parking: 2, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005097973-6a7082348e28?q=80&w=1200&auto=format&fit=crop'] },
+            { id: 8, title: 'ทาวน์โฮม 3 ชั้น ให้เช่า', address: 'รัชดา, กรุงเทพฯ', location: 'รัชดา, กรุงเทพฯ', price: 6500000, rent_price: 30000, bedrooms: 3, bathrooms: 3, floor: 3, area: 140, parking: 1, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop'] }
+          ]
+          const targetCount = 8
+          const mergedFallback = initialFallback.length >= targetCount ? initialFallback : [...initialFallback, ...initialFallback.slice(0, targetCount - initialFallback.length)]
+          setProperties(mergedFallback)
+          setFilteredProperties(mergedFallback)
+        } finally {
+          setLoading(false)
         }
-      } catch (error) {
-        console.error('Failed to fetch properties:', error)
-        // Fallback data - richer mock list (at least 8 for multiple rows)
-        const initialFallback = [
-          {
-            id: 1,
-            title: 'คอนโดหรู 1 ห้องนอน พร้อมเฟอร์นิเจอร์',
-            address: 'สีลม, กรุงเทพฯ',
-            location: 'สีลม, กรุงเทพฯ',
-            price: 3500000,
-            rent_price: 25000,
-            bedrooms: 1,
-            bathrooms: 1,
-            floor: 12,
-            area: 35,
-            parking: 1,
-            type: 'condo',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'อินเทอร์เน็ต'],
-            projectCode: 'WS001',
-            announcerStatus: 'agent',
-            specialFeatures: {
-              shortTerm: true,
-              allowPet: false,
-              allowCompanyRegistration: true
-            }
-          },
-          {
-            id: 2,
-            title: 'บ้านเดี่ยว 2 ห้องนอน สวนสวย',
-            address: 'สุขุมวิท, กรุงเทพฯ',
-            location: 'สุขุมวิท, กรุงเทพฯ',
-            price: 8500000,
-            rent_price: 45000,
-            bedrooms: 2,
-            bathrooms: 2,
-            floor: 1,
-            area: 80,
-            parking: 2,
-            type: 'residential',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['สวนส่วนตัว', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต'],
-            projectCode: 'WS002',
-            announcerStatus: 'owner',
-            specialFeatures: {
-              shortTerm: false,
-              allowPet: true,
-              allowCompanyRegistration: false
-            }
-          },
-          {
-            id: 3,
-            title: 'ออฟฟิศ 1 ห้อง พร้อมเฟอร์นิเจอร์',
-            address: 'สาทร, กรุงเทพฯ',
-            location: 'สาทร, กรุงเทพฯ',
-            price: 5000000,
-            rent_price: 35000,
-            bedrooms: 0,
-            bathrooms: 1,
-            floor: 8,
-            area: 50,
-            parking: 1,
-            type: 'commercial',
-            status: 'for_rent',
-            images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'],
-            amenities: ['ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'อินเทอร์เน็ต', 'เครื่องปรับอากาศ'],
-            projectCode: 'WS003',
-            announcerStatus: 'agent',
-            specialFeatures: {
-              shortTerm: true,
-              allowPet: false,
-              allowCompanyRegistration: true
-            }
-          },
-          { id: 4, title: 'คอนโดสตูดิโอ เฟอร์ครบ ติด BTS', address: 'อ่อนนุช, กรุงเทพฯ', location: 'อ่อนนุช, กรุงเทพฯ', price: 2200000, rent_price: 18000, bedrooms: 0, bathrooms: 1, floor: 10, area: 28, parking: 1, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005229762-cf1b2da7c52f?q=80&w=1200&auto=format&fit=crop'] },
-          { id: 5, title: 'บ้านเดี่ยวพร้อมอยู่ ใกล้ห้าง', address: 'บางนา, กรุงเทพฯ', location: 'บางนา, กรุงเทพฯ', price: 9500000, rent_price: 55000, bedrooms: 3, bathrooms: 2, floor: 2, area: 160, parking: 2, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1560184897-ae75f418493e?q=80&w=1200&auto=format&fit=crop'] },
-          { id: 6, title: 'โฮมออฟฟิศให้เช่า 4 ชั้น', address: 'ลาดพร้าว, กรุงเทพฯ', location: 'ลาดพร้าว, กรุงเทพฯ', price: 12000000, rent_price: 65000, bedrooms: 3, bathrooms: 3, floor: 4, area: 220, parking: 2, type: 'commercial', status: 'for_rent', images: ['https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop'] },
-          { id: 7, title: 'เพนท์เฮาส์ วิวพาโนรามา', address: 'ทองหล่อ, กรุงเทพฯ', location: 'ทองหล่อ, กรุงเทพฯ', price: 19000000, rent_price: 95000, bedrooms: 3, bathrooms: 3, floor: 35, area: 180, parking: 2, type: 'condo', status: 'for_rent', images: ['https://images.unsplash.com/photo-1502005097973-6a7082348e28?q=80&w=1200&auto=format&fit=crop'] },
-          { id: 8, title: 'ทาวน์โฮม 3 ชั้น ให้เช่า', address: 'รัชดา, กรุงเทพฯ', location: 'รัชดา, กรุงเทพฯ', price: 6500000, rent_price: 30000, bedrooms: 3, bathrooms: 3, floor: 3, area: 140, parking: 1, type: 'residential', status: 'for_rent', images: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop'] }
-        ]
-        const targetCount = 8
-        const mergedFallback = initialFallback.length >= targetCount ? initialFallback : [...initialFallback, ...initialFallback.slice(0, targetCount - initialFallback.length)]
-        setProperties(mergedFallback)
-        setFilteredProperties(mergedFallback)
-      } finally {
-        setLoading(false)
       }
-    }
 
-    fetchProperties()
-  }, [])
+      fetchProperties()
+    }, [])
 
   // Filter properties
   useEffect(() => {

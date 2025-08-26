@@ -11,12 +11,12 @@ const LanguageSwitcher = () => {
 
   return (
     <div className="relative group">
-      <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-        <Globe className="h-4 w-4 text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">
+      <button className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200" style={{ color: '#ffffff', textShadow: '2px 2px 4px rgba(0,0,0,0.6)' }}>
+        <Globe className="h-4 w-4" />
+        <span className="text-sm font-medium">
           {currentLanguage === 'th' ? 'ไทย' : 'EN'}
         </span>
-        <svg className="w-4 h-4 text-gray-500 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>

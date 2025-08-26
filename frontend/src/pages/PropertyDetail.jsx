@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Car, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
+import { MapPin, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Car, Train, Bus, Wifi, Shield, Users, Clock, Tag, Send, MessageCircle, Search } from 'lucide-react'
 import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { LuBath } from 'react-icons/lu'
 import { IoBedOutline } from 'react-icons/io5'
-import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt } from 'react-icons/fa'
+import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaRegCheckCircle } from 'react-icons/fa'
+import { MdOutlineTrain } from 'react-icons/md'
 import { propertyAPI, condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
@@ -30,6 +31,8 @@ const PropertyDetail = () => {
   const [nearby, setNearby] = useState([])
   const [descExpanded, setDescExpanded] = useState(false)
   const [projectInfo, setProjectInfo] = useState(null)
+  const lastFetchedIdRef = useRef(null)
+  const [showContactModal, setShowContactModal] = useState(false)
 
   // Derived values for UI meta
   const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
@@ -87,6 +90,34 @@ const PropertyDetail = () => {
 
           if (!payload) throw new Error('Property not found across all types')
 
+          // Helpers to normalize special features from backend
+          const parseJsonSafe = (v) => {
+            if (!v) return null
+            if (typeof v === 'object') return v
+            if (typeof v === 'string') {
+              const trimmed = v.trim()
+              if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return null
+              try { return JSON.parse(trimmed) } catch { return null }
+            }
+            return null
+          }
+          const normalizeSpecialFeatures = (raw) => {
+            const obj = parseJsonSafe(raw) || (typeof raw === 'object' ? raw : null)
+            if (!obj) return null
+            const map = {
+              shortTerm: obj.shortTerm ?? obj.short_term,
+              allowPet: obj.allowPet ?? obj.allow_pet,
+              allowCompanyRegistration: obj.allowCompanyRegistration ?? obj.allow_company_registration,
+              foreignQuota: obj.foreignQuota ?? obj.foreign_quota,
+              penthouse: obj.penthouse,
+              luckyNumber: obj.luckyNumber ?? obj.lucky_number,
+            }
+            // Keep only truthy booleans
+            const cleaned = {}
+            Object.entries(map).forEach(([k, v]) => { if (typeof v === 'boolean') cleaned[k] = v })
+            return Object.keys(cleaned).length ? cleaned : null
+          }
+
           // Normalize common field names from backend snake_case to frontend camelCase
           const normalizeEntity = (p) => ({
             ...p,
@@ -100,6 +131,8 @@ const PropertyDetail = () => {
             announcerStatus: p.announcerStatus || p.announcer_status,
             seoTags: p.seoTags || p.seo_tags,
             youtubeUrl: p.youtubeUrl || p.youtube_url,
+            availableDate: p.availableDate || p.available_date,
+            specialFeatures: normalizeSpecialFeatures(p.specialFeatures || p.special_features || p.special_features_json)
           })
           payload = normalizeEntity(payload)
           // Normalize images to array of URLs without changing UI
@@ -287,6 +320,8 @@ const PropertyDetail = () => {
     }
 
     if (id) {
+      if (lastFetchedIdRef.current === id) return
+      lastFetchedIdRef.current = id
       fetchData()
     }
   }, [id])
@@ -315,11 +350,11 @@ const PropertyDetail = () => {
 
         // Units in same project (match by selectedProject/name or projectCode)
         const sameProject = combined.filter((p) => {
-          if (!p || p.id === property.id) return false
+            if (!p || p.id === property.id) return false
           const sameBySelected = (property.selectedProject && (p.selectedProject === property.selectedProject || p.selected_project === property.selectedProject))
           const sameByCode = (property.projectCode && (p.projectCode === property.projectCode || p.project_code === property.projectCode))
-          return Boolean(sameBySelected || sameByCode)
-        })
+            return Boolean(sameBySelected || sameByCode)
+          })
         const fallbackLatest = [...combined]
           .sort((a,b) => new Date(b.updated_at || b.updatedAt || b.created_at || b.createdAt || 0) - new Date(a.updated_at || a.updatedAt || a.created_at || a.createdAt || 0))
           .filter(p => p && p.id !== property.id)
@@ -327,9 +362,9 @@ const PropertyDetail = () => {
         setUnitsInProject((sameProject.length ? sameProject : fallbackLatest).slice(0,8))
 
         // Nearby properties: naive match by first token of location/address across all types
-        const baseLocation = (property.location || property.address || '')
-          .split(',')[0]
-          ?.trim()
+          const baseLocation = (property.location || property.address || '')
+            .split(',')[0]
+            ?.trim()
         let nearbyList = []
         if (baseLocation) {
           nearbyList = combined.filter((p) => {
@@ -673,43 +708,201 @@ const PropertyDetail = () => {
     return cover || getPropertyImage(property, fallbackType)
   }
 
+  // Normalize mixed inputs (array, json string, comma-separated string) → array<string>
+  const normalizeToArray = (value) => {
+    if (!value) return []
+    if (Array.isArray(value)) return value
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (!trimmed) return []
+      // Try JSON array first
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) return parsed
+      } catch {}
+      // Fallback comma-separated
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+    }
+    return []
+  }
+
+  // Format station IDs/slugs to readable names (prefer Thai when possible)
+  const formatStationName = (station) => {
+    if (!station) return ''
+    if (typeof station === 'object') {
+      return station.name_th || station.name || station.title || station.label || ''
+    }
+    const s = String(station).trim()
+    const map = {
+      thong_lor: 'ทองหล่อ',
+      thonglor: 'ทองหล่อ',
+      asok: 'อโศก',
+      asoke: 'อโศก',
+      ekkamai: 'เอกมัย',
+      phrom_phong: 'พร้อมพงษ์',
+      sala_daeng: 'ศาลาแดง',
+      silom: 'สีลม',
+      chit_lom: 'ชิดลม',
+      chidlom: 'ชิดลม',
+      phaya_thai: 'พญาไท',
+      mo_chit: 'หมอชิต',
+      bang_na: 'บางนา',
+      on_nut: 'อ่อนนุช',
+      nana: 'นานา',
+      ari: 'อารีย์',
+      sathorn: 'สาทร',
+      ratchada: 'รัชดา',
+    }
+    if (map[s]) return map[s]
+    // Fallback: replace underscores with spaces and title-case
+    const pretty = s.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
+    return pretty
+  }
+
+  const formatStationsList = (list) => {
+    if (!Array.isArray(list)) return ''
+    return list.map(formatStationName).filter(Boolean).join(', ')
+  }
+
   // Map amenity ids to readable Thai labels
   const getAmenityLabel = (amenity) => {
-    const map = {
-      tv: 'ทีวี',
-      aircon: 'แอร์',
-      air_conditioner: 'แอร์',
-      refrigerator: 'ตู้เย็น',
-      microwave: 'ไมโครเวฟ',
-      oven: 'เตาอบ',
-      washing_machine: 'เครื่องซักผ้า',
-      dryer: 'เครื่องอบผ้า',
-      water_heater: 'เครื่องทำน้ำอุ่น',
-      balcony: 'ระเบียง',
-      wardrobe: 'ตู้เสื้อผ้า',
-      sofa: 'โซฟา',
-      dining_table: 'โต๊ะทานอาหาร',
-      bed: 'เตียง',
-      wifi: 'Wi‑Fi',
-      stove: 'เตาไฟฟ้า',
-      hood: 'เครื่องดูดควัน',
-      bathtub: 'อ่างอาบน้ำ',
-    }
     if (!amenity) return ''
-    const key = String(amenity).trim()
-    return map[key] || key
+    const raw = typeof amenity === 'string' ? amenity : (amenity.id || amenity.label || '')
+    const key = String(raw).trim().toLowerCase().replace(/[\s\-]+/g, '_').replace(/[\/]+/g, '_')
+    const map = {
+      fully_furnished: 'Fully Furnished',
+      air_conditioner: 'Air Conditioner',
+      aircon: 'Air Conditioner',
+      ac: 'Air Conditioner',
+      television: 'Television',
+      tv: 'Television',
+      refrigerator: 'Refrigerator',
+      microwave: 'Microwave',
+      electric_stove: 'Electric Stove',
+      stove: 'Electric Stove',
+      range_hood: 'Range Hood',
+      hood: 'Range Hood',
+      washing_machine: 'Washing Machine',
+      water_heater: 'Water Heater',
+      oven: 'Oven',
+      bathtub: 'Bathtub',
+      digital_door_lock: 'Digital Door Lock',
+      smart_lock: 'Digital Door Lock',
+      internet: 'Internet / Wi‑Fi',
+      wi_fi: 'Internet / Wi‑Fi',
+      wifi: 'Internet / Wi‑Fi',
+      smart_home_system: 'Smart Home System',
+      smart_home: 'Smart Home System',
+      jacuzzi: 'Jacuzzi',
+      motorcycle_parking: 'Motorcycle Parking',
+      balcony: 'Balcony',
+      parking: 'Parking',
+      private_elevator: 'Private Elevator',
+      dishwasher: 'Dishwasher',
+      walk_in_closet: 'Walk-in Closet',
+      walk_in: 'Walk-in Closet',
+      private_pool: 'Private Pool',
+      water_filtration_system: 'Water Filtration System',
+      water_filter: 'Water Filtration System',
+      private_garden: 'Private Garden',
+      wine_cooler_wine_cellar: 'Wine Cooler / Wine Cellar',
+      wine_cooler: 'Wine Cooler / Wine Cellar',
+      wine_cellar: 'Wine Cooler / Wine Cellar',
+      built_in_wardrobe: 'Built-in Wardrobe',
+      builtin_wardrobe: 'Built-in Wardrobe',
+    }
+    return map[key] || (typeof amenity === 'string' ? amenity : (amenity.label || raw))
+  }
+
+  // Match Project Facilities IDs to the same labels used in the admin ProjectForm
+  const getProjectFacilityLabel = (idOrObj) => {
+    if (!idOrObj) return ''
+    const key = typeof idOrObj === 'string' ? idOrObj : (idOrObj.id || idOrObj.label || '')
+    const map = {
+      // Transport
+      passengerLift: 'Passenger Lift',
+      shuttleService: 'Shuttle Service',
+      evCharger: 'EV Charger',
+      parking: 'Parking',
+      // Security
+      security24h: '24-hour security with CCTV',
+      accessControl: 'Access control System',
+      // Recreation
+      fitness: 'Fitness / Gym',
+      swimmingPool: 'Swimming Pool',
+      sauna: 'Sauna',
+      steamRoom: 'Steam Room',
+      sportArea: 'Sport Area',
+      golfSimulator: 'Golf simulator',
+      kidsPlayground: 'Kids Playground',
+      cinemaRoom: 'Cinema Room / Theatre',
+      // Pet & Business
+      allowPet: 'Allow Pet',
+      meetingRoom: 'Meeting Room',
+      coWorkingSpace: 'Co-Working Space',
+      // Dining
+      restaurant: 'Restaurant',
+      cafe: 'Cafe',
+      privateDiningRoom: 'Private Dining Room / Party Room',
+      coKitchen: 'Co-Kitchen',
+      // Common
+      lobby: 'Lobby',
+      loungeArea: 'Lounge Area',
+      clubhouse: 'Clubhouse',
+      convenienceStore: 'Convenience Store / Minimart',
+      library: 'Library',
+      laundry: 'Laundry',
+      garden: 'Garden',
+      wifi: 'WIFI'
+    }
+    // Exact match
+    if (map[key]) return map[key]
+    // Sometimes backend may save label already
+    return typeof idOrObj === 'string' ? idOrObj : (idOrObj.label || key)
+  }
+
+  const capitalizeFirst = (text) => {
+    if (!text || typeof text !== 'string') return text
+    const [first, ...rest] = text
+    return first.toUpperCase() + rest.join('').toLowerCase()
+  }
+
+  const formatISODate = (input) => {
+    if (!input) return ''
+    const d = new Date(input)
+    if (Number.isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  const getYoutubeId = (url) => {
+    if (!url || typeof url !== 'string') return null
+    const trimmed = url.trim()
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return null
+    // Support youtu.be, watch?v=, embed/, shorts/
+    const patterns = [
+      /youtu\.be\/([^#&?\/]*)/i,
+      /youtube\.com\/(?:watch\?v=|embed\/|shorts\/)([^#&?\/]*)/i,
+      /youtube\.com\/.+&v=([^#&?\/]*)/i
+    ]
+    for (const re of patterns) {
+      const m = trimmed.match(re)
+      if (m && m[1] && m[1].length === 11) return m[1]
+    }
+    // Fallback simple query parse
+    try {
+      const u = new URL(trimmed)
+      const v = u.searchParams.get('v')
+      if (v && v.length === 11) return v
+    } catch {}
+    return null
   }
 
   const hasYoutubeVideo = () => {
-    try {
-      const u = property?.youtubeUrl || property?.youtube_url || ''
-      if (!u || typeof u !== 'string') return false
-      const trimmed = u.trim()
-      if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return false
-      return /(youtube\.com|youtu\.be)/i.test(trimmed)
-    } catch {
-      return false
-    }
+    const idStr = getYoutubeId(property?.youtubeUrl || property?.youtube_url)
+    return Boolean(idStr)
   }
 
   if (loading) {
@@ -745,7 +938,7 @@ const PropertyDetail = () => {
       {/* Main Header */}
       <Header />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20 pb-32">
         {/* Property Header Card */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -780,13 +973,20 @@ const PropertyDetail = () => {
                 {/* Ref badge removed per request */}
                 {property.selectedStations && property.selectedStations.length > 0 && (
                   <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
-                    ใกล้ {property.selectedStations[0]}
+                    ใกล้ {formatStationName(property.selectedStations[0])}
                   </span>
                 )}
-                {property.specialFeatures?.shortTerm && (
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg border border-blue-600 font-prompt">
+                {/* Availability tag (replaces short-term if availableDate exists) */}
+                {property.availableDate ? (
+                  <span className="px-3 py-1 text-white text-sm rounded-lg font-prompt bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm">
+                    Available: {formatISODate(property.availableDate)}
+                  </span>
+                ) : (
+                  property.specialFeatures?.shortTerm && (
+                    <span className="px-3 py-1 text-white text-sm rounded-lg font-prompt bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm">
                     เช่าช่วงสั้น
                   </span>
+                  )
                 )}
                 {/* Extra tag removed per request */}
             </div>
@@ -796,23 +996,18 @@ const PropertyDetail = () => {
                           <div className="text-right">
               {property.rent_price > 0 && (
                 <>
-                  <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาเช่า</div>
-                  <div className="text-xl sm:text-2xl font-bold text-[#917133] mb-2 font-prompt">{format(convert(property.rent_price))}</div>
+                  <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาเช่า/เดือน</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.rent_price))}</div>
                 </>
               )}
               {property.price > 0 && (
                 <>
                   <div className="text-sm text-gray-600 mb-1 font-prompt">ราคาขาย</div>
-                  <div className="text-xl sm:text-2xl font-bold text-[#917133] mb-2 font-prompt">{format(convert(property.price))}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-2 font-prompt">{format(convert(property.price))}</div>
                 </>
               )}
               
-              {/* Share Button */}
-              <div className="flex justify-end mt-3">
-                <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-                  <Share2 className="h-4 w-4 text-blue-700" />
-                </button>
-                </div>
+              {/* Share Button removed per request */}
               </div>
           </div>
         </div>
@@ -823,6 +1018,9 @@ const PropertyDetail = () => {
             {/* Professional Image Gallery */}
             <div className="mb-8">
               {property.images && property.images.length > 0 ? (
+                (() => {
+                  const images = property.images.slice(0, 100)
+                  return (
                 <div className="grid grid-cols-5 grid-rows-5 gap-2 h-96">
                   {/* Main Hero Image - Left Side (Large) */}
                   <div 
@@ -833,14 +1031,31 @@ const PropertyDetail = () => {
                     }}
                   >
                     <img
-                      src={property.images[0]}
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[1] || property.images[2] || property.images[0]; }}
+                          src={images[0]}
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = images[1] || images[2] || images[0]; }}
                       alt={property.title}
                       className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
                     />
-                    {property.images.length > 1 && (
+                    {/* Rent badges */}
+                    {(property.rent_price > 0 || (property.area && property.rent_price > 0)) && (
+                      <div className="absolute left-3 bottom-3 space-y-2">
+                        {property.rent_price > 0 && (
+                          <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-white shadow-lg"
+                               style={{ background: 'rgba(0,0,0,0.6)' }}>
+                            <span>{format(convert(property.rent_price))} / เดือน</span>
+                          </div>
+                        )}
+                        {rentPerSqm && (
+                          <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-white shadow-lg"
+                               style={{ background: 'rgba(0,0,0,0.6)' }}>
+                            <span>{format(convert(rentPerSqm))} / ตร.ม.</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {images.length > 1 && (
                       <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">
-                        {property.images.length} รูป
+                          {images.length} รูป
                       </div>
                     )}
                     
@@ -855,8 +1070,8 @@ const PropertyDetail = () => {
                     }}
                   >
                       <img 
-                        src={property.images[1] || property.images[0]} 
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
+                            src={images[1] || images[0]} 
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
@@ -872,8 +1087,8 @@ const PropertyDetail = () => {
                     }}
                   >
                       <img 
-                        src={property.images[3] || property.images[0]} 
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
+                            src={images[3] || images[0]} 
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
@@ -889,14 +1104,16 @@ const PropertyDetail = () => {
                     }}
                   >
                       <img 
-                        src={property.images[4] || property.images[0]} 
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
+                            src={images[4] || images[0]} 
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
                     
                   </div>
                 </div>
+                  )
+                })()
               ) : (
                 <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
@@ -912,52 +1129,81 @@ const PropertyDetail = () => {
             </div>
 
             {/* YouTube Videos & Location Section */}
-            {hasYoutubeVideo() && (
+            {(() => {
+              const floorPlans = normalizeToArray(
+                (() => {
+                  const raw = property.floorPlan || property.floor_plan || property.floorPlans || property.floorPlanImages || property.planImages || property.floor_plans
+                  if (!raw) return []
+                  if (Array.isArray(raw)) {
+                    return raw.map((item) => (item && typeof item === 'object' ? (item.url || item.src || '') : item)).filter(Boolean)
+                  }
+                  if (typeof raw === 'object') {
+                    return raw.url ? [raw.url] : []
+                  }
+                  return [raw]
+                })()
+              )
+              const hasYT = hasYoutubeVideo()
+              if (!hasYT && !(floorPlans && floorPlans.length)) return null
+              return (
             <div className="mb-6">
-              <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                {/* YouTube Thumbnails (single) */}
-                <div className="lg:col-span-2 flex">
-                  <a href={(property.youtubeUrl || property.youtube_url)} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
-                    <div className="aspect-video bg-gray-200 relative">
-                      <img src={`https://img.youtube.com/vi/${String(property.youtubeUrl || property.youtube_url).split('v=')[1] || ''}/hqdefault.jpg`} alt="YouTube" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/15 group-hover:bg-black/30 transition-all duration-300"></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                          <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <div className="grid grid-cols-1 lg:grid-cols-6 gap-1">
+                    {/* Media group: Video + Floor plan side-by-side */}
+                    {(hasYT || (floorPlans && floorPlans.length > 0)) && (
+                      <div className="lg:col-span-4">
+                        <div className="flex gap-1">
+                          {hasYT && (
+                            <a href={(property.youtubeUrl || property.youtube_url)} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
+                              <div className="aspect-video bg-gray-200 relative">
+                                <img src={`https://img.youtube.com/vi/${String(property.youtubeUrl || property.youtube_url).split('v=')[1] || ''}/hqdefault.jpg`} alt="YouTube" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/15 group-hover:bg-black/30 transition-all duration-300"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          </div>
                         </div>
+                          </div>
+                                <div className="p-1"><p className="text-xs text-gray-600 font-prompt">Video</p></div>
+                              </a>
+                            )}
+                            {floorPlans && floorPlans.length > 0 && (
+                              <a href={floorPlans[0]} target="_blank" rel="noopener noreferrer" className="block group overflow-hidden rounded-md shadow-sm hover:shadow-md transition-all duration-300 w-48 sm:w-60">
+                                <div className="aspect-video bg-gray-200 relative">
+                                  <img src={floorPlans[0]} alt="Floor plan" className="w-full h-full object-cover" />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
+                        </div>
+                                <div className="p-1"><p className="text-xs text-gray-600 font-prompt">Floor plan</p></div>
+                              </a>
+                            )}
                       </div>
-                    </div>
-                    <div className="p-1"><p className="text-xs text-gray-600 font-prompt">Video</p></div>
-                  </a>
-                </div>
+                      </div>
+                    )}
 
                 {/* Location */}
-                <div className="lg:col-span-4 flex justify-end">
+                    <div className="lg:col-span-2 flex justify-end">
                   <div className="flex items-center space-x-2">
                     <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
-                      <svg className="w-2.5 h-2.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
+                      <MdOutlineTrain className="w-3 h-3 text-gray-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-900 font-medium font-prompt">
-                        {(() => {
-                          const stations = (Array.isArray(property.selectedStations) && property.selectedStations.length)
-                            ? property.selectedStations
-                            : (Array.isArray(property.selected_stations) ? property.selected_stations : [])
-                          const transport = property.nearbyTransport || property.nearby_transport
-                          if (stations && stations.length) return stations.join(', ')
-                          if (transport) return transport
-                          return property.location || property.address || '-'
-                        })()}
-                      </p>
+                          <p className="text-sm text-gray-900 font-medium font-prompt">
+                            {(() => {
+                              const stations = (Array.isArray(property.selectedStations) && property.selectedStations.length)
+                                ? property.selectedStations
+                                : (Array.isArray(property.selected_stations) ? property.selected_stations : [])
+                              const transport = property.nearbyTransport || property.nearby_transport
+                              if (stations && stations.length) return formatStationsList(stations)
+                              if (transport) return transport
+                              return property.location || property.address || '-'
+                            })()}
+                          </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            )}
+              )
+            })()}
 
             {/* Overview Content */}
             <div className="mb-8">
@@ -998,35 +1244,44 @@ const PropertyDetail = () => {
                   {/* In-room Amenities (replace price info) */}
                   <div className="flex-1">
                     <div className="space-y-2">
-                      <div className="text-lg font-semibold text-gray-900 mb-2 font-prompt">สิ่งอำนวยความสะดวกภายในห้อง</div>
-                      <div className="flex flex-wrap gap-2">
-                        {(property.amenities && Array.isArray(property.amenities) && property.amenities.length > 0
-                          ? property.amenities
-                          : []).slice(0, 12).map((a, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border">
-                            {typeof a === 'string' ? getAmenityLabel(a) : (a.label || getAmenityLabel(a.id))}
-                          </span>
-                        ))}
-                        {(!property.amenities || !Array.isArray(property.amenities) || property.amenities.length === 0) && (
+                      <div className="text-lg font-semibold text-gray-900 mb-2 font-prompt">Special Features</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {property.specialFeatures && Object.entries(property.specialFeatures).some(([, v]) => Boolean(v)) ? (
+                          Object.entries(property.specialFeatures).map(([key, value]) => {
+                            if (!value) return null
+                            const labelMap = {
+                              shortTerm: 'Short-term',
+                              allowPet: 'Allow Pet',
+                              allowCompanyRegistration: 'Company Registration',
+                              foreignQuota: 'Foreign Quota',
+                              penthouse: 'Penthouse',
+                              luckyNumber: 'Lucky Number'
+                            }
+                            const iconMap = {
+                              shortTerm: <Clock className="w-4 h-4 text-[#917133]" />,
+                              allowPet: <FaPaw className="w-4 h-4 text-[#917133]" />,
+                              allowCompanyRegistration: <FaUsers className="w-4 h-4 text-[#917133]" />,
+                              foreignQuota: <FaLock className="w-4 h-4 text-[#917133]" />,
+                              penthouse: <FaHome className="w-4 h-4 text-[#917133]" />,
+                              luckyNumber: <Star className="w-4 h-4 text-[#917133]" />
+                            }
+                            const label = labelMap[key] || key
+                            const icon = iconMap[key] || <FaRegCheckCircle className="w-4 h-4 text-[#917133]" />
+                            return (
+                              <div key={key} className="flex items-center text-gray-700 font-prompt">
+                                <span className="mr-3">{icon}</span>
+                                <span className="text-sm">{label}</span>
+                        </div>
+                            )
+                          })
+                        ) : (
                           <span className="text-gray-500 text-sm">ไม่ระบุ</span>
-                        )}
-                      </div>
+                      )}
+                        </div>
                     </div>
                   </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-col gap-2">
-                    {property.specialFeatures?.shortTerm && (
-                      <span className="px-4 py-2 bg-gray-600 text-white text-sm rounded-full font-medium">
-                        Short-term
-                      </span>
-                    )}
-                    {property.specialFeatures?.allowCompanyRegistration && (
-                      <span className="px-4 py-2 bg-gray-600 text-white text-sm rounded-full font-medium">
-                        Company Registration
-                      </span>
-                    )}
-                  </div>
+                  {/* Tags column removed to avoid duplication with Special Features */}
                 </div>
 
                 {/* Description */}
@@ -1057,91 +1312,25 @@ const PropertyDetail = () => {
                 {/* Amenities */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">Amenities</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Column 1 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
+                  {(() => {
+                    const projectAmenities = normalizeToArray(projectInfo?.amenities)
+                    const propertyAmenities = normalizeToArray(property?.amenities)
+                    const list = projectAmenities.length ? projectAmenities : propertyAmenities
+                    if (!list.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {list.slice(0, 24).map((a, idx) => {
+                          const label = typeof a === 'string' ? getAmenityLabel(a) : (a?.label || getAmenityLabel(a?.id))
+                          return (
+                            <div key={idx} className="flex items-center text-gray-700 font-prompt">
+                              <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
+                              <span>{capitalizeFirst(label)}</span>
                         </div>
-                        ระบบรักษาความปลอดภัย
+                          )
+                        })}
                       </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ห้องหนังสือ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สระเด็ก
-                      </div>
-                    </div>
-
-                    {/* Column 2 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ที่จอดรถ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        เล้าจ์
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สวนขนาดย่อม
-                      </div>
-                    </div>
-
-                    {/* Column 3 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ฟิตเนส / ยิม
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สระว่ายน้ำ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        แม่น้ำ
-                      </div>
-                    </div>
-                  </div>
+                    )
+                  })()}
                 </div>
 
                 {/* Project Details */}
@@ -1174,7 +1363,7 @@ const PropertyDetail = () => {
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Skytrian/Subway:</span>
-                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.selected_stations || projectInfo.stations)) ? (Array.isArray(projectInfo.selected_stations || projectInfo.stations) ? (projectInfo.selected_stations || projectInfo.stations).join(', ') : (projectInfo.selected_stations || projectInfo.stations)) : ((property.selectedStations && property.selectedStations.length) ? property.selectedStations.join(', ') : (property.nearbyTransport || '-'))}</div>
+                          <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.selected_stations || projectInfo.stations)) ? (Array.isArray(projectInfo.selected_stations || projectInfo.stations) ? formatStationsList(projectInfo.selected_stations || projectInfo.stations) : (projectInfo.selected_stations || projectInfo.stations)) : ((property.selectedStations && property.selectedStations.length) ? formatStationsList(property.selectedStations) : (property.nearbyTransport || '-'))}</div>
                         </div>
                         <div>
                           <span className="text-sm text-gray-600 font-prompt">Location:</span>
@@ -1183,18 +1372,18 @@ const PropertyDetail = () => {
                       </div>
 
                       {/* Buttons */}
-                      <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                        <button className="px-6 py-3 bg-[#917133] text-white rounded-lg font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
+                      <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                        <button className="px-4 py-2 bg-[#917133] text-white rounded-md text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
                           All Details
                         </button>
                         {property.googleMapUrl && (
                           <a
-                            className="px-6 py-3 bg-[#917133] text-white rounded-lg font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
+                            className="px-4 py-2 bg-[#917133] text-white rounded-md text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
                             href={property.googleMapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            View <span className="underline">On Google map</span>
+                            Google map
                           </a>
                         )}
                       </div>
@@ -1202,94 +1391,55 @@ const PropertyDetail = () => {
                   </div>
                 </div>
 
+                {/* Project Location (from Project Details) */}
+                <div>
+                  <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">ทำเลที่ตั้ง (โครงการ)</h3>
+                  {projectInfo ? (
+                    (() => {
+                      const stations = Array.isArray(projectInfo.selected_stations || projectInfo.stations)
+                        ? (projectInfo.selected_stations || projectInfo.stations).filter(Boolean)
+                        : []
+                      const address = projectInfo.address || projectInfo.location || ''
+                      if (!address && stations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {address && (
+                      <div className="flex items-center text-gray-700 font-prompt">
+                              <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
+                              <span>{address}</span>
+                        </div>
+                          )}
+                          {stations.length > 0 && (
+                      <div className="flex items-center text-gray-700 font-prompt">
+                              <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
+                              <span>{formatStationsList(stations)}</span>
+                        </div>
+                          )}
+                      </div>
+                      )
+                    })()
+                  ) : (
+                    <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                  )}
+                    </div>
+
                 {/* Project Facilities */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">Project Facilities</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Column 1 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
+                  {(() => {
+                    const facilities = normalizeToArray(projectInfo?.facilities || projectInfo?.project_facilities || projectInfo?.common_facilities)
+                    if (!facilities.length) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {facilities.slice(0, 24).map((f, idx) => (
+                          <div key={idx} className="flex items-center text-gray-700 font-prompt">
+                            <FaRegCheckCircle className="w-4 h-4 mr-3 text-[#917133]" />
+                            <span>{capitalizeFirst(getProjectFacilityLabel(f))}</span>
                         </div>
-                        ระบบรักษาความปลอดภัย
+                        ))}
                       </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ห้องหนังสือ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สระเด็ก
-                      </div>
-                    </div>
-
-                    {/* Column 2 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ที่จอดรถ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        เล้าจ์
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สวนขนาดย่อม
-                      </div>
-                    </div>
-
-                    {/* Column 3 */}
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        ฟิตเนส / ยิม
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        สระว่ายน้ำ
-                      </div>
-                      <div className="flex items-center text-gray-700 font-prompt">
-                        <div className="w-4 h-4 bg-green-500 rounded mr-3 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        แม่น้ำ
-                      </div>
-                    </div>
-                  </div>
+                    )
+                  })()}
                 </div>
 
                 {/* Units in Project */}
@@ -1299,11 +1449,11 @@ const PropertyDetail = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Nearby Properties</h3>
                   {nearby && nearby.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {nearby.map((p, idx) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {nearby.map((p, idx) => (
                         <ExclusiveCard key={`nearby-${p.id || idx}`} item={p} idx={idx} />
-                      ))}
-                    </div>
+                    ))}
+                  </div>
                   ) : (
                     <div className="text-center text-gray-500">ไม่พบทรัพย์ใกล้เคียง</div>
                   )}
@@ -1312,62 +1462,78 @@ const PropertyDetail = () => {
                 {/* Project Information */}
                 {/* Hide simple project info block per request */}
 
-                {/* Special Features */}
-                {property.specialFeatures && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">คุณสมบัติพิเศษ</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {property.specialFeatures.shortTerm && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          เช่าช่วงสั้น
-                        </div>
-                      )}
-                      {property.specialFeatures.allowPet && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          อนุญาตสัตว์เลี้ยง
-                        </div>
-                      )}
-                      {property.specialFeatures.allowCompanyRegistration && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          ลงทะเบียนบริษัทได้
-                        </div>
-                      )}
-                      {property.specialFeatures.foreignQuota && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          โควต้าชาวต่างชาติ
-                        </div>
-                      )}
-                      {property.specialFeatures.penthouse && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          เพนท์เฮาส์
-                        </div>
-                      )}
-                      {property.specialFeatures.luckyNumber && (
-                        <div className="flex items-center text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                          เลขมงคล
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Special Features duplicated block removed per request; now shown in-room */}
 
                 {/* SEO Tags - hidden per request */}
-              </div>
-            </div>
-          </div>
-
-
                       </div>
-      </div>
+                        </div>
+                    </div>
+
+
+                        </div>
+                        </div>
       
+      {/* Centered CTA Buttons (Contact + Search) */}
+      <div className="fixed inset-x-0 bottom-6 z-40 flex items-center justify-center pointer-events-none">
+        <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-2xl pointer-events-auto">
+          <button
+            onClick={() => setShowContactModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full gold-cta font-prompt"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span>Contact Us now</span>
+            <span className="shine" />
+          </button>
+                        </div>
+                        </div>
+
       {/* Footer */}
       <Footer />
+      
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+            <div className="flex items-start justify-between mb-4">
+                  <div>
+                <div className="text-sm text-gray-500 font-prompt">Interested in this property?</div>
+                <div className="text-lg font-bold text-gray-900 font-prompt">Contact Us now</div>
+                    </div>
+              <button onClick={() => setShowContactModal(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+                  </div>
+            <div className="space-y-3">
+              <a href={contactInfo?.line ? `https://line.me/R/ti/p/~${contactInfo.line}` : '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: '#06c755' }}>
+                <FaLine className="w-5 h-5" />
+                <span>Line</span>
+              </a>
+              <a href={contactInfo?.facebook || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: '#1877F2' }}>
+                <FaFacebook className="w-5 h-5" />
+                <span>Facebook</span>
+              </a>
+              <a href={contactInfo?.whatsapp ? `https://wa.me/${String(contactInfo.whatsapp).replace(/\D/g,'')}` : '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: '#25D366' }}>
+                <FaWhatsapp className="w-5 h-5" />
+                <span>Whatsapp</span>
+              </a>
+              <a href={contactInfo?.instagram || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: 'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}>
+                <FaInstagram className="w-5 h-5" />
+                <span>Instagram</span>
+              </a>
+              <a href={contactInfo?.phone ? `tel:${contactInfo.phone}` : '#'} className="flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium font-prompt mx-auto w-48" style={{ background: '#60a5fa' }}>
+                <Phone className="w-5 h-5" />
+                <span>Call</span>
+              </a>
+              </div>
+            <div className="mt-6">
+              <div className="text-center text-gray-600 text-sm font-prompt mb-3">Can't find your right space?</div>
+              <a href="/properties" className="w-full inline-flex items-center justify-center px-4 py-3 rounded-full text-white font-semibold font-prompt" style={{ background: '#6b7280' }}>
+                Let us help you find it
+              </a>
+            </div>
+          </div>
+                      </div>
+      )}
       
       {/* Custom Photo Viewer */}
       {open && (
@@ -1417,17 +1583,19 @@ const PropertyDetail = () => {
                 <div className="w-full max-w-4xl">
                   {/* Main Image */}
                   <div className="relative mb-4">
+                    {(() => { const images = property.images.slice(0, 100); return (
+                    <>
                     <img
-                      src={property.images[index]}
+                      src={images[index]}
                       alt={`Photo ${index + 1}`}
                       className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                     />
                     
                     {/* Navigation Arrows */}
-                    {property.images.length > 1 && (
+                    {images.length > 1 && (
                       <>
                         <button
-                          onClick={() => setIndex((prev) => (prev === 0 ? property.images.length - 1 : prev - 1))}
+                          onClick={() => setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
                           className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1435,7 +1603,7 @@ const PropertyDetail = () => {
                           </svg>
                         </button>
                         <button
-                          onClick={() => setIndex((prev) => (prev === property.images.length - 1 ? 0 : prev + 1))}
+                          onClick={() => setIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
                           className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1444,12 +1612,13 @@ const PropertyDetail = () => {
                         </button>
                       </>
                     )}
+                    </>) })()}
                   </div>
 
                   {/* Thumbnails */}
                   {property.images.length > 1 && (
                     <div className="flex justify-center space-x-2">
-                      {property.images.map((image, idx) => (
+                      {property.images.slice(0, 100).map((image, idx) => (
                         <button
                           key={idx}
                           onClick={() => setIndex(idx)}
