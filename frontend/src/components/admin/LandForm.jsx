@@ -1326,7 +1326,21 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
                 accept="image/*"
                 className="hidden"
                 id="multiple-images"
-                onChange={handleImagesUpload}
+                onChange={(e) => {
+                  if (e.target.files) {
+                    const files = Array.from(e.target.files)
+                    if (files.length > 100) {
+                      Swal.fire({
+                        title: 'รูปภาพเกินจำนวนที่กำหนด',
+                        text: 'อัปโหลดรูปภาพได้ไม่เกิน 100 รูป',
+                        icon: 'warning',
+                        confirmButtonText: 'ตกลง'
+                      })
+                      return
+                    }
+                    handleImagesUpload(e)
+                  }
+                }}
               />
               <label 
                 htmlFor="multiple-images"

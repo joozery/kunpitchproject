@@ -2506,19 +2506,17 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 id="multiple-images"
                 onChange={(e) => {
                   if (e.target.files) {
-                    // แยกไฟล์เป็นชุดละ 10 รูปเพื่อหลีกเลี่ยง browser limitation
                     const files = Array.from(e.target.files)
-                    const chunks = []
-                    for (let i = 0; i < files.length; i += 10) {
-                      chunks.push(files.slice(i, i + 10))
+                    if (files.length > 100) {
+                      Swal.fire({
+                        title: 'รูปภาพเกินจำนวนที่กำหนด',
+                        text: 'อัปโหลดรูปภาพได้ไม่เกิน 100 รูป',
+                        icon: 'warning',
+                        confirmButtonText: 'ตกลง'
+                      })
+                      return
                     }
-                    
-                    // อัพโหลดทีละชุด
-                    chunks.forEach((chunk, index) => {
-                      setTimeout(() => {
-                        handleMultipleImageUpload(chunk)
-                      }, index * 1000) // รอ 1 วินาทีระหว่างชุด
-                    })
+                    handleMultipleImageUpload(files)
                   }
                 }}
               />

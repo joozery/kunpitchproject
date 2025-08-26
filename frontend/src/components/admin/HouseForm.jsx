@@ -2201,7 +2201,17 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
                 id="multiple-images"
                 onChange={(e) => {
                   if (e.target.files) {
-                    handleMultipleImageUpload(e.target.files)
+                    const files = Array.from(e.target.files)
+                    if (files.length > 100) {
+                      Swal.fire({
+                        title: 'รูปภาพเกินจำนวนที่กำหนด',
+                        text: 'อัปโหลดรูปภาพได้ไม่เกิน 100 รูป',
+                        icon: 'warning',
+                        confirmButtonText: 'ตกลง'
+                      })
+                      return
+                    }
+                    handleMultipleImageUpload(files)
                   }
                 }}
               />
