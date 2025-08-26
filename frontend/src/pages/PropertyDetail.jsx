@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import Lightbox from 'yet-another-react-lightbox'
-import 'yet-another-react-lightbox/styles.css'
-import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails'
-import 'yet-another-react-lightbox/plugins/thumbnails.css'
-import Zoom from 'yet-another-react-lightbox/plugins/zoom'
-import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen'
-import Counter from 'yet-another-react-lightbox/plugins/counter'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
-import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt } from 'react-icons/fa'
+import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt } from 'react-icons/fa'
 import { propertyAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
@@ -29,10 +22,13 @@ const PropertyDetail = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
+  const [photoViewerTab, setPhotoViewerTab] = useState('photos')
 
   // Derived values for UI meta
   const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
   const rentPerSqm = property && property.area && (property.rent_price || 0) > 0 ? Math.round((property.rent_price || 0) / (property.area || 1)) : null
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -253,6 +249,70 @@ const PropertyDetail = () => {
     }
   };
 
+  // ฟังก์ชันสำหรับแสดง React Icons เหมือนในฟอร์มหลังบ้าน
+  const getFacilityIcon = (iconName) => {
+    const iconMap = {
+      // Transport
+      'lift': <FaArrowUp className="w-5 h-5" />,
+      'private-lift': <FaLock className="w-5 h-5" />,
+      'parking-common': <FaCar className="w-5 h-5" />,
+      'motorcycle': <FaMotorcycle className="w-5 h-5" />,
+      'shuttle': <FaShuttleVan className="w-5 h-5" />,
+      'ev-charger': <FaBolt className="w-5 h-5" />,
+      
+      // Security
+      'cctv': <FaVideo className="w-5 h-5" />,
+      'access-control': <FaLock className="w-5 h-5" />,
+      
+      // Recreation
+      'gym': <FaDumbbell className="w-5 h-5" />,
+      'pool': <FaSwimmingPool className="w-5 h-5" />,
+      'private-pool': <FaBath className="w-5 h-5" />,
+      'sauna': <FaBath className="w-5 h-5" />,
+      'steam': <FaBath className="w-5 h-5" />,
+      'jacuzzi-common': <FaBath className="w-5 h-5" />,
+      'sport': <FaFutbol className="w-5 h-5" />,
+      'golf': <FaTrophy className="w-5 h-5" />,
+      'stadium': <FaTrophy className="w-5 h-5" />,
+      'playground': <FaChild className="w-5 h-5" />,
+      'cinema': <FaFilm className="w-5 h-5" />,
+      
+      // Pet & Business
+      'pet': <FaPaw className="w-5 h-5" />,
+      'meeting': <FaUsers className="w-5 h-5" />,
+      'coworking': <FaLaptop className="w-5 h-5" />,
+      
+      // Dining
+      'restaurant': <FaHamburger className="w-5 h-5" />,
+      'cafe': <FaCoffee className="w-5 h-5" />,
+      'dining-room': <FaCoffee className="w-5 h-5" />,
+      'kitchen': <FaUtensils className="w-5 h-5" />,
+      
+      // Common
+      'lobby': <FaDoorOpen className="w-5 h-5" />,
+      'lounge': <FaCouch className="w-5 h-5" />,
+      'clubhouse': <FaHome className="w-5 h-5" />,
+      'store': <FaStore className="w-5 h-5" />,
+      'library': <FaBook className="w-5 h-5" />,
+      'laundry': <FaTshirt className="w-5 h-5" />,
+      'garden-common': <FaSeedling className="w-5 h-5" />,
+      'wifi': <FaWifi className="w-5 h-5" />,
+      
+      // Default mappings for common Thai terms
+      'ระบบรักษาความปลอดภัย': <FaShieldAlt className="w-5 h-5" />,
+      'ห้องหนังสือ': <FaBook className="w-5 h-5" />,
+      'สระเด็ก': <FaChild className="w-5 h-5" />,
+      'ที่จอดรถ': <FaCar className="w-5 h-5" />,
+      'เล้าจ์': <FaCouch className="w-5 h-5" />,
+      'สวนขนาดย่อม': <FaSeedling className="w-5 h-5" />,
+      'ฟิตเนส / ยิม': <FaDumbbell className="w-5 h-5" />,
+      'สระว่ายน้ำ': <FaSwimmingPool className="w-5 h-5" />,
+      'แม่น้ำ': <FaBolt className="w-5 h-5" />
+    };
+    
+    return iconMap[iconName] || <FaHome className="w-5 h-5" />;
+  };
+
   // Nearby properties mock/fallback to showcase cards
   const nearbyProperties = [
     {
@@ -389,26 +449,26 @@ const PropertyDetail = () => {
             </div>
             
             {/* Price Section */}
-                          <div className="text-right">
+            <div className="text-right">
               <div className="text-sm text-gray-600 mb-1 font-prompt">
                 {property.status === 'for_sale' ? 'ราคาขาย' : 'ราคาเช่า'}
-                    </div>
+              </div>
               <div className="text-3xl font-bold text-[#917133] mb-2 font-prompt">
                 {format(convert(property.status === 'for_sale' ? property.price : property.rent_price))}
               </div>
               {property.rent_price > 0 && property.status === 'for_sale' && (
                 <div className="text-lg text-[#917133] mb-2 font-prompt">
-                    {format(convert(property.rent_price))}/เดือน
-                    </div>
-                )}
+                  {format(convert(property.rent_price))}/เดือน
+                </div>
+              )}
               
               {/* Share Button */}
               <div className="flex justify-end mt-3">
                 <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
                   <Share2 className="h-4 w-4 text-blue-700" />
                 </button>
-                </div>
               </div>
+            </div>
           </div>
         </div>
 
@@ -991,19 +1051,133 @@ const PropertyDetail = () => {
       {/* Footer */}
       <Footer />
       
-      {/* Lightbox */}
-      <Lightbox
-        open={open}
-        close={() => setOpen(false)}
-        index={index}
-        slides={property?.images?.map((image, idx) => ({ src: image })) || []}
-        onIndexChange={(idx) => setIndex(idx)}
-        plugins={[Thumbnails, Zoom, Fullscreen, Counter]}
-        counter={{ className: 'font-prompt' }}
-        thumbnails={{ borderRadius: 8, width: 100, height: 64, padding: 4 }}
-        carousel={{ finite: false }}
-        animation={{ fade: 250 }}
-      />
+      {/* Custom Photo Viewer */}
+      {open && (
+        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+          <div className="w-full h-full flex flex-col">
+            {/* Header with Tabs */}
+            <div className="flex items-center justify-center p-4 bg-white border-b border-gray-200">
+              {/* Tabs - Centered */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setPhotoViewerTab('photos')}
+                  className={`px-6 py-3 rounded-md text-sm font-medium transition-colors ${
+                    photoViewerTab === 'photos'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  รูปภาพ
+                </button>
+                <button
+                  onClick={() => setPhotoViewerTab('location')}
+                  className={`px-6 py-3 rounded-md text-sm font-medium transition-colors ${
+                    photoViewerTab === 'location'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ทำเลที่ตั้ง
+                </button>
+              </div>
+              
+              {/* Close Button - Absolute positioned */}
+              <button
+                onClick={() => setOpen(false)}
+                className="absolute right-4 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 flex items-center justify-center p-4">
+              {photoViewerTab === 'photos' ? (
+                /* Photos Tab */
+                <div className="w-full max-w-4xl">
+                  {/* Main Image */}
+                  <div className="relative mb-4">
+                    <img
+                      src={property.images[index]}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    {property.images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => setIndex((prev) => (prev === 0 ? property.images.length - 1 : prev - 1))}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setIndex((prev) => (prev === property.images.length - 1 ? 0 : prev + 1))}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Thumbnails */}
+                  {property.images.length > 1 && (
+                    <div className="flex justify-center space-x-2">
+                      {property.images.map((image, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setIndex(idx)}
+                          className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                            idx === index ? 'border-blue-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`Thumbnail ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Location Tab */
+                <div className="w-full max-w-2xl text-center">
+                  <div className="bg-white rounded-lg p-8 shadow-lg">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaMapMarkerAlt className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 font-prompt">ทำเลที่ตั้ง</h3>
+                    <p className="text-gray-600 mb-6 font-prompt">
+                      {property.location || property.address || 'ไม่ระบุที่อยู่'}
+                    </p>
+                    {property.googleMapUrl && (
+                      <a
+                        href={property.googleMapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-prompt"
+                      >
+                        <FaMapMarkerAlt className="w-4 h-4 mr-2" />
+                        ดูใน Google Maps
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
