@@ -2495,6 +2495,9 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               <p className="mt-2 text-sm text-gray-600">
                 ลากและวางรูปภาพที่นี่ หรือ
               </p>
+              <p className="text-xs text-gray-500 mt-1">
+                💡 หากเลือกรูปมากกว่า 10 รูป ระบบจะแบ่งอัพโหลดเป็นชุดอัตโนมัติ
+              </p>
               <input
                 type="file"
                 multiple
@@ -2503,7 +2506,19 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 id="multiple-images"
                 onChange={(e) => {
                   if (e.target.files) {
-                    handleMultipleImageUpload(e.target.files)
+                    // แยกไฟล์เป็นชุดละ 10 รูปเพื่อหลีกเลี่ยง browser limitation
+                    const files = Array.from(e.target.files)
+                    const chunks = []
+                    for (let i = 0; i < files.length; i += 10) {
+                      chunks.push(files.slice(i, i + 10))
+                    }
+                    
+                    // อัพโหลดทีละชุด
+                    chunks.forEach((chunk, index) => {
+                      setTimeout(() => {
+                        handleMultipleImageUpload(chunk)
+                      }, index * 1000) // รอ 1 วินาทีระหว่างชุด
+                    })
                   }
                 }}
               />

@@ -1512,10 +1512,10 @@ const PropertyDetail = () => {
                             <span className="text-sm">{capitalizeFirst(getProjectFacilityLabel(f))}</span>
                         </div>
                     ))}
-                  </div>
+                      </div>
                     )
                   })()}
-                </div>
+                        </div>
 
                 {/* Project Location (from Project Details) */}
                 <div>
@@ -1600,10 +1600,10 @@ const PropertyDetail = () => {
                                     <div key={idx} className="flex items-center text-gray-700 font-prompt">
                                       <FaRegCheckCircle className="w-4 h-4 mr-2 text-[#917133]" />
                                       <span className="text-sm">{getStationFormLabel(station)}</span>
-                                    </div>
+                      </div>
                                   ))}
-                                </div>
-                              </div>
+                        </div>
+                      </div>
                             )}
                             
                             {/* การเดินทาง */}
@@ -1618,12 +1618,12 @@ const PropertyDetail = () => {
                                     <div key={idx} className="flex items-start text-gray-700 font-prompt">
                                       <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                       <span className="text-sm leading-relaxed">{item}</span>
-                                    </div>
+                        </div>
                                   ))}
-                                </div>
-                              </div>
+                      </div>
+                        </div>
                             )}
-                          </div>
+                      </div>
                           
                           {/* แถวที่สอง: ห้างสรรพสินค้า + สวนสาธารณะ */}
                           {(locationData.shopping.length > 0 || locationData.parks.length > 0) && (
@@ -1640,10 +1640,10 @@ const PropertyDetail = () => {
                                       <div key={idx} className="flex items-start text-gray-700 font-prompt">
                                         <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                         <span className="text-sm leading-relaxed">{item}</span>
-                                      </div>
+                        </div>
                                     ))}
-                                  </div>
-                                </div>
+                      </div>
+                    </div>
                               )}
                               
                               {/* สวนสาธารณะ */}
@@ -1658,12 +1658,12 @@ const PropertyDetail = () => {
                                       <div key={idx} className="flex items-start text-gray-700 font-prompt">
                                         <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                         <span className="text-sm leading-relaxed">{item}</span>
-                                      </div>
+                        </div>
                                     ))}
-                                  </div>
-                                </div>
+                      </div>
+                        </div>
                               )}
-                            </div>
+                      </div>
                           )}
                           
                           {/* แถวที่สาม: โรงพยาบาล + โรงเรียน */}
@@ -1681,10 +1681,10 @@ const PropertyDetail = () => {
                                       <div key={idx} className="flex items-start text-gray-700 font-prompt">
                                         <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                         <span className="text-sm leading-relaxed">{item}</span>
-                                      </div>
+                        </div>
                                     ))}
-                                  </div>
-                                </div>
+                      </div>
+                    </div>
                               )}
                               
                               {/* โรงเรียน */}
@@ -1699,9 +1699,9 @@ const PropertyDetail = () => {
                                       <div key={idx} className="flex items-start text-gray-700 font-prompt">
                                         <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                         <span className="text-sm leading-relaxed">{item}</span>
-                                      </div>
+                  </div>
                                     ))}
-                                  </div>
+                </div>
                                 </div>
                               )}
                             </div>
@@ -1720,8 +1720,8 @@ const PropertyDetail = () => {
                                     <FaRegCheckCircle className="w-4 h-4 mr-2 mt-0.5 text-[#917133] flex-shrink-0" />
                                     <span className="text-sm leading-relaxed">{item}</span>
                                   </div>
-                                ))}
-                              </div>
+                    ))}
+                  </div>
                             </div>
                           )}
                         </div>
