@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // API Configuration - Use production API with HTTPS
-const API_BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
+export const API_BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
 
 // Create axios instance
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 seconds
   headers: {
@@ -33,18 +33,21 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    console.error('❌ API call failed:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        timeout: error.config?.timeout,
-        headers: error.config?.headers
-      }
-    });
+    const status = error.response?.status;
+    if (status !== 404) {
+      console.error('❌ API call failed:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          timeout: error.config?.timeout,
+          headers: error.config?.headers
+        }
+      });
+    }
     
     // Handle different types of errors
     if (error.response) {

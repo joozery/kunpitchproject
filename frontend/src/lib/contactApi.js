@@ -1,10 +1,29 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
+const PRIMARY_BASE_URL = 'https://kunpitch-backend-new-b63bd38838f8.herokuapp.com/api';
+const ENV_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = ENV_BASE_URL || PRIMARY_BASE_URL;
+
+// Try fetch with primary base URL first; on failure (CORS/network), retry with env base URL
+const safeFetch = async (path, options = {}) => {
+  const url1 = `${PRIMARY_BASE_URL}${path}`;
+  const url2 = `${API_BASE_URL}${path}`;
+  try {
+    const res = await fetch(url1, options);
+    return res;
+  } catch (err) {
+    try {
+      const res2 = await fetch(url2, options);
+      return res2;
+    } catch (err2) {
+      throw err2;
+    }
+  }
+};
 
 // ตรวจสอบสถานะการเชื่อมต่อ API
 export const checkApiConnection = async () => {
   try {
     // ใช้ health endpoint หรือ contact-settings endpoint
-    const response = await fetch(`${API_BASE_URL}/contact-settings`, { 
+    const response = await safeFetch(`/contact-settings`, { 
       method: 'GET',
       signal: AbortSignal.timeout(5000) // timeout 5 วินาทีสำหรับ Heroku
     });
@@ -20,7 +39,7 @@ export const contactApi = {
   // ดึงข้อมูลการติดต่อ
   async getContactSettings() {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact-settings`);
+      const response = await safeFetch(`/contact-settings`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -54,7 +73,7 @@ export const contactApi = {
   // บันทึกข้อมูลการติดต่อใหม่
   async createContactSettings(contactData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact-settings`, {
+      const response = await safeFetch(`/contact-settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +109,7 @@ export const contactApi = {
   // อัปเดตข้อมูลการติดต่อ
   async updateContactSettings(id, contactData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact-settings/${id}`, {
+      const response = await safeFetch(`/contact-settings/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +145,7 @@ export const contactApi = {
   // ลบข้อมูลการติดต่อ
   async deleteContactSettings(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact-settings/${id}`, {
+      const response = await safeFetch(`/contact-settings/${id}`, {
         method: 'DELETE',
       });
 
@@ -145,7 +164,7 @@ export const contactApi = {
   // ดึงข้อมูลการติดต่อทั้งหมด (สำหรับ admin)
   async getAllContactSettings() {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact-settings/all`);
+      const response = await safeFetch(`/contact-settings/all`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

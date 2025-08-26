@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, Bed, Bath, Home, Star, ArrowLeft, Eye, Heart, Share2, Phone, Mail, Calendar, Building2, Car, Ruler, Train, Bus, Wifi, Shield, Users, Clock, Tag } from 'lucide-react'
 import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt } from 'react-icons/fa'
-import { propertyAPI } from '../lib/api'
+import { propertyAPI, condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -23,6 +23,8 @@ const PropertyDetail = () => {
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
   const [photoViewerTab, setPhotoViewerTab] = useState('photos')
+  const [unitsInProject, setUnitsInProject] = useState([])
+  const [nearby, setNearby] = useState([])
 
   // Derived values for UI meta
   const pricePerSqm = property && property.area ? Math.round((property.price || 0) / (property.area || 1)) : null
@@ -34,14 +36,121 @@ const PropertyDetail = () => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        // Fetch property by ID
-        const result = await propertyAPI.getByIdWithFallback(id)
-        if (result && result.success && result.data) {
-          setProperty(result.data)
+        // Fetch property by ID (parallel across types, keep priority order)
+        try {
+          const [propS, condoS, houseS, landS, commS] = await Promise.allSettled([
+            propertyAPI.getById(id),
+            condoAPI.getById(id),
+            houseAPI.getById(id),
+            landAPI.getById(id),
+            commercialAPI.getById(id)
+          ])
+
+          const getPayload = (settled) => {
+            if (!settled || settled.status !== 'fulfilled') return null
+            const result = settled.value
+            return (result && result.success && result.data) ? result.data : result
+          }
+
+          const candidates = [
+            getPayload(propS),
+            getPayload(condoS),
+            getPayload(houseS),
+            getPayload(landS),
+            getPayload(commS)
+          ]
+
+          let payload = candidates.find(p => p && p.id) || candidates.find(Boolean)
+
+          // Deep fallback: if all getById failed, try fetching lists and find by id
+          if (!payload) {
+            const [allPropsS, allCondosS, allHousesS, allLandsS, allComS] = await Promise.allSettled([
+              propertyAPI.getAll(),
+              condoAPI.getAll(),
+              houseAPI.getAll(),
+              landAPI.getAll(),
+              commercialAPI.getAll()
+            ])
+            const pickFromList = (settled) => {
+              if (!settled || settled.status !== 'fulfilled') return null
+              const v = settled.value
+              const list = (v && v.data && Array.isArray(v.data)) ? v.data : (Array.isArray(v) ? v : [])
+              return list.find((item) => String(item?.id) === String(id)) || null
+            }
+            payload = pickFromList(allPropsS) || pickFromList(allCondosS) || pickFromList(allHousesS) || pickFromList(allLandsS) || pickFromList(allComS)
+          }
+
+          if (!payload) throw new Error('Property not found across all types')
+
+          // Normalize common field names from backend snake_case to frontend camelCase
+          const normalizeEntity = (p) => ({
+            ...p,
+            status: (p.status === 'sale') ? 'for_sale' : (p.status === 'rent') ? 'for_rent' : p.status,
+            googleMapUrl: p.googleMapUrl || p.google_map_url,
+            nearbyTransport: p.nearbyTransport || p.nearby_transport,
+            selectedStations: p.selectedStations || p.selected_stations || [],
+            selectedProject: p.selectedProject || p.selected_project,
+            projectCode: p.projectCode || p.project_code,
+            type: p.type || p.property_type,
+            announcerStatus: p.announcerStatus || p.announcer_status,
+            seoTags: p.seoTags || p.seo_tags,
+            youtubeUrl: p.youtubeUrl || p.youtube_url,
+          })
+          payload = normalizeEntity(payload)
+          // Normalize images to array of URLs without changing UI
+          const toUrl = (img) => {
+            if (!img) return ''
+            if (typeof img === 'string') return img
+            return (
+              img.secure_url ||
+              img.url ||
+              img.path ||
+              img.image_url ||
+              img.src ||
+              img.link ||
+              ''
+            )
+          }
+          let normalizedImages = []
+          if (Array.isArray(payload.images)) {
+            normalizedImages = payload.images.map(toUrl).filter(Boolean)
+          } else if (typeof payload.images === 'string') {
+            // Try parse JSON string array/object
+            try {
+              const parsed = JSON.parse(payload.images)
+              if (Array.isArray(parsed)) {
+                normalizedImages = parsed.map(toUrl).filter(Boolean)
+              } else if (parsed) {
+                const u = toUrl(parsed)
+                if (u) normalizedImages = [u]
+              }
+            } catch {
+              normalizedImages = [payload.images]
+            }
+          }
+          // Fallback alternative fields often used
+          if (normalizedImages.length === 0) {
+            const altArrays = [payload.condo_images, payload.property_images, payload.imagesUrl, payload.photos]
+            for (const arr of altArrays) {
+              if (Array.isArray(arr)) {
+                normalizedImages = arr.map(toUrl).filter(Boolean)
+                if (normalizedImages.length) break
+              }
+            }
+          }
+          if (normalizedImages.length === 0) {
+            const single = payload.image || payload.imageUrl || payload.thumbnail || payload.cover
+            if (single) normalizedImages = [toUrl(single)].filter(Boolean)
+          }
+
+          setProperty({
+            ...payload,
+            images: normalizedImages
+          })
           // Increment click count
           setClickCount(prev => prev + 1)
-        } else {
-          // Fallback data if API fails
+        } catch (e) {
+          // On 404 or any error, set a local fallback without issuing another API call
           setProperty({
             id: id,
             title: 'คอนโด 2 ห้องนอน พร้อมเฟอร์นิเจอร์',
@@ -56,7 +165,7 @@ const PropertyDetail = () => {
             parking: 1,
             type: 'condo',
             status: 'for_sale',
-            description: 'คอนโดสวยงามพร้อมเฟอร์นิเจอร์ ตั้งอยู่ในทำเลทองของสีลม เดินทางสะดวก ใกล้รถไฟฟ้า BTS และ MRT มีสิ่งอำนวยความสะดวกครบครัน ห้องนอนหลักขนาดใหญ่พร้อมห้องน้ำในตัว ห้องนอนที่สองเหมาะสำหรับแขกหรือห้องทำงาน ห้องนั่งเล่นกว้างขวางเชื่อมต่อกับระเบียงที่สามารถชมวิวเมืองได้ ห้องครัวแยกเป็นสัดส่วนพร้อมเครื่องใช้ไฟฟ้าครบครัน ระบบรักษาความปลอดภัย 24 ชั่วโมง มีที่จอดรถส่วนตัว สระว่ายน้ำ ฟิตเนส และสวนสาธารณะภายในโครงการ ใกล้ห้างสรรพสินค้า โรงพยาบาล และโรงเรียน เดินทางสะดวกด้วยรถไฟฟ้าและรถเมล์หลายสาย',
+            description: 'คอนโดสวยงามพร้อมเฟอร์นิเจอร์ ตั้งอยู่ในทำเลทองของสีลม เดินทางสะดวก ใกล้รถไฟฟ้า BTS และ MRT มีสิ่งอำนวยความสะดวกครบครัน',
             images: [
               'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
               'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
@@ -64,7 +173,6 @@ const PropertyDetail = () => {
             ],
             amenities: ['สระว่ายน้ำ', 'ฟิตเนส', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย', 'สวนสาธารณะ'],
             nearby: ['BTS สีลม', 'MRT สีลม', 'ห้างสรรพสินค้า', 'โรงพยาบาล', 'โรงเรียน'],
-            // Additional fields from form
             projectCode: 'WS001',
             propertyType: 'condo',
             announcerStatus: 'agent',
@@ -178,6 +286,45 @@ const PropertyDetail = () => {
     }
   }, [id])
 
+  // Load Units in Project and Nearby Properties from API (no UI changes)
+  useEffect(() => {
+    const loadRelated = async () => {
+      if (!property) return
+      try {
+        const response = await propertyAPI.getAll()
+        if (response && response.success && Array.isArray(response.data)) {
+          const allProperties = response.data
+
+          // Units in same project (match by selectedProject or projectCode)
+          const sameProject = allProperties.filter((p) => {
+            if (!p || p.id === property.id) return false
+            const sameBySelected = property.selectedProject && p.selectedProject === property.selectedProject
+            const sameByCode = property.projectCode && p.projectCode === property.projectCode
+            return Boolean(sameBySelected || sameByCode)
+          })
+          setUnitsInProject(sameProject.slice(0, 8))
+
+          // Nearby properties: naive match by first token of location/address
+          const baseLocation = (property.location || property.address || '')
+            .split(',')[0]
+            ?.trim()
+          const nearbyList = allProperties.filter((p) => {
+            if (!p || p.id === property.id) return false
+            if (!baseLocation) return false
+            return (
+              (p.location && p.location.includes(baseLocation)) ||
+              (p.address && p.address.includes(baseLocation))
+            )
+          })
+          setNearby(nearbyList.slice(0, 8))
+        }
+      } catch (err) {
+        console.error('Failed to load related properties:', err)
+      }
+    }
+    loadRelated()
+  }, [property])
+
   const formatPrice = (price) => {
     if (!price) return '0'
     const numPrice = parseFloat(price) || 0
@@ -188,6 +335,28 @@ const PropertyDetail = () => {
     if (!rentPrice) return null
     const numRentPrice = parseFloat(rentPrice) || 0
     return Math.floor(numRentPrice).toLocaleString('th-TH')
+  }
+
+  // Parse long free-text description to readable bullet points
+  const parseDescription = (text) => {
+    if (!text || typeof text !== 'string') return []
+    // Normalize whitespace
+    const cleaned = text.replace(/\s+/g, ' ').trim()
+    // Split by common separators found in imported posts (•, ·, |, newlines, spaced dashes)
+    const parts = cleaned
+      .split(/\n|\r|\t|\s•\s|\s\u2022\s|\s·\s|\s\|\s|\s–\s|\s-\s/g)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+
+    // If splitting produced almost nothing, try a lighter split on the dot-like bullet
+    if (parts.length <= 1) {
+      const alt = cleaned
+        .split(/·|\u00b7|\u2022|•/g)
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+      return alt
+    }
+    return parts
   }
 
   const getTypeLabel = (type) => {
@@ -313,61 +482,7 @@ const PropertyDetail = () => {
     return iconMap[iconName] || <FaHome className="w-5 h-5" />;
   };
 
-  // Nearby properties mock/fallback to showcase cards
-  const nearbyProperties = [
-    {
-      id: 'n1',
-      title: 'Studio Apartment',
-      images: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      price: 7010000,
-      rent_price: 0,
-      bedrooms: 1,
-      bathrooms: 1,
-      area: 32,
-      floor: 10,
-      location: 'Bangkok',
-      status: 'for_sale'
-    },
-    {
-      id: 'n2',
-      title: 'Living Room',
-      images: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      price: 86750,
-      rent_price: 0,
-      bedrooms: 1,
-      bathrooms: 1,
-      area: 28,
-      floor: 7,
-      location: 'Bangkok',
-      status: 'for_sale'
-    },
-    {
-      id: 'n3',
-      title: 'Bedroom',
-      images: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      price: 0,
-      rent_price: 25000,
-      bedrooms: 1,
-      bathrooms: 1,
-      area: 30,
-      floor: 15,
-      location: 'Bangkok',
-      status: 'for_rent'
-    },
-    {
-      id: 'n4',
-      title: 'Living Room',
-      images: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      price: 0,
-      rent_price: 22000,
-      bedrooms: 1,
-      bathrooms: 1,
-      area: 35,
-      floor: 12,
-      location: 'Bangkok',
-      status: 'for_rent'
-    }
-  ]
+  // Removed local mock data; using API-driven data via unitsInProject and nearby
 
   if (loading) {
     return (
@@ -449,26 +564,26 @@ const PropertyDetail = () => {
             </div>
             
             {/* Price Section */}
-            <div className="text-right">
+                          <div className="text-right">
               <div className="text-sm text-gray-600 mb-1 font-prompt">
                 {property.status === 'for_sale' ? 'ราคาขาย' : 'ราคาเช่า'}
-              </div>
+                    </div>
               <div className="text-3xl font-bold text-[#917133] mb-2 font-prompt">
                 {format(convert(property.status === 'for_sale' ? property.price : property.rent_price))}
               </div>
               {property.rent_price > 0 && property.status === 'for_sale' && (
                 <div className="text-lg text-[#917133] mb-2 font-prompt">
-                  {format(convert(property.rent_price))}/เดือน
-                </div>
-              )}
+                    {format(convert(property.rent_price))}/เดือน
+                    </div>
+                )}
               
               {/* Share Button */}
               <div className="flex justify-end mt-3">
                 <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
                   <Share2 className="h-4 w-4 text-blue-700" />
                 </button>
+                </div>
               </div>
-            </div>
           </div>
         </div>
 
@@ -489,6 +604,7 @@ const PropertyDetail = () => {
                   >
                     <img
                       src={property.images[0]}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[1] || property.images[2] || property.images[0]; }}
                       alt={property.title}
                       className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
                     />
@@ -510,6 +626,7 @@ const PropertyDetail = () => {
                   >
                       <img 
                         src={property.images[1] || property.images[0]} 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
@@ -526,6 +643,7 @@ const PropertyDetail = () => {
                   >
                       <img 
                         src={property.images[3] || property.images[0]} 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
@@ -542,6 +660,7 @@ const PropertyDetail = () => {
                   >
                       <img 
                         src={property.images[4] || property.images[0]} 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = property.images[0]; }}
                         alt="" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       />
@@ -603,6 +722,7 @@ const PropertyDetail = () => {
                       <div className="aspect-[3/1] bg-gray-200 relative">
                         <img 
                           src="https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg" 
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg'; }}
                           alt="Video 2" 
                           className="w-full h-full object-cover"
                         />
@@ -718,7 +838,15 @@ const PropertyDetail = () => {
                 {property.description && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด</h3>
-                    <p className="text-gray-700 leading-relaxed">{property.description}</p>
+                    {parseDescription(property.description).length > 1 ? (
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700">
+                        {parseDescription(property.description).map((item, idx) => (
+                          <li key={idx} className="font-prompt">{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-700 leading-relaxed">{property.description}</p>
+                    )}
                   </div>
                 )}
 
@@ -953,11 +1081,21 @@ const PropertyDetail = () => {
                   </div>
                 </div>
 
+                {/* Units in Project */}
+                <div>
+                  <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Units in Project</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {unitsInProject.map((p, idx) => (
+                      <LatestStyleCard key={`project-${p.id || idx}`} property={p} type={p.type || 'condo'} onClick={() => { if (p.id) navigate(`/property/${p.id}`) }} />
+                    ))}
+                  </div>
+                </div>
+
                 {/* Nearby Properties */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt text-center">Nearby Properties</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {nearbyProperties.map((p, idx) => (
+                    {nearby.map((p, idx) => (
                       <LatestStyleCard key={p.id || idx} property={p} type={p.type || 'condo'} onClick={() => { if (p.id) navigate(`/property/${p.id}`) }} />
                     ))}
                   </div>

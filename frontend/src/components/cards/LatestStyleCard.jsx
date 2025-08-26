@@ -150,6 +150,21 @@ const LatestStyleCard = ({ property, type = 'condo', onClick }) => {
               <span>{property.views || 0} ครั้ง</span>
             </div>
           </div>
+
+          <div className="flex justify-center">
+            <button
+              className="inline-flex items-center justify-center gap-2 text-white py-3 px-8 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
+              style={{ background: 'linear-gradient(to right, #1c4d85, #051d40)' }}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (property?.id) navigate(`/property/${property.id}`)
+              }}
+            >
+              <span className="relative z-10">Details</span>
+              <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
