@@ -959,34 +959,51 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       try {
         console.log(`🔄 อัพโหลดไฟล์ ${validFiles.length} ไฟล์พร้อมกัน`)
         
-        // Create temporary previews for all files
+        // Create temporary previews for all files with unique IDs
         const tempImageDataArray = validFiles.map((file, i) => ({
-          id: `temp-${Date.now()}-${i}`,
+          id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}`,
           preview: URL.createObjectURL(file),
           url: null,
           public_id: null,
-          uploading: true
+          uploading: true,
+          fileName: file.name // Add filename for debugging
         }))
+        
+        console.log('📸 Temporary images created:', tempImageDataArray.map(img => ({ id: img.id, fileName: img.fileName })))
         setImages(prev => [...prev, ...tempImageDataArray])
         
         // Upload all files to server
         const response = await uploadAPI.uploadMultiple(validFiles)
         
         if (response && response.success && response.data) {
+          console.log('📤 Server response:', response.data)
+          
           // Process all uploaded images
           response.data.forEach((imageData, i) => {
+            const tempImage = tempImageDataArray[i]
+            if (!tempImage) {
+              console.warn(`⚠️ No temp image found for index ${i}`)
+              return
+            }
+            
             const finalImageData = {
-              id: Date.now().toString() + '-' + i,
+              id: `final-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}`,
               preview: imageData.url,
               url: imageData.url,
               public_id: imageData.public_id,
               uploading: false
             }
             
+            console.log(`🔄 Replacing temp image ${tempImage.id} with final image ${finalImageData.id}`)
+            
             // Replace temp image with real image
-            setImages(prev => prev.map(img => 
-              img.id === tempImageDataArray[i].id ? finalImageData : img
-            ))
+            setImages(prev => {
+              const newImages = prev.map(img => 
+                img.id === tempImage.id ? finalImageData : img
+              )
+              console.log('📸 Updated images array:', newImages.map(img => ({ id: img.id, url: img.url ? 'has-url' : 'no-url' })))
+              return newImages
+            })
           })
           
           uploadedCount = response.data.length
@@ -1272,7 +1289,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
         seo_tags: formData.seoTags,
         selected_project: formData.selectedProject,
         available_date: formData.availableDate,
-        images: images.map(img => ({
+        images: images.filter(img => img.url && !img.uploading).map(img => ({
           url: img.url,
           public_id: img.public_id
         })),
@@ -1293,7 +1310,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       console.log('📺 YouTube URL ที่จะส่ง:', formData.youtubeUrl)
       console.log('📋 Floor plan ที่จะส่ง:', formData.floorPlan)
       console.log('📋 Floor plan URL ที่จะส่ง:', formData.floorPlan?.url || null)
-      console.log('🖼️ Images ที่จะส่ง:', images.map(img => ({
+      console.log('🖼️ All images:', images.map(img => ({
+        id: img.id,
+        url: img.url,
+        public_id: img.public_id,
+        uploading: img.uploading
+      })))
+      console.log('🖼️ Filtered images (with URL and not uploading):', images.filter(img => img.url && !img.uploading).map(img => ({
         url: img.url,
         public_id: img.public_id
       })))
@@ -2426,9 +2449,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               {coverImage ? (
                 <div className="relative">
                   <img
-                    src={coverImage.preview}
+                    src={coverImage.url || coverImage.preview}
                     alt="Cover"
                     className="w-full h-64 object-cover rounded-lg shadow-md"
+                    onError={(e) => {
+                      console.warn(`❌ Cover image failed to load: ${coverImage.id}`, { url: coverImage.url, preview: coverImage.preview })
+                      e.target.style.display = 'none'
+                    }}
                   />
                   <button
                     type="button"
@@ -2534,9 +2561,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                 {images.map((image, index) => (
                   <div key={image.id} className="relative group">
                     <img
-                      src={image.preview}
+                      src={image.url || image.preview}
                       alt={`Image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        console.warn(`❌ Image failed to load: ${image.id}`, { url: image.url, preview: image.preview })
+                        e.target.style.display = 'none'
+                      }}
                     />
                     <button
                       type="button"

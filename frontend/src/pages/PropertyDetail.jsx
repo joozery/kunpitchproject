@@ -6,6 +6,7 @@ import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { LuBath } from 'react-icons/lu'
 import { IoBedOutline } from 'react-icons/io5'
 import { FaPhone, FaLine, FaWhatsapp, FaFacebookMessenger, FaFacebook, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFileAlt, FaSwimmingPool, FaDumbbell, FaCar, FaShieldAlt, FaBook, FaChild, FaCouch, FaSeedling, FaHome, FaStore, FaTshirt, FaWifi, FaBath, FaLock, FaVideo, FaUsers, FaLaptop, FaHamburger, FaCoffee, FaUtensils, FaDoorOpen, FaFutbol, FaTrophy, FaFilm, FaPaw, FaArrowUp, FaMotorcycle, FaShuttleVan, FaBolt, FaRegCheckCircle } from 'react-icons/fa'
+import { BiArea } from 'react-icons/bi'
 import { MdOutlineTrain } from 'react-icons/md'
 import { propertyAPI, condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
 import { contactApi } from '../lib/contactApi'
@@ -1292,9 +1293,21 @@ const PropertyDetail = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <TbViewportWide className="h-6 w-6 text-gray-600" />
+                      {(() => {
+                        const propertyType = property.type || property.property_type || 'condo'
+                        return propertyType === 'house' ? (
+                          <BiArea className="h-6 w-6 text-gray-600" />
+                        ) : (
+                          <TbViewportWide className="h-6 w-6 text-gray-600" />
+                        )
+                      })()}
                       <div>
-                        <div className="text-sm text-gray-600 font-prompt">{property.area ? `${property.area} ตร.ม. พื้นที่ใช้สอย` : 'N/A'}</div>
+                        <div className="text-sm text-gray-600 font-prompt">
+                          {property.area ? `${property.area} ${(() => {
+                            const propertyType = property.type || property.property_type || 'condo';
+                            return propertyType === 'house' ? 'ตร.ว.' : 'ตร.ม.';
+                          })()} พื้นที่ใช้สอย` : 'N/A'}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -1478,9 +1491,12 @@ const PropertyDetail = () => {
 
                       {/* Buttons */}
                       <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                        <button className="px-3 sm:px-4 py-2 bg-[#917133] text-white rounded-md text-xs sm:text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors">
+                        <Link 
+                          to={`/project/${projectInfo?.id || property.selectedProject || property.projectCode}`}
+                          className="px-3 sm:px-4 py-2 bg-[#917133] text-white rounded-md text-xs sm:text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
+                        >
                           All Details
-                        </button>
+                        </Link>
                         {property.googleMapUrl && (
                           <a
                             className="px-3 sm:px-4 py-2 bg-[#917133] text-white rounded-md text-xs sm:text-sm font-medium font-prompt hover:bg-[#7a5f2a] transition-colors text-center"
@@ -1555,6 +1571,32 @@ const PropertyDetail = () => {
                         // Split by bullet points (•) first, then by newlines
                         const items = plainText.split(/[•\-\*]/).filter(item => item.trim())
                         
+                        // Clean up items that are incomplete (like "minute drive)" or "minute walk)")
+                        const cleanedItems = []
+                        for (let i = 0; i < items.length; i++) {
+                          const currentItem = items[i].trim()
+                          const nextItem = items[i + 1] ? items[i + 1].trim() : ''
+                          
+                          // Skip incomplete items that are just time/distance fragments
+                          if (currentItem.match(/^(minute|hour|kilometer|km|นาที|ชั่วโมง)/i) && 
+                              !currentItem.match(/^[A-Za-z]/)) {
+                            continue
+                          }
+                          
+                          // Skip items that are just closing parentheses or fragments
+                          if (currentItem.match(/^\)+$/) || currentItem.match(/^[0-9\s]+$/)) {
+                            continue
+                          }
+                          
+                          // If current item ends with incomplete time/distance, try to combine with next
+                          if (currentItem.match(/\([0-9]+$/) && nextItem.match(/^(minute|hour)/i)) {
+                            cleanedItems.push(currentItem + ' ' + nextItem)
+                            i++ // Skip next item since we combined it
+                          } else {
+                            cleanedItems.push(currentItem)
+                          }
+                        }
+                        
                         const categories = {
                           transport: [],
                           shopping: [],
@@ -1564,9 +1606,12 @@ const PropertyDetail = () => {
                           others: []
                         }
                         
-                        items.forEach(item => {
+                        cleanedItems.forEach(item => {
                           const cleanItem = item.trim()
                           if (!cleanItem) return
+                          
+                          // Check if this is a complete location item (contains distance/time info)
+                          const hasDistanceOrTime = /\d+\s*(kilometer|km|minute|hour|นาที|ชั่วโมง)/i.test(cleanItem)
                           
                           if (cleanItem.toLowerCase().includes('bts') || cleanItem.toLowerCase().includes('mrt') || cleanItem.toLowerCase().includes('arl') || cleanItem.toLowerCase().includes('srt') || cleanItem.toLowerCase().includes('pier') || cleanItem.toLowerCase().includes('expressway')) {
                             categories.transport.push(cleanItem)
@@ -1578,6 +1623,9 @@ const PropertyDetail = () => {
                             categories.hospitals.push(cleanItem)
                           } else if (cleanItem.toLowerCase().includes('school') || cleanItem.toLowerCase().includes('โรงเรียน')) {
                             categories.schools.push(cleanItem)
+                          } else if (hasDistanceOrTime) {
+                            // If it has distance/time info but doesn't match other categories, it's likely transport
+                            categories.transport.push(cleanItem)
                           } else {
                             categories.others.push(cleanItem)
                           }

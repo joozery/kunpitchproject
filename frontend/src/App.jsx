@@ -6,6 +6,7 @@ import Admin from './pages/Admin'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import PropertyDetail from './pages/PropertyDetail'
+import ProjectDetail from './pages/ProjectDetail'
 import ListProperty from './pages/ListProperty'
 import Consult from './pages/Consult'
 import Projects from './pages/Projects'
@@ -104,6 +105,7 @@ const AppContent = () => {
         <Route path="/buy" element={<Buy />} />
         <Route path="/rent" element={<Rent />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
+        <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/list-property" element={<ListProperty />} />
         <Route path="/consult" element={<Consult />} />
         <Route path="/projects" element={<Projects />} />

@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 
 // Import images
 import ekkamaiImg from '../assets/popular/ekkamai.jpg'
@@ -63,7 +63,7 @@ const PopularArea = () => {
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">Popular Area</span>
+            <span style={{ fontWeight: "bold", color: "#545454" }} className="font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Popular Areas</span>
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           </motion.div>
           
@@ -71,20 +71,10 @@ const PopularArea = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ fontWeight: "bold", color: "#545454" }} className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
           >
-            Popular Areas
+            <MapPin className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-blue-600" />
           </motion.h2>
-
-          {/* Sparkles Icon */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex justify-center mb-8"
-          >
-            <Sparkles className="h-8 w-8 text-blue-500" />
-          </motion.div>
         </div>
 
         {/* Areas Grid */}

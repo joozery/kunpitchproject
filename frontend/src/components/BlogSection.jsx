@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, ChevronLeft, ChevronRight, Star, Building2, TrendingUp, Lightbulb, Scale, Palette, DollarSign } from 'lucide-react'
+import { Calendar, User, ArrowRight, Eye, MessageCircle, Tag, Clock, BookOpen, ChevronLeft, ChevronRight, Star, Building2, TrendingUp, Lightbulb, Scale, Palette, DollarSign, Newspaper } from 'lucide-react'
 
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([])
@@ -216,7 +216,7 @@ const BlogSection = () => {
             className="inline-flex items-center gap-3 mb-4"
           >
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <span className="text-blue-600 font-semibold text-xs uppercase tracking-wider">Insights & News</span>
+            <span style={{ fontWeight: "bold", color: "#545454" }} className="font-oswald text-base md:text-lg lg:text-xl uppercase tracking-wider">Articles & News</span>
             <div className="w-8 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           </motion.div>
           
@@ -224,20 +224,12 @@ const BlogSection = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald"
-            style={{ fontWeight: "bold", color: "#545454" }}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
           >
-            Articles & News
+            <Newspaper className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-blue-600" />
           </motion.h2>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-slate-600 text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
-          >
-            ค้นพบข้อมูลเชิงลึกและข่าวสารล่าสุดเกี่ยวกับตลาดอสังหาริมทรัพย์ไทย
-          </motion.p>
+
         </div>
 
         {/* Category Filter */}
@@ -340,45 +332,16 @@ const BlogSection = () => {
 
                     {/* Content */}
                     <div className="p-5 flex-1 flex flex-col">
-                      {/* Meta Info */}
-                      <div className="flex items-center justify-between mb-3 text-sm text-slate-500">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-blue-600" />
-                          {formatDate(blog.date)}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                          {blog.readTime}
-                        </div>
-                      </div>
+
 
                       {/* Title */}
                       <h3 className="text-lg font-bold text-slate-900 mb-3 font-oswald leading-tight group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
                         {blog.title}
                       </h3>
 
-                      {/* Excerpt */}
-                      <p className="text-slate-600 text-sm mb-4 leading-relaxed line-clamp-3 flex-1">
-                        {blog.excerpt}
-                      </p>
 
-                      {/* Stats */}
-                      <div className="flex items-center justify-between mb-4 text-sm text-slate-500">
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center">
-                            <Eye className="h-4 w-4 mr-1 text-blue-600" />
-                            {blog.views.toLocaleString()}
-                          </span>
-                          <span className="flex items-center">
-                            <MessageCircle className="h-4 w-4 mr-1 text-blue-600" />
-                            {blog.comments}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-slate-500">
-                          <User className="h-4 w-4 mr-1 text-blue-600" />
-                          {blog.author}
-                        </div>
-                      </div>
+
+
 
                       {/* Read More Button */}
                       <Link 

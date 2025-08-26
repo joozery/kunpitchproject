@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye as EyeIcon } from 'lucide-react'
+import { ArrowRight, Eye as EyeIcon, Clock } from 'lucide-react'
 import { useCurrency } from '../lib/CurrencyContext'
 import { TbViewportWide, TbStairsUp } from 'react-icons/tb'
 import { SlLocationPin } from 'react-icons/sl'
@@ -401,11 +401,7 @@ const PropertyTypeSections = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 font-oswald text-center text-blue-600 flex items-center justify-center"
             >
-              <img 
-                src="https://img.icons8.com/ios/50/new--v1.png" 
-                alt="Latest Update Icon" 
-                className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
-              />
+              <Clock className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-blue-600" />
             </motion.h2>
           </div>
 
