@@ -972,7 +972,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
           setImages(prev => [...prev, tempImageData])
           
           // Upload to server
-          const response = await uploadAPI.uploadSingle(file)
+          const response = await uploadAPI.uploadMultiple([file])
           
           if (response && response.success && response.data) {
             const imageData = {

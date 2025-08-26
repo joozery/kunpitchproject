@@ -507,7 +507,7 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
     try {
       // Upload to Cloudinary first
       const { uploadAPI } = await import('../../lib/api')
-      const response = await uploadAPI.uploadSingle(file)
+      const response = await uploadAPI.uploadMultiple([file])
       
       if (response.success) {
         const imageData = {

@@ -589,7 +589,7 @@ const CommercialForm = ({ commercial = null, onBack, onSave, isEditing = false, 
     try {
       setUploading(true)
 
-      const result = await uploadAPI.uploadSingle(file)
+      const result = await uploadAPI.uploadMultiple([file])
       const uploaded = result?.data || result
       const imageUrl = uploaded.url
       const publicId = uploaded.public_id
