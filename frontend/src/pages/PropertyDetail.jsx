@@ -1356,17 +1356,12 @@ const PropertyDetail = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 font-prompt">รายละเอียด</h3>
                     <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
-                      {parseDescription(property.description).length > 1 ? (
-                        <ul className={`list-disc pl-6 space-y-2 text-gray-700 leading-relaxed transition-all ${descExpanded ? '' : 'max-h-48 overflow-hidden'}`}>
-                          {parseDescription(property.description).map((item, idx) => (
-                            <li key={idx} className="font-prompt">
-                              <span className="whitespace-pre-wrap break-words">{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className={`text-gray-700 leading-relaxed whitespace-pre-wrap break-words transition-all ${descExpanded ? '' : 'line-clamp-5'}`}>{property.description}</p>
-                      )}
+                      <div 
+                        className={`text-gray-700 leading-relaxed transition-all ${descExpanded ? '' : 'max-h-48 overflow-hidden'}`}
+                        dangerouslySetInnerHTML={{ 
+                          __html: property.description 
+                        }}
+                      />
                       <div className="mt-3">
                         <button onClick={() => setDescExpanded(v => !v)} className="text-blue-700 hover:underline text-sm font-prompt">
                           {descExpanded ? 'ย่อรายละเอียด' : 'อ่านเพิ่มเติม'}

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
 import {
   ArrowLeft,
   Landmark,
@@ -1225,13 +1227,27 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
               รายละเอียด
             </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="อธิบายรายละเอียดของที่ดิน เช่น สภาพหน้าที่ การตกแต่ง สิ่งอำนวยความสะดวก..."
-              rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
+              <ReactQuill
+                value={formData.description}
+                onChange={(value) => handleInputChange('description', value)}
+                placeholder="อธิบายรายละเอียดของที่ดิน เช่น สภาพหน้าที่ การตกแต่ง สิ่งอำนวยความสะดวก..."
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                  ]
+                }}
+                style={{ height: '200px' }}
+                className="font-prompt"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-2">ใช้เครื่องมือด้านบนเพื่อจัดรูปแบบข้อความ</p>
           </div>
         </Card>
 

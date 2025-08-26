@@ -5,6 +5,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import Swal from 'sweetalert2';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { 
   FaBuilding, FaCar, FaLock, FaShuttleVan, FaBolt,
   FaVideo, FaUsers, FaDumbbell, FaSwimmingPool, FaBath,
@@ -1223,13 +1225,27 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
             {/* จุดเด่นทำเล */}
             <div className="space-y-2">
               <Label htmlFor="location_highlights">จุดเด่นทำเล</Label>
-              <Textarea
-                id="location_highlights"
-                value={formData.location_highlights}
-                onChange={(e) => handleInputChange('location_highlights', e.target.value)}
-                placeholder="ใกล้อะไรบ้าง เช่น ห้าง, โรงเรียน, โรงพยาบาล"
-                rows={3}
-              />
+              <div className="border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
+                <ReactQuill
+                  value={formData.location_highlights}
+                  onChange={(value) => handleInputChange('location_highlights', value)}
+                  placeholder="ใกล้อะไรบ้าง เช่น ห้าง, โรงเรียน, โรงพยาบาล"
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      [{ 'color': [] }, { 'background': [] }],
+                      [{ 'align': [] }],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
+                  style={{ height: '150px' }}
+                  className="font-prompt"
+                />
+              </div>
+              <p className="text-sm text-gray-500 mt-2">ใช้เครื่องมือด้านบนเพื่อจัดรูปแบบข้อความ</p>
             </div>
 
             {/* SEO สำหรับ Google */}

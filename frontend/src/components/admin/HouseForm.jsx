@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { houseAPI, uploadAPI } from '../../lib/api'
 import { projectApi } from '../../lib/projectApi'
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
 // Additional icon packs for amenities
 import { 
   FaTv, FaWineBottle, FaCouch, FaUtensils, FaSnowflake, FaBath, FaLock, FaWifi, FaCar, FaSwimmingPool, FaSeedling, FaTshirt,
@@ -1597,13 +1599,27 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-prompt">
                 รายละเอียด
               </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+            <div className="border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
+              <ReactQuill
+                value={formData.description}
+                onChange={(value) => handleInputChange('description', value)}
                 placeholder="อธิบายรายละเอียด เช่น สภาพบ้าน การตกแต่ง ทำเล สิ่งอำนวยความสะดวก..."
-              rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                  ]
+                }}
+                style={{ height: '200px' }}
+                className="font-prompt"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-2">ใช้เครื่องมือด้านบนเพื่อจัดรูปแบบข้อความ</p>
           </div>
         </Card>
 

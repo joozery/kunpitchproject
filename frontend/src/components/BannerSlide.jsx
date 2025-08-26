@@ -39,7 +39,47 @@ const BannerSlide = () => {
       setSettings(settingsData)
     } catch (error) {
       console.error('❌ Error loading banner data:', error)
-      setError(error.message)
+      console.log('🔄 Using fallback banner data due to API error');
+      
+      // Fallback data when API fails
+      const fallbackSlides = [
+        {
+          id: 1,
+          title: 'Welcome to Whale Space',
+          alt_text: 'Welcome Banner',
+          image_url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80',
+          link: '/',
+          is_active: true
+        },
+        {
+          id: 2,
+          title: 'Find Your Perfect Property',
+          alt_text: 'Property Search Banner',
+          image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80',
+          link: '/properties',
+          is_active: true
+        },
+        {
+          id: 3,
+          title: 'Premium Real Estate Solutions',
+          alt_text: 'Premium Services Banner',
+          image_url: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80',
+          link: '/contact',
+          is_active: true
+        }
+      ];
+      
+      const fallbackSettings = {
+        auto_slide: true,
+        slide_interval: 5000,
+        slide_height: 300,
+        show_navigation: true,
+        show_dots: true
+      };
+      
+      setSlides(fallbackSlides);
+      setSettings(fallbackSettings);
+      setError(null); // Clear error since we have fallback data
     } finally {
       setIsLoading(false)
     }
@@ -91,9 +131,19 @@ const BannerSlide = () => {
     )
   }
 
-  if (error) {
+  if (error && slides.length === 0) {
     console.error('BannerSlide error:', error)
-    return null
+    return (
+      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-600 mb-4">Banner Section</h3>
+            <p className="text-gray-500">Unable to load banner slides.</p>
+            <p className="text-sm text-gray-400 mt-2">Please check your connection or try again later.</p>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   if (slides.length === 0) {
