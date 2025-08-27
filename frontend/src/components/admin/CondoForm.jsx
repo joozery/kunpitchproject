@@ -4,6 +4,7 @@ import Swal from 'sweetalert2'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
+import { Label } from '../ui/label'
 import { condoAPI, uploadAPI } from '../../lib/api'
 import { projectApi } from '../../lib/projectApi'
 import ReactQuill from 'react-quill'
@@ -156,38 +157,19 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     { id: 'saphan_khwai', name: 'BTS Saphan Khwai (สะพานควาย)', line: 'BTS' },
     { id: 'mo_chit', name: 'BTS Mo Chit (หมอชิต)', line: 'BTS' },
     { id: 'ha_yaek_lat_phrao', name: 'BTS Ha Yaek Lat Phrao (ห้าแยกลาดพร้าว)', line: 'BTS' },
-    { id: 'phahon_yothin_24', name: 'BTS Phahon Yothin 24 (พหลโยธิน 24)', line: 'BTS' },
-    { id: 'ratchayothin', name: 'BTS Ratchayothin (รัชโยธิน)', line: 'BTS' },
-    { id: 'sena_nikhom', name: 'BTS Sena Nikhom (เสนานิคม)', line: 'BTS' },
-    { id: 'kasetsart_university', name: 'BTS Kasetsart University (มหาวิทยาลัยเกษตรศาสตร์)', line: 'BTS' },
-    { id: 'royal_forest_department', name: 'BTS Royal Forest Department (กรมป่าไม้)', line: 'BTS' },
-    { id: 'bang_bua', name: 'BTS Bang Bua (บางบัว)', line: 'BTS' },
-    { id: '11th_infantry_regiment', name: 'BTS 11th Infantry Regiment (กรมทหารราบที่ 11)', line: 'BTS' },
-    { id: 'wat_phra_sri_mahathat', name: 'BTS Wat Phra Sri Mahathat (วัดพระศรีมหาธาตุ)', line: 'BTS' },
-    { id: 'phahon_yothin_59', name: 'BTS Phahon Yothin 59 (พหลโยธิน 59)', line: 'BTS' },
-    { id: 'sai_yud', name: 'BTS Sai Yud (สายหยุด)', line: 'BTS' },
-    { id: 'saphan_mai', name: 'BTS Saphan Mai (สะพานใหม่)', line: 'BTS' },
-    { id: 'bhumibol_adulyadej_hospital', name: 'BTS Bhumibol Adulyadej Hospital (โรงพยาบาลภูมิพลอดุลยเดช)', line: 'BTS' },
-    { id: 'royal_thai_air_force_museum', name: 'BTS Royal Thai Air Force Museum (พิพิธภัณฑ์กองทัพอากาศ)', line: 'BTS' },
-    { id: 'yaek_kor_por_or', name: 'BTS Yaek Kor Por Or (แยก คปอ.)', line: 'BTS' },
-    { id: 'khu_khot', name: 'BTS Khu Khot (คูคต)', line: 'BTS' },
-    { id: 'national_stadium', name: 'BTS National Stadium (สนามกีฬาแห่งชาติ)', line: 'BTS' },
-    { id: 'ratchadamri', name: 'BTS Ratchadamri (ราชดำริ)', line: 'BTS' },
-    { id: 'sala_daeng', name: 'BTS Sala Daeng (ศาลาแดง)', line: 'BTS' },
-    { id: 'chong_nonsi', name: 'BTS Chong Nonsi (ช่องนนทรี)', line: 'BTS' },
-    { id: 'saint_louis', name: 'BTS Saint Louis (เซนต์หลุยส์)', line: 'BTS' },
-    { id: 'surasak', name: 'BTS Surasak (สุรศักดิ์)', line: 'BTS' },
-    { id: 'saphan_taksin', name: 'BTS Saphan Taksin (สะพานตากสิน)', line: 'BTS' },
-    { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
-    { id: 'wongwian_yai', name: 'BTS Wongwian Yai (วงเวียนใหญ่)', line: 'BTS' },
-    { id: 'pho_nimit', name: 'BTS Pho Nimit (โพธิ์นิมิตร)', line: 'BTS' },
-    { id: 'talat_phlu', name: 'BTS Talat Phlu (ตลาดพลู)', line: 'BTS' },
-    { id: 'wutthakat', name: 'BTS Wutthakat (วุฒากาศ)', line: 'BTS' },
-    { id: 'bang_wa', name: 'BTS Bang Wa (บางหว้า)', line: 'BTS' },
-    { id: 'royal_thai_naval_academy', name: 'BTS Royal Thai Naval Academy (โรงเรียนนายเรือ)', line: 'BTS' },
-    { id: 'pak_nam', name: 'BTS Pak Nam (ปากน้ำ)', line: 'BTS' },
-    { id: 'srinakarin', name: 'BTS Srinakarin (ศรีนครินทร์)', line: 'BTS' }
-  ];
+  ]
+
+  // ตัวเลือกสถานะผู้ประกาศ
+  const announcerOptions = [
+    { value: 'owner', label: 'เจ้าของ (Owner)', description: 'เจ้าของคอนโดโดยตรง' },
+    { value: 'agent', label: 'ตัวแทนพิเศษ (Exclusive Agent)', description: 'นายหน้าที่ได้รับมอบหมายจากเจ้าของ' }
+  ]
+
+  // ตัวเลือกประเภททรัพย์สิน
+  const propertyTypeOptions = [
+    { value: 'condo', label: 'คอนโด', description: 'คอนโดมิเนียม' },
+    { value: 'apartment', label: 'อพาร์ตเมนท์', description: 'อพาร์ตเมนท์' }
+  ]
 
   const mrtStations = [
     { id: 'tha_phra', name: 'MRT Tha Phra (ท่าพระ)', line: 'MRT' },
@@ -529,219 +511,176 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
   // Prefill when editing: map API fields (snake_case) to form fields (camelCase) and images
   useEffect(() => {
     if (isEditing && condo) {
-      console.log('🔍 Editing condo data:', condo)
-      console.log('📅 Available date:', condo.available_date)
-      console.log('⭐ Special features:', condo.special_features)
-      console.log('⭐ Special features type:', typeof condo.special_features)
-      console.log('⭐ Special features raw value:', JSON.stringify(condo.special_features))
-      if (condo.special_features && typeof condo.special_features === 'string') {
+      console.log('🔍 useEffect triggered - isEditing:', isEditing, 'condo:', condo)
+      console.log('🔍 condo.id:', condo.id)
+      
+      // Fetch fresh data from API instead of using passed condo prop
+      const fetchCondoData = async () => {
         try {
-          const parsed = JSON.parse(condo.special_features);
-          console.log('⭐ Parsed special features:', parsed);
-        } catch (error) {
-          console.error('❌ Error parsing special features:', error);
-        }
-      } else if (condo.special_features && typeof condo.special_features === 'object') {
-        console.log('⭐ Special features object:', condo.special_features);
-      }
-      console.log('📺 YouTube URL:', condo.youtube_url)
-      console.log('📋 Floor plan:', condo.floor_plan)
-      console.log('📋 Floor plan public_id:', condo.floor_plan_public_id)
-      console.log('📋 Floor plan type:', typeof condo.floor_plan)
-      if (condo.floor_plan && typeof condo.floor_plan === 'string' && condo.floor_plan.startsWith('{')) {
-        try {
-          const parsed = JSON.parse(condo.floor_plan);
-          console.log('📋 Parsed floor plan:', parsed);
-        } catch (error) {
-          console.error('❌ Error parsing floor plan:', error);
-        }
-      }
-      console.log('🖼️ Images from API:', condo.images)
-      console.log('🖼️ Cover image from API:', condo.cover_image)
-      console.log('🖼️ Cover public_id from API:', condo.cover_public_id)
-      setFormData(prev => ({
-        ...prev,
-        title: condo.title || '',
-        projectCode: condo.project_code || '',
-        status: condo.status || 'sale',
-        price: condo.price !== undefined && condo.price !== null ? String(condo.price) : '',
-        rentPrice: condo.rent_price !== undefined && condo.rent_price !== null ? String(condo.rent_price) : '',
-        propertyType: condo.property_type || 'condo', // ประเภททรัพย์สิน
-        announcerStatus: condo.announcer_status || 'agent', // เพิ่มการ map ข้อมูลสถานะผู้ประกาศ
-        location: condo.location || '',
-        googleMapUrl: condo.google_map_url || '',
-        nearbyTransport: condo.nearby_transport || '',
-        selectedStations: condo.selected_stations || [], // เพิ่มการ map ข้อมูลสถานีรถไฟฟ้า
-        listingType: condo.listing_type || 'sale',
-        description: condo.description || '',
-        area: condo.area !== undefined && condo.area !== null ? String(condo.area) : '',
-        bedrooms: condo.bedrooms !== undefined && condo.bedrooms !== null ? String(condo.bedrooms) : '',
-        bathrooms: condo.bathrooms !== undefined && condo.bathrooms !== null ? String(condo.bathrooms) : '',
-        floor: condo.floor || '',
-        pricePerSqm: condo.price_per_sqm !== undefined && condo.price_per_sqm !== null ? String(condo.price_per_sqm) : '',
-        rentPricePerSqm: condo.rent_price_per_sqm !== undefined && condo.rent_price_per_sqm !== null ? String(condo.rent_price_per_sqm) : '',
-        seoTags: condo.seo_tags || '',
-        selectedProject: condo.selected_project || '',
-        availableDate: condo.available_date ? condo.available_date.split('T')[0] : '',
-        amenities: condo.amenities || [],
-        specialFeatures: (() => {
-          try {
-            let features = {};
+          console.log('🔄 Fetching fresh condo data from API...')
+          console.log('🔄 API call: condoAPI.getById(', condo.id, ')')
+          
+          // Add cache-busting parameter to ensure fresh data
+          const response = await condoAPI.getById(condo.id + '?t=' + Date.now())
+          console.log('🔄 API response received:', response)
+          
+          if (response && response.success && response.data) {
+            const freshCondo = response.data
+            console.log('✅ Fresh condo data received:', freshCondo)
+            console.log('🔍 Key fields from fresh data:')
+            console.log('  - announcer_status:', freshCondo.announcer_status)
+            console.log('  - property_type:', freshCondo.property_type)
+            console.log('  - selected_stations:', freshCondo.selected_stations)
+            console.log('🖼️ Image-related fields from fresh data:')
+            console.log('  - cover_image:', freshCondo.cover_image)
+            console.log('  - cover_public_id:', freshCondo.cover_public_id)
+            console.log('  - images:', freshCondo.images)
+            console.log('  - floor_plan:', freshCondo.floor_plan)
+            console.log('  - floor_plan_public_id:', freshCondo.floor_plan_public_id)
             
-            // ถ้าเป็น JSON string ให้ parse
-            if (condo.special_features && typeof condo.special_features === 'string') {
-              features = JSON.parse(condo.special_features);
-            } else if (condo.special_features && typeof condo.special_features === 'object') {
-              features = condo.special_features;
+            // Map API fields to form fields
+            const newFormData = {
+              title: freshCondo.title || '',
+              projectCode: freshCondo.project_code || '',
+              status: freshCondo.status || 'sale',
+              price: freshCondo.price !== undefined && freshCondo.price !== null ? String(freshCondo.price) : '',
+              rentPrice: freshCondo.rent_price !== undefined && freshCondo.rent_price !== null ? String(freshCondo.rent_price) : '',
+              propertyType: freshCondo.property_type || 'condo', // ประเภททรัพย์สิน
+              announcerStatus: freshCondo.announcer_status || 'agent', // เพิ่มการ map ข้อมูลสถานะผู้ประกาศ
+              location: freshCondo.location || '',
+              googleMapUrl: freshCondo.google_map_url || '',
+              nearbyTransport: freshCondo.nearby_transport || '',
+              selectedStations: freshCondo.selected_stations || [], // เพิ่มการ map ข้อมูลสถานีรถไฟฟ้า
+              listingType: freshCondo.listing_type || 'sale',
+              description: freshCondo.description || '',
+              area: freshCondo.area !== undefined && freshCondo.area !== null ? String(freshCondo.area) : '',
+              bedrooms: freshCondo.bedrooms !== undefined && freshCondo.bedrooms !== null ? String(freshCondo.bedrooms) : '',
+              bathrooms: freshCondo.bathrooms !== undefined && freshCondo.bathrooms !== null ? String(freshCondo.bathrooms) : '',
+              floor: freshCondo.floor || '',
+              pricePerSqm: freshCondo.price_per_sqm !== undefined && freshCondo.price_per_sqm !== null ? String(freshCondo.price_per_sqm) : '',
+              rentPricePerSqm: freshCondo.rent_price_per_sqm !== undefined && freshCondo.rent_price_per_sqm !== null ? String(freshCondo.rent_price_per_sqm) : '',
+              seoTags: freshCondo.seo_tags || '',
+              selectedProject: freshCondo.selected_project || '',
+              availableDate: freshCondo.available_date ? freshCondo.available_date.split('T')[0] : '',
+              amenities: freshCondo.amenities || [],
+              specialFeatures: (() => {
+                try {
+                  let features = {};
+                  
+                  // ถ้าเป็น JSON string ให้ parse
+                  if (freshCondo.special_features && typeof freshCondo.special_features === 'string') {
+                    features = JSON.parse(freshCondo.special_features);
+                  } else if (freshCondo.special_features && typeof freshCondo.special_features === 'object') {
+                    features = freshCondo.special_features;
+                  }
+                  
+                  return {
+                    shortTerm: features.shortTerm || features.short_term || false,
+                    allowPet: features.allowPet || features.allow_pet || false,
+                    allowCompanyRegistration: features.allowCompanyRegistration || features.allow_company_registration || false,
+                    foreignQuota: features.foreignQuota || features.foreign_quota || false,
+                    penthouse: features.penthouse || false,
+                    luckyNumber: features.luckyNumber || features.lucky_number || false
+                  };
+                } catch (error) {
+                  console.error('Error parsing special features:', error);
+                  return {
+                    shortTerm: false,
+                    allowPet: false,
+                    allowCompanyRegistration: false,
+                    foreignQuota: false,
+                    penthouse: false,
+                    luckyNumber: false
+                  };
+                }
+              })(),
+              youtubeUrl: freshCondo.youtube_url || '',
+              floorPlan: freshCondo.floor_plan ? (() => {
+                try {
+                  // ถ้าเป็น JSON string ให้ parse
+                  if (typeof freshCondo.floor_plan === 'string' && freshCondo.floor_plan.startsWith('{')) {
+                    return JSON.parse(freshCondo.floor_plan);
+                  }
+                  return freshCondo.floor_plan;
+                } catch (error) {
+                  console.error('Error parsing floor plan:', error);
+                  return null;
+                }
+              })() : null,
             }
             
-            return {
-              shortTerm: features.shortTerm || features.short_term || false,
-              allowPet: features.allowPet || features.allow_pet || false,
-              allowCompanyRegistration: features.allowCompanyRegistration || features.allow_company_registration || false,
-              foreignQuota: features.foreignQuota || features.foreign_quota || false,
-              penthouse: features.penthouse || false,
-              luckyNumber: features.luckyNumber || features.lucky_number || false
-            };
-          } catch (error) {
-            console.error('Error parsing special features:', error);
-            return {
-              shortTerm: false,
-              allowPet: false,
-              allowCompanyRegistration: false,
-              foreignQuota: false,
-              penthouse: false,
-              luckyNumber: false
-            };
-          }
-        })(),
-        youtubeUrl: condo.youtube_url || '',
-        floorPlan: condo.floor_plan ? (() => {
-          try {
-            // ถ้าเป็น JSON string ให้ parse
-            if (typeof condo.floor_plan === 'string' && condo.floor_plan.startsWith('{')) {
-              const parsed = JSON.parse(condo.floor_plan);
-              return {
-                url: parsed.url || condo.floor_plan,
-                public_id: condo.floor_plan_public_id || parsed.public_id || undefined,
-                preview: parsed.url || condo.floor_plan
-              };
+            console.log('🔍 New form data to be set:', newFormData)
+            console.log('🔍 Key fields in new form data:')
+            console.log('  - announcerStatus:', newFormData.announcerStatus)
+            console.log('  - propertyType:', newFormData.propertyType)
+            console.log('  - selectedStations:', newFormData.selectedStations)
+            
+            setFormData(prev => {
+              console.log('🔍 Previous form data:', prev)
+              const updated = { ...prev, ...newFormData }
+              console.log('🔍 Updated form data:', updated)
+              return updated
+            })
+
+            // Set cover image
+            if (freshCondo.cover_image) {
+              console.log('🖼️ Setting cover image:', freshCondo.cover_image)
+              setCoverImage({
+                url: freshCondo.cover_image,
+                public_id: freshCondo.cover_public_id
+              })
+            } else {
+              console.log('⚠️ No cover image found in freshCondo')
             }
-            // ถ้าเป็น URL ปกติ
-            return {
-              url: condo.floor_plan,
-              public_id: condo.floor_plan_public_id || undefined,
-              preview: condo.floor_plan
-            };
-          } catch (error) {
-            console.error('Error parsing floor_plan:', error);
-            // ถ้า parse ไม่ได้ ให้ใช้เป็น URL ปกติ
-            return {
-              url: condo.floor_plan,
-              public_id: condo.floor_plan_public_id || undefined,
-              preview: condo.floor_plan
-            };
-          }
-        })() : null,
-        createdAt: condo.created_at || prev.createdAt,
-        updatedAt: condo.updated_at || new Date().toISOString()
-      }))
 
-      const finalSpecialFeatures = (() => {
-        try {
-          let features = {};
-          if (condo.special_features && typeof condo.special_features === 'string') {
-            features = JSON.parse(condo.special_features);
-          } else if (condo.special_features && typeof condo.special_features === 'object') {
-            features = condo.special_features;
+            // Set images
+            if (freshCondo.images && Array.isArray(freshCondo.images)) {
+              console.log('🖼️ Setting images from freshCondo:', freshCondo.images)
+              const imageData = freshCondo.images.map(img => ({
+                id: img.id || `img-${Date.now()}-${Math.random()}`,
+                url: img.url,
+                public_id: img.public_id,
+                preview: img.url
+              }))
+              console.log('🖼️ Processed image data:', imageData)
+              setImages(imageData)
+            } else {
+              console.log('⚠️ No images found in freshCondo:', freshCondo.images)
+            }
+
+            // Set floor plan
+            if (freshCondo.floor_plan) {
+              console.log('📋 Setting floor plan:', freshCondo.floor_plan)
+              // Floor plan is already set in formData above
+            } else {
+              console.log('⚠️ No floor plan found in freshCondo')
+            }
+
+            console.log('✅ Form data updated with fresh condo data')
+          } else {
+            console.error('❌ Failed to fetch fresh condo data:', response)
           }
-          return {
-            shortTerm: features.shortTerm || features.short_term || false,
-            allowPet: features.allowPet || features.allow_pet || false,
-            allowCompanyRegistration: features.allowCompanyRegistration || features.allow_company_registration || false,
-            foreignQuota: features.foreignQuota || features.foreign_quota || false,
-            penthouse: features.penthouse || false,
-            luckyNumber: features.luckyNumber || features.lucky_number || false
-          };
         } catch (error) {
-          return {
-            shortTerm: false,
-            allowPet: false,
-            allowCompanyRegistration: false,
-            foreignQuota: false,
-            penthouse: false,
-            luckyNumber: false
-          };
+          console.error('❌ Error fetching fresh condo data:', error)
+          // Fallback to using passed condo prop
+          console.log('🔄 Falling back to passed condo prop...')
         }
-      })();
-
-      console.log('✅ Form data set:', {
-        availableDate: condo.available_date ? condo.available_date.split('T')[0] : '',
-        specialFeatures: finalSpecialFeatures,
-        youtubeUrl: condo.youtube_url || '',
-        floorPlan: condo.floor_plan ? {
-          url: condo.floor_plan,
-          public_id: condo.floor_plan_public_id || undefined,
-          preview: condo.floor_plan
-        } : null
-      })
-
-      // Set cover image
-      const coverUrl = condo.cover_image || null
-      if (coverUrl) {
-        setCoverImage({
-          id: `cover-${Date.now()}`,
-          preview: coverUrl,
-          url: coverUrl,
-          public_id: condo.cover_public_id || undefined,
-          uploading: false
-        })
-      } else {
-        setCoverImage(null)
       }
 
-      // Set gallery images (exclude cover if duplicated)
-      const imageData = Array.isArray(condo.images) ? condo.images : []
-      console.log('🖼️ Image data from API:', imageData)
-      
-      // Filter out cover image if it exists in gallery
-      const filteredImages = coverUrl ? imageData.filter(img => {
-        const imgUrl = typeof img === 'object' ? img.url : img
-        return imgUrl !== coverUrl
-      }) : imageData
-      
-      const mappedImages = filteredImages.map((img, idx) => {
-        const imgUrl = typeof img === 'object' ? img.url : img
-        const imgPublicId = typeof img === 'object' ? img.public_id : undefined
-        return {
-          id: `img-${Date.now()}-${idx}`,
-          preview: imgUrl,
-          url: imgUrl,
-          public_id: imgPublicId,
-          uploading: false
-        }
-      })
-      setImages(mappedImages)
-      console.log('🖼️ Mapped images set:', mappedImages)
-
-      // Floor Plan is already set in formData above
-
-      // จัดการ amenities
-      console.log('Condo amenities from API:', condo.amenities)
-      console.log('Type of amenities:', typeof condo.amenities)
-      console.log('Is Array?', Array.isArray(condo.amenities))
-      console.log('isEditing:', isEditing)
-      console.log('selectedAmenities before:', selectedAmenities)
-      console.log('formData.amenities before:', formData.amenities)
-      if (condo.amenities && Array.isArray(condo.amenities)) {
-        setSelectedAmenities(condo.amenities)
-        console.log('Set selectedAmenities:', condo.amenities)
-      } else {
-        console.log('No amenities found or not array, setting empty array')
-        setSelectedAmenities([])
-      }
+      fetchCondoData()
     }
-  }, [isEditing, condo])
+  }, [isEditing, condo?.id])
+
+  // Debug: Monitor formData changes
+  useEffect(() => {
+    if (isEditing) {
+      console.log('🔍 formData changed - Current values:')
+      console.log('  - announcerStatus:', formData.announcerStatus)
+      console.log('  - propertyType:', formData.propertyType)
+      console.log('  - selectedStations:', formData.selectedStations)
+      console.log('  - Full formData object:', formData)
+    }
+  }, [formData, isEditing])
 
   // Fetch projects from API
   useEffect(() => {
@@ -897,11 +836,18 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
 
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      [field]: value,
-      updatedAt: new Date().toISOString()
-    }))
+    console.log(`🔄 handleInputChange called: ${field} = ${value}`)
+    console.log(`🔄 Previous formData.${field}:`, formData[field])
+    setFormData(prev => {
+      const newData = { 
+        ...prev, 
+        [field]: value,
+        updatedAt: new Date().toISOString()
+      }
+      console.log(`🔄 New formData.${field}:`, newData[field])
+      console.log(`🔄 Full new formData:`, newData)
+      return newData
+    })
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -1306,6 +1252,9 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       console.log('🎯 สถานะผู้ประกาศ:', formData.announcerStatus)
       console.log('🏠 ประเภททรัพย์สิน:', formData.propertyType)
       console.log('🚇 สถานีรถไฟฟ้าที่เลือก:', formData.selectedStations)
+      console.log('🔍 ตรวจสอบ condoData.announcer_status:', condoData.announcer_status)
+      console.log('🔍 ตรวจสอบ condoData.property_type:', condoData.property_type)
+      console.log('🔍 ตรวจสอบ condoData.selected_stations:', condoData.selected_stations)
       console.log('ราคาขายต่อตารางเมตรที่คำนวณได้:', formData.pricePerSqm)
       console.log('ราคาเช่าต่อตารางเมตรที่คำนวณได้:', formData.rentPricePerSqm)
       console.log('Amenities ที่จะส่งไป:', selectedAmenities)
@@ -1387,6 +1336,29 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
     }));
   };
+
+  // ตรวจสอบข้อมูลใน formData เมื่อ component render
+  useEffect(() => {
+    if (isEditing && condo) {
+      console.log('🔍 useEffect - ข้อมูลใน formData:')
+      console.log('🎯 formData.announcerStatus:', formData.announcerStatus)
+      console.log('🎯 formData.announcerStatus type:', typeof formData.announcerStatus)
+      console.log('🏠 formData.propertyType:', formData.propertyType)
+      console.log('🏠 formData.propertyType type:', typeof formData.propertyType)
+      console.log('🚇 formData.selectedStations:', formData.selectedStations)
+      console.log('🚇 formData.selectedStations type:', typeof formData.selectedStations)
+      console.log('🚇 formData.selectedStations isArray:', Array.isArray(formData.selectedStations))
+    }
+  }, [formData.announcerStatus, formData.propertyType, formData.selectedStations, isEditing, condo])
+
+  // ตรวจสอบการ update state
+  useEffect(() => {
+    console.log('🔄 State Update - formData changed:')
+    console.log('🎯 formData.announcerStatus:', formData.announcerStatus)
+    console.log('🏠 formData.propertyType:', formData.propertyType)
+    console.log('🚇 formData.selectedStations:', formData.selectedStations)
+    console.log('🔄 State Update - formData object:', formData)
+  }, [formData])
 
   // ฟังก์ชันสำหรับอัพโหลด Floor Plan
   const handleFloorPlanUpload = () => {
@@ -1605,91 +1577,90 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             </div>
 
             {/* สถานะผู้ประกาศ */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt flex items-center">
-                <User className="h-5 w-5 mr-2 text-red-500" />
-                สถานะผู้ประกาศ
-              </label>
-              <div className="grid grid-cols-2 gap-3 max-w-md">
-                {[
-                  { value: 'owner', label: 'เจ้าของ (Owner)', color: 'from-orange-500 to-orange-600', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
-                  { value: 'agent', label: 'ตัวแทนพิเศษ (Exclusive Agent)', color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
-                ].map((option) => (
+            <div className="space-y-3">
+              <Label className="text-base font-semibold text-gray-700">
+                สถานะผู้ประกาศ <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                {announcerOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => handleInputChange('announcerStatus', option.value)}
-                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                    className={`relative p-4 border-2 rounded-lg transition-all duration-200 ${
                       formData.announcerStatus === option.value
-                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
-                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
-                    <div className="p-3 flex items-center justify-center space-x-2">
-                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
-                        formData.announcerStatus === option.value 
-                          ? 'bg-white/20 scale-110' 
-                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.announcerStatus === option.value
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-400'
                       }`}>
-                        <User className={`h-4 w-4 ${
-                          formData.announcerStatus === option.value ? 'text-white' : 'text-gray-600'
-                        }`} />
+                        {formData.announcerStatus === option.value && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                        )}
                       </div>
-                      <span className="text-sm font-semibold">{option.label}</span>
+                      <div className="text-left">
+                        <div className={`font-medium ${
+                          formData.announcerStatus === option.value ? 'text-blue-700' : 'text-gray-700'
+                        }`}>
+                          {option.label}
+                        </div>
+                        <div className={`text-sm ${
+                          formData.announcerStatus === option.value ? 'text-blue-600' : 'text-gray-500'
+                        }`}>
+                          {option.description}
+                        </div>
+                      </div>
                     </div>
-                    {formData.announcerStatus === option.value && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
-                      </div>
-                    )}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mt-2 font-prompt">
-                เลือกสถานะของผู้ประกาศ: เจ้าของคอนโด หรือ ตัวแทนพิเศษ
-              </p>
-              <p className="text-sm text-gray-500 mt-1 font-prompt">
-                *รับฝากเฉพาะนายหน้าที่เป็นสัญญาปิดหรือทรัพย์ที่ดีลปิดกับทางเจ้าของเท่านั้น
-              </p>
             </div>
 
-            {/* ประเภททรัพย์ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 font-prompt">
-                ประเภททรัพย์
-              </label>
-              <div className="grid grid-cols-2 gap-3 max-w-md">
-                {[
-                  { value: 'condo', label: 'คอนโด', icon: Building, color: 'from-blue-500 to-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' },
-                  { value: 'apartment', label: 'อพาร์ตเมนท์', icon: FaHome, color: 'from-green-500 to-green-600', borderColor: 'border-green-500', bgColor: 'bg-green-50' }
-                ].map((option) => (
+            {/* ประเภททรัพย์สิน */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold text-gray-700">
+                ประเภททรัพย์สิน <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                {propertyTypeOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => handleInputChange('propertyType', option.value)}
-                    className={`relative overflow-hidden rounded-lg border-2 transition-all duration-300 font-medium group hover:shadow-lg hover:scale-105 ${
+                    className={`relative p-4 border-2 rounded-lg transition-all duration-200 ${
                       formData.propertyType === option.value
-                        ? `${option.borderColor} bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
-                        : `${option.bgColor} text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md`
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
-                    <div className="p-3 flex items-center justify-center space-x-2">
-                      <div className={`p-1.5 rounded-full transition-all duration-300 ${
-                        formData.propertyType === option.value 
-                          ? 'bg-white/20 scale-110' 
-                          : 'bg-white/80 group-hover:bg-white group-hover:scale-110'
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.propertyType === option.value
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-400'
                       }`}>
-                        <option.icon className={`h-4 w-4 ${
-                          formData.propertyType === option.value ? 'text-white' : 'text-gray-600'
-                        }`} />
+                        {formData.propertyType === option.value && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                        )}
                       </div>
-                      <span className="text-sm font-semibold">{option.label}</span>
+                      <div className="text-left">
+                        <div className={`font-medium ${
+                          formData.propertyType === option.value ? 'text-blue-700' : 'text-gray-700'
+                        }`}>
+                          {option.label}
+                        </div>
+                        <div className={`text-sm ${
+                          formData.propertyType === option.value ? 'text-blue-600' : 'text-gray-500'
+                        }`}>
+                          {option.description}
+                        </div>
+                      </div>
                     </div>
-                    {formData.propertyType === option.value && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse"></div>
-                      </div>
-                    )}
                   </button>
                 ))}
               </div>
@@ -1918,10 +1889,12 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
                           {station.name}
                           <button
                             type="button"
-                            onClick={() => handleStationToggle(stationId)}
-                            className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                            onClick={() => handleStationToggle(station.id)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
                           >
-                            ×
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
                           </button>
                         </span>
                       ) : null;
