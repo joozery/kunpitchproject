@@ -1203,6 +1203,68 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     return Object.keys(newErrors).length === 0
   }
 
+  // Helper: sanitize and normalize payload before submit
+  const toNumber = (value) => {
+    const parsed = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  const toInt = (value) => {
+    const parsed = typeof value === 'string' ? parseInt(value.replace(/[^\d-]/g, ''), 10) : parseInt(value, 10)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  const toArray = (value) => Array.isArray(value) ? value : []
+  const toObject = (value) => (value && typeof value === 'object') ? value : {}
+  const toStringOrNull = (value) => {
+    if (value === null || value === undefined) return null
+    const s = String(value).trim()
+    return s.length > 0 ? s : null
+  }
+
+  const buildCondoPayload = () => {
+    const base = {
+      title: toStringOrNull(formData.title),
+      status: toStringOrNull(formData.status),
+      price: toNumber(formData.price),
+      rent_price: toNumber(formData.rentPrice),
+      property_type: toStringOrNull(formData.propertyType),
+      announcer_status: toStringOrNull(formData.announcerStatus),
+      location: toStringOrNull(formData.location),
+      google_map_url: toStringOrNull(formData.googleMapUrl),
+      nearby_transport: toStringOrNull(formData.nearbyTransport),
+      selected_stations: toArray(formData.selectedStations),
+      listing_type: toStringOrNull(formData.listingType),
+      description: toStringOrNull(formData.description),
+      area: toNumber(formData.area),
+      bedrooms: toInt(formData.bedrooms),
+      bathrooms: toInt(formData.bathrooms),
+      floor: toStringOrNull(formData.floor),
+      price_per_sqm: toNumber(formData.pricePerSqm),
+      rent_price_per_sqm: toNumber(formData.rentPricePerSqm),
+      seo_tags: toArray(formData.seoTags),
+      selected_project: toStringOrNull(formData.selectedProject),
+      available_date: toStringOrNull(formData.availableDate),
+      images: images.filter(img => img.url && !img.uploading).map(img => ({
+        url: img.url,
+        public_id: img.public_id
+      })),
+      cover_image: coverImage?.url || null,
+      amenities: toArray(selectedAmenities),
+      special_features: toObject(formData.specialFeatures),
+      youtube_url: toStringOrNull(formData.youtubeUrl),
+      floor_plan: formData.floorPlan || null,
+    }
+    // Remove null optional fields to avoid backend "required" triggers
+    const payload = { ...base }
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === null) {
+        delete payload[key]
+      }
+    })
+    return payload
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -1214,39 +1276,8 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       setLoading(true)
       setUploading(true)
       
-      // Transform form data to API format
-      const condoData = {
-        title: formData.title,
-        status: formData.status,
-        price: parseFloat(formData.price) || 0,
-        rent_price: parseFloat(formData.rentPrice) || 0,
-        property_type: formData.propertyType, // ประเภททรัพย์สิน
-        announcer_status: formData.announcerStatus, // สถานะผู้ประกาศ
-        location: formData.location,
-        google_map_url: formData.googleMapUrl,
-        nearby_transport: formData.nearbyTransport,
-        selected_stations: formData.selectedStations, // สถานีรถไฟฟ้าที่เลือก
-        listing_type: formData.listingType,
-        description: formData.description,
-        area: parseFloat(formData.area),
-        bedrooms: parseInt(formData.bedrooms),
-        bathrooms: parseInt(formData.bathrooms),
-        floor: formData.floor,
-        price_per_sqm: parseFloat(formData.pricePerSqm) || 0,
-        rent_price_per_sqm: parseFloat(formData.rentPricePerSqm) || 0,
-        seo_tags: formData.seoTags,
-        selected_project: formData.selectedProject,
-        available_date: formData.availableDate,
-        images: images.filter(img => img.url && !img.uploading).map(img => ({
-          url: img.url,
-          public_id: img.public_id
-        })),
-        cover_image: coverImage?.url || null,
-        amenities: selectedAmenities,
-        special_features: formData.specialFeatures,
-        youtube_url: formData.youtubeUrl,
-        floor_plan: formData.floorPlan,
-      }
+      // Transform and sanitize form data to API format
+      const condoData = buildCondoPayload()
 
       console.log('ข้อมูลที่จะส่งไปยัง backend:', condoData)
       console.log('🎯 สถานะผู้ประกาศ:', formData.announcerStatus)
@@ -1313,10 +1344,22 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       }
     } catch (error) {
       console.error('Error saving condo:', error)
+      let message = error.message || 'เกิดข้อผิดพลาด'
+      if (error.response?.data) {
+        const data = error.response.data
+        const backendMsg = data.message || data.error
+        const validation = data.errors
+        if (validation && typeof validation === 'object') {
+          const details = Object.values(validation).flat().join(', ')
+          message = backendMsg ? `${backendMsg} - ${details}` : details
+        } else if (backendMsg) {
+          message = backendMsg
+        }
+      }
       Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด!',
-        text: error.message,
+        text: message,
         confirmButtonText: 'ตกลง',
         confirmButtonColor: '#d33'
       })
