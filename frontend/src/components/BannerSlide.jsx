@@ -14,6 +14,7 @@ const BannerSlide = () => {
   })
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [aspectRatio, setAspectRatio] = useState(1920 / 410)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -116,6 +117,21 @@ const BannerSlide = () => {
     return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwMCIgaGVpZ2h0PSIzMDAiIHZpZXdCb3g9IjAgMCAxNDAwIDMwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMzY2ZmYxO3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxZTRhNzE7c3RvcC1vcGFjaXR5OjEiIC8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+'
   }
 
+  // Optimize Cloudinary images for sharpness on retina displays
+  const getOptimizedUrl = (url, width) => {
+    if (!url) return url
+    try {
+      const w = width || 1920
+      if (url.includes('res.cloudinary.com')) {
+        // Inject transformations: auto format, auto quality, device pixel ratio, and width
+        return url.replace('/upload/', `/upload/f_auto,q_auto,dpr_auto,w_${w}/`)
+      }
+      return url
+    } catch {
+      return url
+    }
+  }
+
   if (isLoading) {
     return (
       <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
@@ -167,7 +183,8 @@ const BannerSlide = () => {
         <div 
           className="relative w-full overflow-hidden rounded-xl md:rounded-2xl shadow-lg md:shadow-xl"
           style={{ 
-            height: '300px', // Fixed height for all screen sizes
+            aspectRatio: aspectRatio,
+            maxHeight: `${settings.slide_height || 300}px`,
             borderRadius: '16px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
           }}
@@ -183,9 +200,14 @@ const BannerSlide = () => {
             >
               <a href={slides[currentSlide]?.link || '#'} className="block w-full h-full">
                 <img
-                  src={getImageUrl(slides[currentSlide])}
+                  src={getOptimizedUrl(getImageUrl(slides[currentSlide]), Math.min(2560, Math.round(window.innerWidth * 1.5)))}
                   alt={slides[currentSlide]?.alt_text || 'Banner'}
                   className="w-full h-full object-cover"
+                  onLoad={(e) => {
+                    const w = e.target.naturalWidth || 1920
+                    const h = e.target.naturalHeight || 410
+                    if (w > 0 && h > 0) setAspectRatio(w / h)
+                  }}
                   onError={(e) => {
                     e.target.src = getImageUrl(null) // Use fallback on error
                   }}

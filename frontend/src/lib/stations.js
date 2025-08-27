@@ -33,6 +33,9 @@ export const btsStations = [
   { id: 'mo_chit', name: 'BTS Mo Chit (หมอชิต)', line: 'BTS' },
   { id: 'ha_yaek_lat_phrao', name: 'BTS Ha Yaek Lat Phrao (ห้าแยกลาดพร้าว)', line: 'BTS' },
 
+  // Silom Line (key inner stations)
+  { id: 'saphan_taksin', name: 'BTS Saphan Taksin (สะพานตากสิน)', line: 'BTS' },
+
   // Gold Line
   { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
   { id: 'charoen_nakhon', name: 'BTS Charoen Nakhon (เจริญนคร)', line: 'BTS' },
