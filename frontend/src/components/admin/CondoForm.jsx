@@ -539,6 +539,13 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
             console.log('  - floor_plan_public_id:', freshCondo.floor_plan_public_id)
             
             // Map API fields to form fields
+            const normalizeSeoTags = (value) => {
+              if (!value) return ''
+              if (Array.isArray(value)) return value.join(', ')
+              if (typeof value === 'string') return value
+              return ''
+            }
+
             const newFormData = {
               title: freshCondo.title || '',
               projectCode: freshCondo.project_code || '',
@@ -559,10 +566,20 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               floor: freshCondo.floor || '',
               pricePerSqm: freshCondo.price_per_sqm !== undefined && freshCondo.price_per_sqm !== null ? String(freshCondo.price_per_sqm) : '',
               rentPricePerSqm: freshCondo.rent_price_per_sqm !== undefined && freshCondo.rent_price_per_sqm !== null ? String(freshCondo.rent_price_per_sqm) : '',
-              seoTags: freshCondo.seo_tags || '',
+              seoTags: normalizeSeoTags(
+                (() => {
+                  try {
+                    if (typeof freshCondo.seo_tags === 'string' && freshCondo.seo_tags.trim().startsWith('[')) {
+                      const parsed = JSON.parse(freshCondo.seo_tags)
+                      return Array.isArray(parsed) ? parsed : freshCondo.seo_tags
+                    }
+                  } catch {}
+                  return freshCondo.seo_tags
+                })()
+              ),
               selectedProject: freshCondo.selected_project || '',
               availableDate: freshCondo.available_date ? freshCondo.available_date.split('T')[0] : '',
-              amenities: freshCondo.amenities || [],
+              amenities: Array.isArray(freshCondo.amenities) ? freshCondo.amenities : [],
               specialFeatures: (() => {
                 try {
                   let features = {};
@@ -597,15 +614,36 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               youtubeUrl: freshCondo.youtube_url || '',
               floorPlan: freshCondo.floor_plan ? (() => {
                 try {
-                  // ถ้าเป็น JSON string ให้ parse
-                  if (typeof freshCondo.floor_plan === 'string' && freshCondo.floor_plan.startsWith('{')) {
-                    return JSON.parse(freshCondo.floor_plan);
+                  // รูปแบบเป็น JSON string
+                  if (typeof freshCondo.floor_plan === 'string') {
+                    const raw = freshCondo.floor_plan.trim()
+                    if (raw.startsWith('{')) {
+                      const parsed = JSON.parse(raw)
+                      return {
+                        url: parsed.url || '',
+                        public_id: parsed.public_id || freshCondo.floor_plan_public_id || null,
+                        preview: null
+                      }
+                    }
+                    // รูปแบบเป็น URL string
+                    return {
+                      url: raw,
+                      public_id: freshCondo.floor_plan_public_id || null,
+                      preview: null
+                    }
                   }
-                  return freshCondo.floor_plan;
+                  // รูปแบบเป็น object
+                  if (freshCondo.floor_plan && typeof freshCondo.floor_plan === 'object') {
+                    return {
+                      url: freshCondo.floor_plan.url || '',
+                      public_id: freshCondo.floor_plan.public_id || freshCondo.floor_plan_public_id || null,
+                      preview: null
+                    }
+                  }
                 } catch (error) {
-                  console.error('Error parsing floor plan:', error);
-                  return null;
+                  console.error('Error parsing floor plan:', error)
                 }
+                return null
               })() : null,
             }
             
@@ -622,12 +660,19 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               return updated
             })
 
+            // Sync selected amenities checkboxes
+            if (Array.isArray(newFormData.amenities)) {
+              setSelectedAmenities(newFormData.amenities)
+            }
+
             // Set cover image
             if (freshCondo.cover_image) {
               console.log('🖼️ Setting cover image:', freshCondo.cover_image)
               setCoverImage({
-                url: freshCondo.cover_image,
-                public_id: freshCondo.cover_public_id
+                url: typeof freshCondo.cover_image === 'string' ? freshCondo.cover_image : (freshCondo.cover_image.url || ''),
+                public_id: freshCondo.cover_public_id || (typeof freshCondo.cover_image === 'object' ? freshCondo.cover_image.public_id : null),
+                preview: null,
+                uploading: false
               })
             } else {
               console.log('⚠️ No cover image found in freshCondo')
@@ -644,6 +689,16 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
               }))
               console.log('🖼️ Processed image data:', imageData)
               setImages(imageData)
+              // If no explicit cover image, fallback to first gallery image
+              if (!freshCondo.cover_image && imageData.length > 0) {
+                console.log('🖼️ No explicit cover image, fallback to first image')
+                setCoverImage({
+                  url: imageData[0].url,
+                  public_id: imageData[0].public_id || null,
+                  preview: null,
+                  uploading: false
+                })
+              }
             } else {
               console.log('⚠️ No images found in freshCondo:', freshCondo.images)
             }
@@ -1222,6 +1277,26 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
     return s.length > 0 ? s : null
   }
 
+  // Helper specialized for comma-separated or JSON-string arrays
+  const toStringArray = (value) => {
+    if (!value) return []
+    if (Array.isArray(value)) return value.filter(Boolean).map(v => String(v).trim()).filter(Boolean)
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (trimmed === '[]') return []
+      // Try JSON parse if looks like array
+      if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+        try {
+          const parsed = JSON.parse(trimmed)
+          if (Array.isArray(parsed)) return parsed.filter(Boolean).map(v => String(v).trim()).filter(Boolean)
+        } catch {}
+      }
+      // Fallback: comma-separated
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+    }
+    return []
+  }
+
   const buildCondoPayload = () => {
     const base = {
       title: toStringOrNull(formData.title),
@@ -1242,7 +1317,7 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       floor: toStringOrNull(formData.floor),
       price_per_sqm: toNumber(formData.pricePerSqm),
       rent_price_per_sqm: toNumber(formData.rentPricePerSqm),
-      seo_tags: toArray(formData.seoTags),
+      seo_tags: toStringArray(formData.seoTags),
       selected_project: toStringOrNull(formData.selectedProject),
       available_date: toStringOrNull(formData.availableDate),
       images: images.filter(img => img.url && !img.uploading).map(img => ({
