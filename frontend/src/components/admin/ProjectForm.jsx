@@ -60,7 +60,11 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     
     // รูปภาพ
     cover_image: null,
-    project_images: []
+    project_images: [],
+    
+    // รูปภาพที่ถูกลบ (สำหรับโหมดแก้ไข)
+    deleted_images: [],
+    deleted_cover_image: null
   });
 
   const [facilitiesList, setFacilitiesList] = useState([
@@ -648,6 +652,41 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
     });
   };
 
+  // เพิ่มฟังก์ชันลบรูปภาพเดิม
+  const removeExistingProjectImage = (index) => {
+    Swal.fire({
+      title: 'ลบรูปภาพเดิม',
+      text: `คุณต้องการลบรูปภาพเดิมที่ ${index + 1} หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // เพิ่มรูปภาพเดิมที่ถูกลบเข้าไปใน deleted_images
+        const imageToDelete = project.project_images[index];
+        
+        // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
+        const isAlreadyDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+          (deletedImg.id && deletedImg.id === imageToDelete.id) || 
+          (deletedImg.url && deletedImg.url === imageToDelete.url)
+        );
+        
+        if (!isAlreadyDeleted) {
+          setFormData(prev => ({
+            ...prev,
+            deleted_images: [...(prev.deleted_images || []), imageToDelete]
+          }));
+          
+          console.log('ลบรูปภาพ:', imageToDelete);
+          console.log('รูปภาพที่ถูกลบแล้ว:', [...(formData.deleted_images || []), imageToDelete]);
+        }
+      }
+    });
+  };
+
   const removeCoverImage = () => {
     Swal.fire({
       title: 'ลบรูปปก',
@@ -662,7 +701,8 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       if (result.isConfirmed) {
         setFormData(prev => ({
           ...prev,
-          cover_image: null
+          cover_image: null,
+          deleted_cover_image: project?.cover_image || null
         }));
       }
     });
@@ -680,10 +720,19 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       cancelButtonText: 'ยกเลิก'
     }).then((result) => {
       if (result.isConfirmed) {
-        setFormData(prev => ({
-          ...prev,
-          project_images: []
-        }));
+        // เพิ่มรูปภาพเดิมทั้งหมดเข้าไปใน deleted_images
+        if (project && project.project_images && project.project_images.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            project_images: [],
+            deleted_images: [...(prev.deleted_images || []), ...project.project_images]
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            project_images: []
+          }));
+        }
       }
     });
   };
@@ -780,6 +829,11 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       formDataToSend.append('cover_image', formData.cover_image);
     }
     
+    // เพิ่มรูปปกเดิม (ถ้ามีและยังไม่ถูกลบ)
+    if (project && project.cover_image && !formData.deleted_cover_image) {
+      formDataToSend.append('existing_cover_image', JSON.stringify(project.cover_image));
+    }
+    
     // เพิ่มรูปภาพโครงการ (ถ้ามี)
     if (formData.project_images && formData.project_images.length > 0) {
       formData.project_images.forEach((image, index) => {
@@ -787,11 +841,35 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       });
     }
     
-    // เพิ่มรูปภาพเดิม (ถ้ามี) เพื่อให้ API รู้ว่าต้องเก็บไว้
+    // เพิ่มรูปภาพเดิม (ถ้ามี) เพื่อให้ API รู้ว่าต้องเก็บไว้ (เฉพาะรูปที่ยังไม่ถูกลบ)
     if (project && project.project_images && project.project_images.length > 0) {
-      project.project_images.forEach((image, index) => {
+      const remainingImages = project.project_images.filter(image => {
+        if (!image) return false;
+        
+        // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
+        const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+          (deletedImg.id && image.id && deletedImg.id === image.id) || 
+          (deletedImg.url && image.url && deletedImg.url === image.url)
+        );
+        
+        return !isDeleted;
+      });
+      
+      remainingImages.forEach((image, index) => {
         formDataToSend.append('existing_project_images', JSON.stringify(image));
       });
+    }
+    
+    // เพิ่มข้อมูลรูปภาพที่ถูกลบ (ถ้ามี)
+    if (formData.deleted_images && formData.deleted_images.length > 0) {
+      formData.deleted_images.forEach((image, index) => {
+        formDataToSend.append('deleted_images', JSON.stringify(image));
+      });
+    }
+    
+    // เพิ่มข้อมูลรูปปกที่ถูกลบ (ถ้ามี)
+    if (formData.deleted_cover_image) {
+      formDataToSend.append('deleted_cover_image', JSON.stringify(formData.deleted_cover_image));
     }
     
 
@@ -1519,13 +1597,13 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                 </div>
                 
                 {/* แสดงรูปปกที่เลือก */}
-                {(formData.cover_image || (project && project.cover_image)) && (
+                {(formData.cover_image || (project && project.cover_image && !formData.deleted_cover_image)) && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-medium text-blue-700 flex items-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                        </svg>
                         รูปปกที่เลือก
                       </p>
                       <button
@@ -1542,7 +1620,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <img
-                          src={formData.cover_image && formData.cover_image instanceof File ? URL.createObjectURL(formData.cover_image) : (project && project.cover_image ? project.cover_image : '')}
+                          src={formData.cover_image && formData.cover_image instanceof File ? URL.createObjectURL(formData.cover_image) : (project && project.cover_image && !formData.deleted_cover_image ? project.cover_image : '')}
                           alt="รูปปกโครงการ"
                           className="w-28 h-28 object-cover rounded-lg border-2 border-blue-200 shadow-sm"
                         />
@@ -1621,10 +1699,36 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium text-gray-700">
-                          รูปภาพที่เลือก ({formData.project_images ? formData.project_images.length : 0} รูปใหม่ + {project && project.project_images ? project.project_images.length : 0} รูปเดิม)
+                          รูปภาพที่เลือก ({formData.project_images ? formData.project_images.length : 0} รูปใหม่ + {(() => {
+                            if (!project || !project.project_images) return 0;
+                            return project.project_images.filter(image => {
+                              if (!image) return false;
+                              
+                              // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
+                              const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+                                (deletedImg.id && image.id && deletedImg.id === image.id) || 
+                                (deletedImg.url && image.url && deletedImg.url === image.url)
+                              );
+                              
+                              return !isDeleted;
+                            }).length;
+                          })()} รูปเดิม)
                         </p>
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                          {(formData.project_images ? formData.project_images.length : 0) + (project && project.project_images ? project.project_images.length : 0)}/100 รูป
+                          {(formData.project_images ? formData.project_images.length : 0) + (() => {
+                            if (!project || !project.project_images) return 0;
+                            return project.project_images.filter(image => {
+                              if (!image) return false;
+                              
+                              // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
+                              const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+                                (deletedImg.id && image.id && deletedImg.id === image.id) || 
+                                (deletedImg.url && image.url && deletedImg.url === image.url)
+                              );
+                              
+                              return !isDeleted;
+                            }).length;
+                          })()}/100 รูป
                         </span>
                       </div>
                       <button
@@ -1645,45 +1749,87 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-600 mb-3">รูปภาพที่มีอยู่เดิม:</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                          {project.project_images.map((image, index) => {
-                            // Safety check สำหรับ image
-                            if (!image) {
-                              return null;
-                            }
+                          {(() => {
+                            // กรองเอาเฉพาะรูปที่ยังไม่ถูกลบ
+                            const remainingImages = project.project_images.filter(image => {
+                              if (!image) return false;
+                              
+                              // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
+                              const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+                                (deletedImg.id && image.id && deletedImg.id === image.id) || 
+                                (deletedImg.url && image.url && deletedImg.url === image.url)
+                              );
+                              
+                              console.log('รูปภาพ:', image, 'ถูกลบ:', isDeleted);
+                              
+                              return !isDeleted;
+                            });
                             
-                            const imageUrl = image.url || image;
-                            if (!imageUrl) {
-                              return null;
-                            }
+                            console.log('รูปภาพที่เหลือ:', remainingImages);
+                            console.log('รูปภาพที่ถูกลบ:', formData.deleted_images);
                             
-                            return (
-                              <div key={`existing-${index}`} className="relative group">
-                                <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
-                                  <div className="relative">
-                                    <img
-                                      src={imageUrl}
-                                      alt={`รูปเดิมที่ ${index + 1}`}
-                                      className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
-                                    />
-                                    <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
-                                      {index + 1}
-                                    </div>
-                                    <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
-                                      เดิม
-                                    </div>
-                                  </div>
-                                  <div className="text-center">
-                                    <p className="text-xs text-gray-600 truncate mb-1">
-                                      รูปเดิมที่ {index + 1}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                      รูปภาพเดิม
-                                    </p>
-                                  </div>
+                            // ถ้าไม่มีรูปที่เหลือ ให้แสดงข้อความ
+                            if (remainingImages.length === 0) {
+                              return (
+                                <div className="col-span-full text-center py-8 text-gray-500">
+                                  <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  <p>ไม่มีรูปภาพเดิมเหลืออยู่</p>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            }
+                            
+                            // แสดงรูปภาพที่เหลือ
+                            return remainingImages.map((image, index) => {
+                              // Safety check สำหรับ image
+                              if (!image) {
+                                return null;
+                              }
+                              
+                              const imageUrl = image.url || image;
+                              if (!imageUrl) {
+                                return null;
+                              }
+                              
+                              return (
+                                <div key={`existing-${image.id || index}`} className="relative group">
+                                  <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
+                                    <div className="relative">
+                                      <img
+                                        src={imageUrl}
+                                        alt={`รูปเดิมที่ ${index + 1}`}
+                                        className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
+                                      />
+                                      <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
+                                        {index + 1}
+                                      </div>
+                                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
+                                        เดิม
+                                      </div>
+                                    </div>
+                                    <div className="text-center">
+                                      <p className="text-xs text-gray-600 truncate mb-1">
+                                        รูปเดิมที่ {index + 1}
+                                      </p>
+                                      <p className="text-xs text-gray-400">
+                                        รูปภาพเดิม
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {/* ปุ่มลบรูปภาพเดิม */}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeExistingProjectImage(project.project_images.indexOf(image))}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                                    title="ลบรูปภาพเดิม"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                     )}
@@ -1743,24 +1889,7 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* Debug Section - แสดงข้อมูลทั้งหมด */}
-            <div className="p-4 bg-gray-100 border border-gray-300 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">🔍 Debug Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p><strong>Building Type:</strong> {JSON.stringify(formData.building_type)}</p>
-                  <p><strong>Building Type Type:</strong> {typeof formData.building_type}</p>
-                  <p><strong>Is Array:</strong> {Array.isArray(formData.building_type) ? 'Yes' : 'No'}</p>
-                  <p><strong>Length:</strong> {formData.building_type ? formData.building_type.length : 0}</p>
-                </div>
-                <div>
-                  <p><strong>High-rise Selected:</strong> {isBuildingTypeSelected('high-rise') ? 'Yes' : 'No'}</p>
-                  <p><strong>Low-rise Selected:</strong> {isBuildingTypeSelected('low-rise') ? 'Yes' : 'No'}</p>
-                  <p><strong>Selected Facilities:</strong> {JSON.stringify(selectedFacilities)}</p>
-                  <p><strong>Project ID:</strong> {project ? project.id : 'New Project'}</p>
-                </div>
-              </div>
-            </div>
+
 
             {/* ปุ่มดำเนินการ */}
             <div className="flex justify-end space-x-4 pt-6">
