@@ -144,21 +144,27 @@ const ProjectDetail = () => {
     return []
   }
 
-  // Use the exact labels from the Project form when possible
+  // Use the exact labels from the Project/Admin form
   const getStationFormLabel = (station) => {
     if (!station) return ''
     if (typeof station === 'object') {
       return station.name || station.name_th || station.label || station.title || ''
     }
     const id = String(station).trim()
+    // Canonical mapping (BTS + MRT + extensions) — keep in sync with admin form
     const map = {
+      // BTS (Sukhumvit Line, etc.)
       kheha: 'BTS Kheha (เคหะฯ)',
       phraek_sa: 'BTS Phraek Sa (แพรกษา)',
       sai_luat: 'BTS Sai Luat (สายลวด)',
+      chang_erawan: 'BTS Chang Erawan (ช้างเอราวัณ)',
+      pu_chao: 'BTS Pu Chao (ปู่เจ้า)',
+      samrong: 'BTS Samrong (สำโรง)',
       bearing: 'BTS Bearing (แบริ่ง)',
       udom_suk: 'BTS Udom Suk (อุดมสุข)',
       bang_na: 'BTS Bang Na (บางนา)',
       punnawithi: 'BTS Punnawithi (ปุณณวิถี)',
+      bang_chak: 'BTS Bang Chak (บางจาก)',
       on_nut: 'BTS On Nut (อ่อนนุช)',
       phra_khanong: 'BTS Phra Khanong (พระโขนง)',
       ekkamai: 'BTS Ekkamai (เอกมัย)',
@@ -171,15 +177,47 @@ const ProjectDetail = () => {
       siam: 'BTS Siam (สยาม)',
       ratchathewi: 'BTS Ratchathewi (ราชเทวี)',
       phaya_thai: 'BTS Phaya Thai (พญาไท)',
-      mo_chit: 'BTS Mo Chit (หมอชิต)',
+      victory_monument: 'BTS Victory Monument (อนุสาวรีย์ชัยสมรภูมิ)',
+      sanam_pao: 'BTS Sanam Pao (สนามเป้า)',
       ari: 'BTS Ari (อารีย์)',
-      sala_daeng: 'BTS Sala Daeng (ศาลาแดง)',
-      silom: 'MRT Silom (สีลม)',
+      saphan_khwai: 'BTS Saphan Khwai (สะพานควาย)',
+      mo_chit: 'BTS Mo Chit (หมอชิต)',
+      ha_yaek_lat_phrao: 'BTS Ha Yaek Lat Phrao (ห้าแยกลาดพร้าว)',
+
+      // MRT (Blue/Green/Yellow portions used in admin form)
+      tha_phra: 'MRT Tha Phra (ท่าพระ)',
+      charan_13: 'MRT Charan 13 (จรัญฯ 13)',
+      fai_chai: 'MRT Fai Chai (ไฟฉาย)',
+      bang_khun_non: 'MRT Bang Khun Non (บางขุนนนท์)',
+      bang_yi_khan: 'MRT Bang Yi Khan (บางยี่ขัน)',
+      sirindhorn: 'MRT Sirindhorn (สิรินธร)',
+      bang_phlat: 'MRT Bang Phlat (บางพลัด)',
+      bang_o: 'MRT Bang O (บางอ้อ)',
+      bang_pho: 'MRT Bang Pho (บางโพ)',
+      tao_pun: 'MRT Tao Pun (เตาปูน)',
+      bang_sue: 'MRT Bang Sue (บางซื่อ)',
+      kamphaeng_phet: 'MRT Kamphaeng Phet (กำแพงเพชร)',
+      chatuchak_park: 'MRT Chatuchak Park (สวนจตุจักร)',
+      phahon_yothin: 'MRT Phahon Yothin (พหลโยธิน)',
+      lat_phrao: 'MRT Lat Phrao (ลาดพร้าว)',
+      ratchadaphisek: 'MRT Ratchadaphisek (รัชดาภิเษก)',
+      sutthisan: 'MRT Sutthisan (สุทธิสาร)',
+      huai_kwang: 'MRT Huai Khwang (ห้วยขวาง)',
+      thailand_cultural_centre: 'MRT Thailand Cultural Centre (ศูนย์วัฒนธรรมแห่งประเทศไทย)',
+      phra_ram_9: 'MRT Phra Ram 9 (พระราม 9)',
       phetchaburi: 'MRT Phetchaburi (เพชรบุรี)',
       sukhumvit: 'MRT Sukhumvit (สุขุมวิท)',
+      queen_sirikit_national_convention_centre: 'MRT Queen Sirikit National Convention Centre (ศูนย์การประชุมแห่งชาติสิริกิติ์)',
       sam_yan: 'MRT Sam Yan (สามย่าน)',
       lumphini: 'MRT Lumphini (ลุมพินี)',
-      hua_lamphong: 'MRT Hua Lamphong (หัวลำโพง)'
+      hua_lamphong: 'MRT Hua Lamphong (หัวลำโพง)',
+
+      // MRT Yellow line excerpts used in admin form
+      mahat_thai: 'MRT Mahat Thai (มหาดไทย)',
+      lat_phrao_101: 'MRT Lat Phrao 101 (ลาดพร้าว 101)',
+      bang_kapi: 'MRT Bang Kapi (บางกะปิ)',
+      yaek_lam_sali: 'MRT Yaek Lam Sali (แยกลำสาลี)',
+      si_kritha: 'MRT Si Kritha (ศรีกรีฑา)'
     }
     return map[id] || id
   }
