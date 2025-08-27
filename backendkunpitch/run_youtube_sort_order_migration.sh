@@ -41,3 +41,4 @@ DESCRIBE youtube_videos;
 EOF
 
 echo "Migration completed successfully!"
+

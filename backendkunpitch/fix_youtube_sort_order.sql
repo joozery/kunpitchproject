@@ -12,3 +12,4 @@ CREATE INDEX idx_youtube_videos_sort_order ON youtube_videos(sort_order);
 
 -- Show the updated table structure
 DESCRIBE youtube_videos;
+
