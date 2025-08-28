@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, ChevronLeft, ChevronRight } from 'lucide-react'
 import LatestStyleCard from '../components/cards/LatestStyleCard'
 import { condoAPI, houseAPI, landAPI, commercialAPI } from '../lib/api'
@@ -306,11 +305,8 @@ const Buy = () => {
   }
 
   const PropertyCard = ({ property }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+    <div
+      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer animate-fade-in-up"
       onClick={() => handleCardClick(property.id, property.type)}
     >
       <Link to={`/property/${property.id}`}>
@@ -401,7 +397,7 @@ const Buy = () => {
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   )
 
   if (loading) {
@@ -428,12 +424,7 @@ const Buy = () => {
           <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.85 }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-left"
-          >
+          <div className="text-left animate-fade-in-up">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
               ซื้ออสังหาริมทรัพย์
             </h1>
@@ -451,7 +442,7 @@ const Buy = () => {
                 <span className="font-semibold">24/7</span> บริการ
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -503,12 +494,7 @@ const Buy = () => {
 
           {/* Advanced Filters */}
           {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-6 pt-6 border-t border-gray-200"
-            >
+            <div className="mt-6 pt-6 border-t border-gray-200 animate-fade-in-up">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <select
                   value={filterType}
@@ -556,7 +542,7 @@ const Buy = () => {
                   <option value="100+">100+ ตร.ม.</option>
                 </select>
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </section>
