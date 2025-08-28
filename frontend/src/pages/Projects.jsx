@@ -14,12 +14,15 @@ import {
   Grid,
   List,
   Users,
-  Calendar
+  Calendar,
+  Heart
 } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { projectApi } from '../lib/projectApi'
 import { useCurrency } from '../lib/CurrencyContext'
+import { Card, CardContent } from '../components/ui/card'
+import { Button } from '../components/ui/button'
 
 const Projects = () => {
   const navigate = useNavigate()
@@ -228,81 +231,89 @@ const Projects = () => {
     const TypeIcon = getTypeIcon(project.project_type)
     
     return (
-              <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer group animate-fade-in-up"
-          onClick={() => navigate(`/project/${project.id}`)}
-        >
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
+      <Card key={project.id} className="overflow-hidden">
+        <div className="relative">
           <img
             src={project.cover_image || (project.images && project.images[0]) || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
             alt={project.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-48 object-cover"
           />
-          
-          {/* Status Badge */}
-          <div className="absolute top-4 right-4">
-            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              พร้อมอยู่
+          <div className="absolute top-2 left-2 flex items-center gap-2">
+            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)}`}>
+              {getStatusLabel(project.status)}
             </span>
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {/* Project Title */}
-          <h3 className="text-xl font-bold text-gray-900 mb-1 font-prompt group-hover:text-blue-600 transition-colors duration-300">
-            {project.title}
-          </h3>
-          
-          {/* English Title */}
-          <p className="text-gray-500 mb-3 font-prompt text-sm">
-            {project.title_en || project.title}
-          </p>
-          
-          {/* Project Type */}
-          <div className="flex items-center text-gray-600 mb-2 text-sm">
-            <Building2 className="h-4 w-4 mr-2 text-gray-500" />
-            <span>{getTypeLabel(project.project_type)}</span>
+          <div className="absolute top-2 right-2 flex space-x-1">
+            <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
+              <Heart className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
+              <Star className="h-4 w-4" />
+            </Button>
           </div>
-          
-          {/* Developer */}
-          {project.developer && (
-            <div className="flex items-center text-gray-600 mb-2 text-sm">
-              <Users className="h-4 w-4 mr-2 text-gray-500" />
-              <span>{project.developer}</span>
-              </div>
-            )}
-          
-          {/* Completion Date */}
-          {project.completion_date && (
-            <div className="flex items-center text-gray-600 mb-4 text-sm">
-              <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-              <span>แล้วเสร็จ {new Date(project.completion_date).getFullYear()}</span>
-            </div>
-          )}
-
-          {/* Statistics Boxes */}
-          <div className="flex gap-3 mt-4">
-            {/* Units Box */}
-            <div className="flex-1 bg-blue-50 rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-gray-900">
-                {project.total_units || project.bedrooms || 0}
-              </div>
-              <div className="text-xs text-gray-600">ยูนิต</div>
+        </div>
+        
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-gray-900 font-prompt">{project.title}</h3>
+              <p className="text-sm text-gray-500 font-prompt">{project.location || project.address}</p>
             </div>
             
-            {/* Amenities Box */}
-            <div className="flex-1 bg-blue-50 rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-gray-900">
-                {project.amenities?.length || 0}
+            <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
+              <div className="flex items-center space-x-1">
+                <TypeIcon className="h-4 w-4" />
+                <span>{getTypeLabel(project.project_type)}</span>
               </div>
-              <div className="text-xs text-gray-600">สิ่งอำนวยความสะดวก</div>
+              {project.developer && (
+                <div className="flex items-center space-x-1">
+                  <Users className="h-4 w-4" />
+                  <span>{project.developer}</span>
+                </div>
+              )}
+              {project.completion_date && (
+                <div className="flex items-center space-x-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>{new Date(project.completion_date).getFullYear()}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900 font-prompt">
+                  {project.price ? `฿${Number(project.price).toLocaleString('th-TH')}` : 'ราคาตามสอบถาม'}
+                </p>
+                {Number(project.rent_price || 0) > 0 && (
+                  <p className="text-sm text-gray-500 font-prompt">
+                    ฿{Number(project.rent_price).toLocaleString('th-TH')}/เดือน
+                  </p>
+                )}
+              </div>
+              <div className="text-sm text-gray-500 font-prompt">
+                {project.floor ? `ชั้น ${project.floor}` : '-'}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="text-sm text-gray-500 font-prompt">
+                {Number(project.area || 0)} ตร.ม.
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate(`/project/${project.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-              </div>
-      )
-    }
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-prompt">
@@ -498,7 +509,7 @@ const Projects = () => {
             <>
               {/* Grid View */}
               {viewMode === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredProjects.length > 0 ? (
                     filteredProjects.map((project) => (
                       <ProjectCard key={project.id} project={project} />
