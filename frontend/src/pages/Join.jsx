@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { 
   Users, 
@@ -130,12 +129,7 @@ const Join = () => {
         <Header />
         <div className="pt-20">
           <div className="max-w-2xl mx-auto px-6 text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-2xl p-12 shadow-xl"
-            >
+            <div className="bg-white rounded-2xl p-12 shadow-xl animate-fade-in-scale">
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="h-10 w-10 text-white" />
               </div>
@@ -151,7 +145,7 @@ const Join = () => {
               >
                 กลับหน้าหลัก
               </button>
-            </motion.div>
+            </div>
           </div>
         </div>
         <Footer />
@@ -184,12 +178,7 @@ const Join = () => {
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="text-center" style={{ fontFamily: "Prompt, sans-serif" }}>
             {/* Heading with Line Button */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="relative mb-6 md:mb-8"
-            >
+            <div className="relative mb-6 md:mb-8 animate-fade-in-up">
               <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6" style={{ color: "#051d40" }}>
                 WHALESPACE AGENT
               </h2>
@@ -203,57 +192,42 @@ const Join = () => {
                   <span className="hidden sm:inline">Whalespace</span>
                 </button>
               </div>
-            </motion.div>
+            </div>
 
             {/* Subtitle */}
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-lg md:text-xl mb-3 md:mb-4" 
+            <p 
+              className="text-lg md:text-xl mb-3 md:mb-4 animate-fade-in-up delay-200" 
               style={{ color: "#737373" }}
             >
               Your Opportunity Starts Here | Join Whalespace Today!
-            </motion.p>
+            </p>
             
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-xl md:text-2xl font-bold mb-6 md:mb-8" 
+            <p 
+              className="text-xl md:text-2xl font-bold mb-6 md:mb-8 animate-fade-in-up delay-300" 
               style={{ color: "#051d40" }}
             >
               Real Opportunities in Real Estate
-            </motion.p>
+            </p>
 
             {/* Description */}
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-base md:text-lg mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4 md:px-0" 
+            <p 
+              className="text-base md:text-lg mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4 md:px-0 animate-fade-in-up delay-400" 
               style={{ color: "#737373" }}
             >
               Whalespace is now inviting you to join our team. Gain exclusive access to
               property listings, client databases, and real career growth opportunities.
-            </motion.p>
+            </p>
 
             {/* Why Work with Whalespace */}
-            <motion.h3 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-2xl md:text-3xl font-bold mb-6 md:mb-8" 
+            <h3 
+              className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 animate-fade-in-up delay-600" 
               style={{ color: "#051d40" }}
             >
               Why Work with Whalespace?
-            </motion.h3>
+            </h3>
             
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="max-w-4xl mx-auto mb-12 md:mb-16 px-4 md:px-0"
+            <div 
+              className="max-w-4xl mx-auto mb-12 md:mb-16 px-4 md:px-0 animate-fade-in-up delay-800"
             >
               <ul
                 className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 text-left"
@@ -312,37 +286,28 @@ const Join = () => {
                   </div>
                 </li>
               </ul>
-            </motion.div>
+            </div>
 
             {/* Full Support from Experts */}
-            <motion.h3
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-              className="text-2xl md:text-3xl font-bold mb-4 md:mb-6"
+            <h3
+              className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 animate-fade-in-up delay-1000"
               style={{ color: "#051d40" }}
             >
               Full Support from Experts
-            </motion.h3>
+            </h3>
             
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="text-base md:text-lg mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4 md:px-0" 
+            <p 
+              className="text-base md:text-lg mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4 md:px-0 animate-fade-in-up delay-1200" 
               style={{ color: "#737373" }}
             >
               Our experienced Whalespace team provides complete support, including
               property information, marketing (online and offline), and document
               handling— so you can focus on growing your opportunity efficiently.
-            </motion.p>
+            </p>
 
             {/* Call to Action */}
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.4 }}
-              className="text-lg md:text-xl font-semibold px-4 md:px-0" 
+            <p 
+              className="text-lg md:text-xl font-semibold px-4 md:px-0 animate-fade-in-up delay-1400" 
               style={{ color: "#737373" }}
             >
               Don't miss the chance to kickstart your career as a real estate agent
@@ -350,7 +315,7 @@ const Join = () => {
               <span style={{ color: "#051d40" }}>
                 Interested? Apply now and join the Whalespace Agent team!
               </span>
-            </motion.p>
+            </p>
           </div>
         </div>
       </section>
