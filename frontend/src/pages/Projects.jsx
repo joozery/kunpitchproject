@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { 
   Building2, 
@@ -229,13 +228,9 @@ const Projects = () => {
     const TypeIcon = getTypeIcon(project.project_type)
     
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer group"
-        onClick={() => navigate(`/project/${project.id}`)}
-      >
+              <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer group animate-fade-in-up"
+          onClick={() => navigate(`/project/${project.id}`)}
+        >
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img
@@ -305,9 +300,9 @@ const Projects = () => {
             </div>
           </div>
         </div>
-      </motion.div>
-    )
-  }
+              </div>
+      )
+    }
 
   return (
     <div className="min-h-screen bg-gray-50 font-prompt">
@@ -322,12 +317,7 @@ const Projects = () => {
           <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.85 }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-left"
-          >
+          <div className="text-left animate-fade-in-up">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
             โครงการของเรา
             </h1>
@@ -345,7 +335,7 @@ const Projects = () => {
                 <span className="font-semibold">24/7</span> บริการ
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
