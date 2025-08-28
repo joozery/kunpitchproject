@@ -14,6 +14,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCurrency } from '../lib/CurrencyContext'
 import LatestStyleCard from '../components/cards/LatestStyleCard'
+import { getStationLabelById } from '../lib/stations'
 
 const PropertyDetail = () => {
   const { id } = useParams()
@@ -762,50 +763,7 @@ const PropertyDetail = () => {
 
   const formatStationsList = (list) => {
     if (!Array.isArray(list)) return ''
-    return list.map((s) => getStationFormLabel(s)).filter(Boolean).join(', ')
-  }
-
-  // Use the exact labels from the Project form when possible
-  const getStationFormLabel = (station) => {
-    if (!station) return ''
-    if (typeof station === 'object') {
-      return station.name || station.name_th || station.label || station.title || ''
-    }
-    const id = String(station).trim()
-    // Partial map aligned with admin ProjectForm station ids → labels
-    const map = {
-      // BTS core
-      kheha: 'BTS Kheha (เคหะฯ)',
-      phraek_sa: 'BTS Phraek Sa (แพรกษา)',
-      sai_luat: 'BTS Sai Luat (สายลวด)',
-      bearing: 'BTS Bearing (แบริ่ง)',
-      udom_suk: 'BTS Udom Suk (อุดมสุข)',
-      bang_na: 'BTS Bang Na (บางนา)',
-      punnawithi: 'BTS Punnawithi (ปุณณวิถี)',
-      on_nut: 'BTS On Nut (อ่อนนุช)',
-      phra_khanong: 'BTS Phra Khanong (พระโขนง)',
-      ekkamai: 'BTS Ekkamai (เอกมัย)',
-      thong_lor: 'BTS Thong Lo (ทองหล่อ)',
-      phrom_phong: 'BTS Phrom Phong (พร้อมพงษ์)',
-      asok: 'BTS Asok (อโศก)',
-      nana: 'BTS Nana (นานา)',
-      phloen_chit: 'BTS Phloen Chit (เพลินจิต)',
-      chit_lom: 'BTS Chit Lom (ชิดลม)',
-      siam: 'BTS Siam (สยาม)',
-      ratchathewi: 'BTS Ratchathewi (ราชเทวี)',
-      phaya_thai: 'BTS Phaya Thai (พญาไท)',
-      mo_chit: 'BTS Mo Chit (หมอชิต)',
-      ari: 'BTS Ari (อารีย์)',
-      sala_daeng: 'BTS Sala Daeng (ศาลาแดง)',
-      silom: 'MRT Silom (สีลม)',
-      // MRT core
-      phetchaburi: 'MRT Phetchaburi (เพชรบุรี)',
-      sukhumvit: 'MRT Sukhumvit (สุขุมวิท)',
-      sam_yan: 'MRT Sam Yan (สามย่าน)',
-      lumphini: 'MRT Lumphini (ลุมพินี)',
-      hua_lamphong: 'MRT Hua Lamphong (หัวลำโพง)'
-    }
-    return map[id] || formatStationName(id)
+    return list.map((s) => getStationLabelById(s)).filter(Boolean).join(', ')
   }
 
   // Map amenity ids to readable Thai labels
@@ -1437,7 +1395,7 @@ const PropertyDetail = () => {
                           <div className="font-semibold text-gray-900 font-prompt">{(projectInfo && (projectInfo.developer || projectInfo.developer_name)) || property.developer || '-'}</div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-600 font-prompt">สถานี BTS:</span>
+                          <span className="text-sm text-gray-600 font-prompt">สถานีขนส่ง:</span>
                           <div className="font-semibold text-gray-900 font-prompt">
                             {(() => {
                               // Priority: projectInfo.stations > property.selectedStations > property.nearbyTransport
@@ -1536,30 +1494,42 @@ const PropertyDetail = () => {
                 {/* Project Location (from Project Details) */}
                 <div>
                   <h3 className="text-lg font-semibold text-[#243756] mb-4 font-prompt">ทำเลที่ตั้ง (โครงการ)</h3>
-                  {projectInfo ? (
-                    (() => {
-                      // ใช้ฟิลด์ที่ถูกต้องจากฟอร์มโครงการ
-                      const rawStations = projectInfo.selected_stations || []
-                      const stations = Array.isArray(rawStations) 
-                        ? rawStations
-                        : (typeof rawStations === 'string' ? [rawStations] : [])
-                      
-                      // Clean and filter valid stations
-                      const cleanStations = stations
-                        .filter(station => {
-                          if (!station) return false
-                          const stationStr = String(station).trim()
-                          return stationStr.length > 0 && 
-                                 stationStr !== '[]' && 
-                                 stationStr !== 'null' && 
-                                 stationStr !== 'undefined' &&
-                                 stationStr !== '-'
-                        })
-                        .map(station => String(station).trim())
-                      
-                      // ใช้ location_highlights จากฟอร์มโครงการ (จุดเด่นทำเล)
-                      const locationHighlights = projectInfo.location_highlights || ''
-                      if (!locationHighlights && cleanStations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
+                  {(() => {
+                    // ใช้ข้อมูลจากหลายแหล่ง: projectInfo > property > fallback
+                    const projectStations = projectInfo?.selected_stations || projectInfo?.stations || []
+                    const propertyStations = property?.selectedStations || property?.selected_stations || []
+                    const nearbyTransport = property?.nearbyTransport || property?.nearby_transport || ''
+                    
+                    // รวมข้อมูลสถานีจากทุกแหล่ง
+                    let allStations = []
+                    if (Array.isArray(projectStations)) {
+                      allStations = [...allStations, ...projectStations]
+                    }
+                    if (Array.isArray(propertyStations)) {
+                      allStations = [...allStations, ...propertyStations]
+                    }
+                    
+                    // Clean and filter valid stations
+                    const cleanStations = allStations
+                      .filter(station => {
+                        if (!station) return false
+                        const stationStr = String(station).trim()
+                        return stationStr.length > 0 && 
+                               stationStr !== '[]' && 
+                               stationStr !== 'null' && 
+                               stationStr !== 'undefined' &&
+                               stationStr !== '-'
+                      })
+                      .map(station => String(station).trim())
+                    
+                    // Remove duplicates
+                    const uniqueStations = [...new Set(cleanStations)]
+                    
+                    // ใช้ location_highlights จากฟอร์มโครงการ (จุดเด่นทำเล)
+                    const locationHighlights = projectInfo?.location_highlights || ''
+                    
+                    // Check if we have any data to show
+                    if (!locationHighlights && uniqueStations.length === 0) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                       
                       // แยกข้อมูลตามประเภท
                       const parseLocationData = (text) => {
@@ -1635,7 +1605,7 @@ const PropertyDetail = () => {
                       }
                       
                       const locationData = parseLocationData(locationHighlights)
-                      const hasData = Object.values(locationData).some(cat => cat.length > 0) || cleanStations.length > 0
+                      const hasData = Object.values(locationData).some(cat => cat.length > 0) || uniqueStations.length > 0
                       
                       if (!hasData) return <div className="text-gray-500 text-sm">ไม่ระบุ</div>
                       
@@ -1644,21 +1614,21 @@ const PropertyDetail = () => {
                           {/* แถวแรก: สถานีขนส่ง + การเดินทาง */}
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {/* สถานีขนส่ง */}
-                            {cleanStations.length > 0 && (
+                            {uniqueStations.length > 0 && (
                               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                                 <h4 className="font-semibold text-[#243756] mb-3 flex items-center gap-2">
                                   <MdOutlineTrain className="w-5 h-5 text-[#917133]" />
                                   สถานีขนส่ง
                                 </h4>
                                 <div className="space-y-2">
-                                  {cleanStations.map((station, idx) => (
+                                  {uniqueStations.map((station, idx) => (
                                     <div key={idx} className="flex items-center text-gray-700 font-prompt">
                                       <FaRegCheckCircle className="w-4 h-4 mr-2 text-[#917133]" />
-                                      <span className="text-sm">{getStationFormLabel(station)}</span>
-                      </div>
+                                      <span className="text-sm">{getStationLabelById(station)}</span>
+                                    </div>
                                   ))}
-                        </div>
-                      </div>
+                                </div>
+                              </div>
                             )}
                             
                             {/* การเดินทาง */}
@@ -1781,10 +1751,7 @@ const PropertyDetail = () => {
                           )}
                         </div>
                       )
-                    })()
-                  ) : (
-                    <div className="text-gray-500 text-sm">ไม่ระบุ</div>
-                  )}
+                    })()}
                 </div>
 
                 {/* Units in Project */}
