@@ -33,11 +33,22 @@ export const btsStations = [
   { id: 'mo_chit', name: 'BTS Mo Chit (หมอชิต)', line: 'BTS' },
   { id: 'ha_yaek_lat_phrao', name: 'BTS Ha Yaek Lat Phrao (ห้าแยกลาดพร้าว)', line: 'BTS' },
 
-  // Silom Line (key inner stations)
+  // Silom Line
+  { id: 'national_stadium', name: 'BTS National Stadium (สนามกีฬาแห่งชาติ)', line: 'BTS' },
+  { id: 'ratchadamri', name: 'BTS Ratchadamri (ราชดำริ)', line: 'BTS' },
+  { id: 'sala_daeng', name: 'BTS Sala Daeng (ศาลาแดง)', line: 'BTS' },
+  { id: 'chong_nonsi', name: 'BTS Chong Nonsi (ช่องนนทรี)', line: 'BTS' },
+  { id: 'saint_louis', name: 'BTS Saint Louis (เซนต์หลุยส์)', line: 'BTS' },
+  { id: 'surasak', name: 'BTS Surasak (สุรศักดิ์)', line: 'BTS' },
   { id: 'saphan_taksin', name: 'BTS Saphan Taksin (สะพานตากสิน)', line: 'BTS' },
+  { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
+  { id: 'wongwian_yai', name: 'BTS Wongwian Yai (วงเวียนใหญ่)', line: 'BTS' },
+  { id: 'pho_nimit', name: 'BTS Pho Nimit (โพธิ์นิมิตร)', line: 'BTS' },
+  { id: 'talat_phlu', name: 'BTS Talat Phlu (ตลาดพลู)', line: 'BTS' },
+  { id: 'wutthakat', name: 'BTS Wutthakat (วุฒากาศ)', line: 'BTS' },
+  { id: 'bang_wa', name: 'BTS Bang Wa (บางหว้า)', line: 'BTS' },
 
   // Gold Line
-  { id: 'krung_thon_buri', name: 'BTS Krung Thon Buri (กรุงธนบุรี)', line: 'BTS' },
   { id: 'charoen_nakhon', name: 'BTS Charoen Nakhon (เจริญนคร)', line: 'BTS' },
   { id: 'khlong_san', name: 'BTS Khlong San (คลองสาน)', line: 'BTS' },
 ]
