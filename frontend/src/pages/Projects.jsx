@@ -15,7 +15,8 @@ import {
   List,
   Users,
   Calendar,
-  Heart
+  Heart,
+  Bath
 } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -243,24 +244,17 @@ const Projects = () => {
               {getStatusLabel(project.status)}
             </span>
           </div>
-          <div className="absolute top-2 right-2 flex space-x-1">
-            <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
-              <Heart className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="bg-white/80 hover:bg-white">
-              <Star className="h-4 w-4" />
-            </Button>
-          </div>
+
         </div>
         
         <CardContent className="p-4">
           <div className="space-y-3">
             <div>
               <h3 className="font-semibold text-gray-900 font-prompt">{project.title}</h3>
-              <p className="text-sm text-gray-500 font-prompt">{project.location || project.address}</p>
+              <p className="text-sm text-gray-500 font-prompt">{project.title_en || project.name_en || project.title}</p>
             </div>
             
-            <div className="flex items-center space-x-4 text-sm text-gray-600 font-prompt">
+            <div className="space-y-2 text-sm text-gray-600 font-prompt">
               <div className="flex items-center space-x-1">
                 <TypeIcon className="h-4 w-4" />
                 <span>{getTypeLabel(project.project_type)}</span>
@@ -271,41 +265,42 @@ const Projects = () => {
                   <span>{project.developer}</span>
                 </div>
               )}
-              {project.completion_date && (
+              {(project.completion_date || project.completion_year) && (
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-4 w-4" />
-                  <span>{new Date(project.completion_date).getFullYear()}</span>
+                  <span>แล้วเสร็จ {project.completion_year || new Date(project.completion_date).getFullYear()}</span>
                 </div>
               )}
             </div>
             
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900 font-prompt">
-                  {project.price ? `฿${Number(project.price).toLocaleString('th-TH')}` : 'ราคาตามสอบถาม'}
-                </p>
-                {Number(project.rent_price || 0) > 0 && (
-                  <p className="text-sm text-gray-500 font-prompt">
-                    ฿{Number(project.rent_price).toLocaleString('th-TH')}/เดือน
-                  </p>
-                )}
+            {/* Statistics Boxes */}
+            <div className="flex gap-3 mt-4">
+              {/* Units Box */}
+              <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-gray-900">
+                  {project.total_units || project.bedrooms || 0}
+                </div>
+                <div className="text-xs text-gray-600">ยูนิต</div>
               </div>
-              <div className="text-sm text-gray-500 font-prompt">
-                {project.floor ? `ชั้น ${project.floor}` : '-'}
+              
+              {/* Amenities Box */}
+              <div className="flex-1 bg-blue-50 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-blue-600">
+                  {project.facilities && project.facilities.length > 0 ? project.facilities.length : 0}
+                </div>
+                <div className="text-xs text-blue-600">สิ่งอำนวยความสะดวก</div>
               </div>
             </div>
             
             <div className="flex items-center justify-between pt-2 border-t">
-              <div className="text-sm text-gray-500 font-prompt">
-                {Number(project.area || 0)} ตร.ม.
-              </div>
               <div className="flex items-center space-x-2">
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm"
                   onClick={() => navigate(`/project/${project.id}`)}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4 mr-1" />
+                  ดูรายละเอียด
                 </Button>
               </div>
             </div>
@@ -480,6 +475,19 @@ const Projects = () => {
                   console.log('All projects:', projects)
                   console.log('Project types found:', [...new Set(projects.map(p => p.project_type))])
                   console.log('Project statuses found:', [...new Set(projects.map(p => p.status))])
+                  console.log('Project details:', projects.map(p => ({ 
+                    id: p.id, 
+                    title: p.title,
+                    title_en: p.title_en,
+                    name_en: p.name_en,
+                    developer: p.developer,
+                    completion_date: p.completion_date,
+                    completion_year: p.completion_year,
+                    project_type: p.project_type,
+                    facilities: p.facilities,
+                    facilitiesLength: p.facilities?.length,
+                    allKeys: Object.keys(p)
+                  })))
                 }}
                 className="text-gray-500 hover:text-gray-700 text-sm font-medium px-3 py-1 border border-gray-300 rounded-lg"
               >
