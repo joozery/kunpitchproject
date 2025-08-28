@@ -1,7 +1,187 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
 import { bannerApi } from '../lib/bannerApi'
+
+// Custom CSS for react-slick
+const customStyles = `
+  .banner-slider {
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1200px;
+    overflow: hidden;
+  }
+  
+  .banner-slider .slick-slide {
+    outline: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .banner-slider .slick-slide > div {
+    height: 400px;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .banner-slider .slick-slide > div > div {
+    height: 400px;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .banner-slider .slick-slide img {
+    width: 100%;
+    height: 400px;
+    max-width: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+  }
+  
+  .banner-slider .slick-prev,
+  .banner-slider .slick-next {
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+  
+  .banner-slider .slick-prev:hover,
+  .banner-slider .slick-next:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .banner-slider .slick-prev {
+    left: 16px;
+  }
+  
+  .banner-slider .slick-next {
+    right: 16px;
+  }
+  
+  .banner-slider .slick-prev:before,
+  .banner-slider .slick-next:before {
+    color: #374151;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .banner-slider .slick-dots {
+    bottom: 20px;
+  }
+  
+  .banner-slider .slick-dots li button:before {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+  }
+  
+  .banner-slider .slick-dots li.slick-active button:before {
+    color: white;
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  
+  .banner-slider .slick-dots li button:hover:before {
+    opacity: 1;
+  }
+  
+  /* Desktop - Fixed size */
+  @media (min-width: 768px) {
+    .banner-slider {
+      margin: 0 auto;
+      max-width: 1200px;
+    }
+    .banner-slider .slick-slide > div {
+      height: 400px;
+    }
+    .banner-slider .slick-slide > div > div {
+      height: 400px;
+    }
+    .banner-slider .slick-slide img {
+      width: 100%;
+      height: 400px;
+      max-width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 8px;
+    }
+  }
+  
+  /* Tablet - Medium size */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .banner-slider {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+    .banner-slider .slick-slide > div {
+      height: 300px;
+    }
+    .banner-slider .slick-slide > div > div {
+      height: 300px;
+    }
+    .banner-slider .slick-slide img {
+      width: 100%;
+      height: 300px;
+      max-width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 8px;
+    }
+  }
+  
+  /* Mobile - Responsive height */
+  @media (max-width: 767px) {
+    .banner-slider {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+    .banner-slider .slick-slide > div {
+      height: 250px;
+    }
+    .banner-slider .slick-slide > div > div {
+      height: 250px;
+    }
+    .banner-slider .slick-slide img {
+      width: 100%;
+      height: 250px;
+      max-width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 8px;
+    }
+  }
+    
+    .banner-slider .slick-prev,
+    .banner-slider .slick-next {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .banner-slider .slick-prev {
+      left: 12px;
+    }
+    
+    .banner-slider .slick-next {
+      right: 12px;
+    }
+    
+    .banner-slider .slick-dots {
+      bottom: 16px;
+    }
+  }
+`
 
 const BannerSlide = () => {
   const [slides, setSlides] = useState([])
@@ -12,10 +192,20 @@ const BannerSlide = () => {
     show_navigation: true,
     show_dots: true
   })
-  const [currentSlide, setCurrentSlide] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [aspectRatio, setAspectRatio] = useState(1920 / 410)
   const [error, setError] = useState(null)
+
+  // Inject custom CSS
+  useEffect(() => {
+    const styleElement = document.createElement('style')
+    styleElement.textContent = customStyles
+    document.head.appendChild(styleElement)
+    
+    return () => {
+      document.head.removeChild(styleElement)
+    }
+  }, [])
 
   useEffect(() => {
     loadData()
@@ -86,62 +276,80 @@ const BannerSlide = () => {
     }
   }
 
-  useEffect(() => {
-    if (!settings.auto_slide || slides.length <= 1) return
-
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, settings.slide_interval)
-
-    return () => clearInterval(interval)
-  }, [slides.length, settings.auto_slide, settings.slide_interval])
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index)
-  }
-
-  // Fallback image when no image is provided
-  const getImageUrl = (slide) => {
-    if (slide?.image_url && slide.image_url.trim() !== '') {
-      return slide.image_url
-    }
-    // Return a placeholder gradient background with 4.67:1 aspect ratio
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwMCIgaGVpZ2h0PSIzMDAiIHZpZXdCb3g9IjAgMCAxNDAwIDMwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMzY2ZmYxO3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxZTRhNzE7c3RvcC1vcGFjaXR5OjEiIC8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+'
-  }
-
-  // Optimize Cloudinary images for sharpness on retina displays
-  const getOptimizedUrl = (url, width) => {
-    if (!url) return url
-    try {
-      const w = width || 1920
-      if (url.includes('res.cloudinary.com')) {
-        // Inject transformations: auto format, auto quality, device pixel ratio, and width
-        return url.replace('/upload/', `/upload/f_auto,q_auto,dpr_auto,w_${w}/`)
+  // Slick settings configuration
+  const slickSettings = {
+    dots: settings.show_dots,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: settings.auto_slide,
+    autoplaySpeed: settings.slide_interval,
+    pauseOnHover: true,
+    arrows: settings.show_navigation,
+    fade: true, // Smooth fade transition
+    cssEase: 'ease-in-out',
+    adaptiveHeight: false, // Fixed height for consistent display
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          arrows: settings.show_navigation,
+          dots: settings.show_dots,
+          fade: true,
+          adaptiveHeight: false
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          arrows: settings.show_navigation,
+          dots: settings.show_dots,
+          fade: true,
+          adaptiveHeight: false
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          arrows: false,
+          dots: settings.show_dots,
+          fade: true,
+          adaptiveHeight: false
+        }
       }
-      return url
-    } catch {
-      return url
+    ]
+  }
+
+  // Helper functions
+  const getImageUrl = (slide) => {
+    if (!slide || !slide.image_url) {
+      return 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80'
     }
+    return slide.image_url
+  }
+
+  const getOptimizedUrl = (url, width = 1920) => {
+    if (!url || url.includes('unsplash.com')) return url
+    
+    // Cloudinary optimization
+    if (url.includes('res.cloudinary.com')) {
+      const baseUrl = url.split('/upload/')[0] + '/upload/'
+      const imagePath = url.split('/upload/')[1]
+      return `${baseUrl}f_auto,q_auto,dpr_auto,w_${width}/${imagePath}`
+    }
+    
+    return url
   }
 
   if (isLoading) {
     return (
-      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div 
-            className="w-full bg-gray-200 animate-pulse rounded-xl md:rounded-2xl"
-            style={{ 
-              height: '300px'
-            }}
-          />
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">กำลังโหลด Banner...</p>
+          </div>
         </div>
       </section>
     )
@@ -150,7 +358,7 @@ const BannerSlide = () => {
   if (error && slides.length === 0) {
     console.error('BannerSlide error:', error)
     return (
-      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-4">Banner Section</h3>
@@ -165,7 +373,7 @@ const BannerSlide = () => {
   if (slides.length === 0) {
     console.log('⚠️  No banner slides found, showing fallback UI');
     return (
-      <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-4">Banner Section</h3>
@@ -178,78 +386,49 @@ const BannerSlide = () => {
   }
 
   return (
-    <section className="py-8 md:py-12 lg:py-16 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="relative overflow-hidden">
+      <div className="w-full mx-auto px-0 flex justify-center">
         <div 
-          className="relative w-full overflow-hidden rounded-xl md:rounded-2xl shadow-lg md:shadow-xl"
+          className="relative w-full overflow-hidden"
           style={{ 
-            aspectRatio: aspectRatio,
-            maxHeight: `${settings.slide_height || 300}px`,
-            borderRadius: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            margin: '0 auto',
+            padding: 0,
+            width: '1200px',
+            height: '400px',
+            maxWidth: '100%',
+            '@media (max-width: 767px)': {
+              width: '100%',
+              height: '250px'
+            }
           }}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute inset-0"
-            >
-              <a href={slides[currentSlide]?.link || '#'} className="block w-full h-full">
-                <img
-                  src={getOptimizedUrl(getImageUrl(slides[currentSlide]), Math.min(2560, Math.round(window.innerWidth * 1.5)))}
-                  alt={slides[currentSlide]?.alt_text || 'Banner'}
-                  className="w-full h-full object-cover"
-                  onLoad={(e) => {
-                    const w = e.target.naturalWidth || 1920
-                    const h = e.target.naturalHeight || 410
-                    if (w > 0 && h > 0) setAspectRatio(w / h)
-                  }}
-                  onError={(e) => {
-                    e.target.src = getImageUrl(null) // Use fallback on error
-                  }}
-                />
-              </a>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation Arrows */}
-          {settings.show_navigation && slides.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
-              </button>
-            </>
-          )}
-
-          {/* Dots */}
-          {settings.show_dots && slides.length > 1 && (
-            <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 md:space-x-3">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-200 shadow-lg ${
-                    index === currentSlide
-                      ? 'bg-white scale-125'
-                      : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+          <Slider {...slickSettings} className="banner-slider">
+            {slides.map((slide, index) => (
+              <div key={slide.id || index} className="relative w-full h-full">
+                <a href={slide.link || '#'} className="block w-full h-full">
+                  <img
+                    src={getOptimizedUrl(getImageUrl(slide), 1200)}
+                    alt={slide.alt_text || 'Banner'}
+                    className="w-full"
+                    style={{
+                      height: '400px',
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                      borderRadius: '8px'
+                    }}
+                    onLoad={(e) => {
+                      const w = e.target.naturalWidth || 1200
+                      const h = e.target.naturalHeight || 400
+                      if (w > 0 && h > 0) setAspectRatio(w / h)
+                    }}
+                    onError={(e) => {
+                      e.target.src = getImageUrl(null) // Use fallback on error
+                    }}
+                  />
+                </a>
+              </div>
+            ))}
+          </Slider>
         </div>
       </div>
     </section>
