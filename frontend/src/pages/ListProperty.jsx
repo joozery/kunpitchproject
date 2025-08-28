@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { 
   Building2, 
@@ -89,46 +88,33 @@ const ListProperty = () => {
     <div className="max-w-6xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="text-center mb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-3 mb-4"
-        >
+        <div className="inline-flex items-center gap-3 mb-4 animate-fade-in-up">
           <div className="w-6 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
           <span className="text-blue-600 font-prompt text-sm md:text-base lg:text-lg uppercase tracking-wider font-medium">List Your Property</span>
           <div className="w-6 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-        </motion.div>
+        </div>
         
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 font-prompt text-gray-900"
+        <h1 
+          className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 font-prompt text-gray-900 animate-fade-in-up delay-200"
         >
           List Your Property
-        </motion.h1>
+        </h1>
         
-        <motion.p 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-base text-gray-600 max-w-3xl mx-auto font-prompt leading-relaxed"
+        <p 
+          className="text-base text-gray-600 max-w-3xl mx-auto font-prompt leading-relaxed animate-fade-in-up delay-400"
         >
           Choose the property type you want to list for sale or rent. 
           We'll help you create an attractive listing that reaches the right customers.
-        </motion.p>
+        </p>
       </div>
 
       {/* Property Type Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         {propertyTypes.map((type, index) => (
-          <motion.div
+          <div
             key={type.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 * index }}
-            className="group cursor-pointer"
+            className="group cursor-pointer animate-fade-in-up"
+            style={{ animationDelay: `${0.1 * index}s` }}
             onClick={() => handleTypeSelect(type)}
           >
             <div className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-transparent hover:border-blue-200 h-full">
@@ -167,17 +153,12 @@ const ListProperty = () => {
               {/* Hover Effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Benefits Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 mb-16"
-      >
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 mb-16 animate-fade-in-up delay-600">
         <h2 className="text-xl font-bold text-gray-900 mb-8 text-center font-prompt">
           Why Choose Us?
         </h2>
@@ -207,15 +188,10 @@ const ListProperty = () => {
             <p className="text-gray-600 font-prompt leading-relaxed text-sm">Listings will be published on multiple platforms to reach more customers</p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Contact Info */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.8 }}
-        className="text-center"
-      >
+      <div className="text-center animate-fade-in-up delay-800">
         <p className="text-gray-600 mb-4 font-prompt text-base">
           Have questions or need help?
         </p>
@@ -226,9 +202,9 @@ const ListProperty = () => {
           Contact Us
           <ArrowRight className="h-5 w-5" />
         </button>
-      </motion.div>
-    </div>
-  )
+              </div>
+      </div>
+    )
 
   const renderForm = () => {
     if (!selectedType) return null
@@ -236,24 +212,16 @@ const ListProperty = () => {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Back Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+        <button
           onClick={handleBackToSelection}
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-8 font-prompt transition-colors duration-300 text-base"
+          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-8 font-prompt transition-colors duration-300 text-base animate-fade-in-left"
         >
           <ArrowLeft className="h-5 w-5" />
           Back to Property Type Selection
-        </motion.button>
+        </button>
 
         {/* Form Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className={`w-12 h-12 bg-gradient-to-r ${selectedType.color} rounded-2xl flex items-center justify-center`}>
               <selectedType.icon className="h-6 w-6 text-white" />
@@ -266,14 +234,10 @@ const ListProperty = () => {
           <p className="text-base text-gray-600 max-w-2xl mx-auto font-prompt leading-relaxed">
             Fill in your property details completely so our team can help create an attractive listing.
           </p>
-        </motion.div>
+        </div>
 
         {/* Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
+        <div className="animate-fade-in-up delay-200">
           {selectedType.id === 'condo' ? (
             <CondoForm
               condo={null}
@@ -321,7 +285,7 @@ const ListProperty = () => {
               onSubmit={handleFormSubmit}
             />
           )}
-        </motion.div>
+        </div>
       </div>
     )
   }
