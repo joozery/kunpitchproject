@@ -97,8 +97,8 @@ const Properties = () => {
         return 'เชิงพาณิชย์'
       default:
         return type
-      }
     }
+  }
 
   const getStatusLabel = (status) => {
     const statusText = {
@@ -346,7 +346,7 @@ const Properties = () => {
                                  <span>ผู้พัฒนา: {project.developer}</span>
                                )}
                                <div className="flex items-center">
-                                 <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                               <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
                                  <span>{project.views || clickCounts[project.id] || 0}</span>
                                </div>
                              </div>
@@ -400,17 +400,17 @@ const Properties = () => {
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
                         
                         <div className="relative">
-                                                  <img
+                          <img
                           src={project.cover_image || (project.images && project.images.length > 0 ? project.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')}
                           alt={project.title}
-                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                        
-                        {/* Enhanced Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        
-                        <div className="absolute top-4 left-4">
-                          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
+                            className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          
+                          {/* Enhanced Gradient Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                          
+                          <div className="absolute top-4 left-4">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
                             {getTypeLabel(project.project_type)}
                             </div>
                           </div>
@@ -462,7 +462,7 @@ const Properties = () => {
                                   <span>ผู้พัฒนา: {project.developer}</span>
                                 )}
                                 <div className="flex items-center">
-                                  <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                                <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
                                   <span>{project.views || clickCounts[project.id] || 0}</span>
                                 </div>
                               </div>

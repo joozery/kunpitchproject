@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { 
   Phone, 
@@ -105,12 +104,7 @@ const Consult = () => {
         <Header />
         <div className="pt-20">
           <div className="max-w-2xl mx-auto px-6 text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-2xl p-12 shadow-xl"
-            >
+            <div className="bg-white rounded-2xl p-12 shadow-xl animate-fade-in-scale">
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="h-10 w-10 text-white" />
               </div>
@@ -126,7 +120,7 @@ const Consult = () => {
               >
                 Back to Home
               </button>
-            </motion.div>
+            </div>
           </div>
         </div>
         <Footer />
@@ -141,51 +135,30 @@ const Consult = () => {
       <div className="pt-20">
         <div className="max-w-6xl mx-auto px-6">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="inline-flex items-center gap-3 mb-4"
-            >
+          <div className="text-center mb-16 animate-fade-in-up">
+            <div className="inline-flex items-center gap-3 mb-4 animate-fade-in-up delay-200">
               <div className="w-6 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
               <span className="text-blue-600 font-prompt text-sm md:text-base lg:text-lg uppercase tracking-wider">Contact Us</span>
               <div className="w-6 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            </motion.div>
+            </div>
             
-            <motion.h1 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 font-prompt text-gray-900"
+            <h1 
+              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 font-prompt text-gray-900 animate-fade-in-up delay-400"
             >
               Contact Us
-            </motion.h1>
+            </h1>
             
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-base text-gray-600 max-w-3xl mx-auto font-prompt"
+            <p 
+              className="text-base text-gray-600 max-w-3xl mx-auto font-prompt animate-fade-in-up delay-600"
             >
               Have questions or need help with real estate? 
               We're ready to provide consultation and services for you.
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white rounded-2xl p-8 shadow-xl"
-            >
+            <div className="bg-white rounded-2xl p-8 shadow-xl animate-fade-in-left delay-200">
               <h2 className="text-lg font-bold text-gray-900 mb-6 font-prompt">Send us a Message</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -278,29 +251,22 @@ const Consult = () => {
                   )}
                 </button>
               </form>
-            </motion.div>
+            </div>
 
             {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6 animate-fade-in-right delay-400">
               <div className="bg-white rounded-2xl p-8 shadow-xl">
                 <h2 className="text-lg font-bold text-gray-900 mb-6 font-prompt">Contact Channels</h2>
                 
                 <div className="space-y-4">
                   {contactInfo.map((contact, index) => (
-                    <motion.a
+                    <a
                       key={index}
                       href={contact.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.1 * index }}
-                      className="flex items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group"
+                      className="flex items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group animate-fade-in-up"
+                      style={{ animationDelay: `${0.1 * index}s` }}
                     >
                       <div className={`w-12 h-12 bg-gradient-to-r ${contact.color} rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
                         <contact.icon className="h-6 w-6 text-white" />
@@ -309,7 +275,7 @@ const Consult = () => {
                         <h3 className="font-semibold text-gray-900 font-prompt">{contact.title}</h3>
                         <p className="text-gray-600 font-prompt">{contact.value}</p>
                       </div>
-                    </motion.a>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -341,7 +307,7 @@ const Consult = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

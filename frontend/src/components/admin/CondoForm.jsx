@@ -1320,11 +1320,11 @@ const CondoForm = ({ condo = null, onBack, onSave, isEditing = false }) => {
       seo_tags: toStringArray(formData.seoTags),
       selected_project: toStringOrNull(formData.selectedProject),
       available_date: toStringOrNull(formData.availableDate),
-      images: images.filter(img => img.url && !img.uploading).map(img => ({
-        url: img.url,
-        public_id: img.public_id
-      })),
-      cover_image: coverImage?.url || null,
+        images: images.filter(img => img.url && !img.uploading).map(img => ({
+          url: img.url,
+          public_id: img.public_id
+        })),
+        cover_image: coverImage?.url || null,
       amenities: toArray(selectedAmenities),
       special_features: toObject(formData.specialFeatures),
       youtube_url: toStringOrNull(formData.youtubeUrl),

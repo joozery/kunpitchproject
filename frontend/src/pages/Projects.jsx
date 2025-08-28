@@ -41,6 +41,8 @@ const Projects = () => {
         setLoading(true)
         const result = await projectApi.getAll()
         if (result.success) {
+          console.log('Projects from API:', result.data)
+          console.log('Sample project structure:', result.data[0])
           setProjects(result.data)
           setFilteredProjects(result.data)
         }
@@ -56,6 +58,10 @@ const Projects = () => {
 
   // Filter projects
   useEffect(() => {
+    console.log('Filtering projects...')
+    console.log('Current filters:', { searchTerm, filterType, filterStatus })
+    console.log('Total projects:', projects.length)
+    
     let filtered = projects.filter(project => {
       // Search filter - search in multiple fields
       const searchLower = searchTerm.toLowerCase().trim()
@@ -68,27 +74,73 @@ const Projects = () => {
         project.developer?.toLowerCase().includes(searchLower) ||
         project.project_type?.toLowerCase().includes(searchLower)
 
-      // Type filter
-      const matchesType = filterType === 'all' || project.project_type === filterType
-
-      // Status filter
-      const matchesStatus = filterStatus === 'all' || project.status === filterStatus
+      // Type filter - handle multiple possible field names and values
+      let matchesType = filterType === 'all'
+      if (filterType !== 'all') {
+        const projectType = project.project_type || project.type || project.property_type
+        const filterTypeLower = filterType.toLowerCase()
+        
+        // Try exact match first
+        matchesType = projectType === filterType || 
+                     projectType === filterTypeLower ||
+                     projectType?.toLowerCase() === filterTypeLower
+        
+        // If no exact match, try partial match
+        if (!matchesType && projectType) {
+          matchesType = projectType.toLowerCase().includes(filterTypeLower) ||
+                       filterTypeLower.includes(projectType.toLowerCase())
+        }
+        
+        // Debug logging for type filter
+        console.log(`Project ${project.id}: project_type="${projectType}", filterType="${filterType}", matchesType=${matchesType}`)
+      }
+      
+      // Status filter - handle multiple possible field names and values
+      let matchesStatus = filterStatus === 'all'
+      if (filterStatus !== 'all') {
+        const projectStatus = project.status || project.listing_type || project.property_status
+        const filterStatusLower = filterStatus.toLowerCase()
+        
+        // Try exact match first
+        matchesStatus = projectStatus === filterStatus || 
+                       projectStatus === filterStatusLower ||
+                       projectStatus?.toLowerCase() === filterStatusLower
+        
+        // If no exact match, try partial match
+        if (!matchesStatus && projectStatus) {
+          matchesStatus = projectStatus.toLowerCase().includes(filterStatusLower) ||
+                         filterStatusLower.includes(projectStatus.toLowerCase())
+        }
+      }
       
       return matchesSearch && matchesType && matchesStatus
     })
 
+    console.log('Filtered results:', filtered.length)
     setFilteredProjects(filtered)
   }, [projects, searchTerm, filterType, filterStatus])
 
   const getTypeLabel = (type) => {
-    switch (type) {
+    if (!type) return 'ไม่ระบุ'
+    
+    const typeLower = type.toLowerCase()
+    switch (typeLower) {
       case 'condo':
+      case 'condominium':
+      case 'คอนโด':
+      case 'คอนโดมิเนียม':
         return 'คอนโดมิเนียม'
       case 'house':
+      case 'residential':
+      case 'บ้าน':
+      case 'บ้านเดี่ยว':
         return 'บ้านเดี่ยว/ทาวน์เฮาส์'
       case 'land':
+      case 'ที่ดิน':
         return 'ที่ดิน'
       case 'commercial':
+      case 'พาณิชย์':
+      case 'เชิงพาณิชย์':
         return 'เชิงพาณิชย์'
       default:
         return type
@@ -96,32 +148,62 @@ const Projects = () => {
   }
 
   const getStatusLabel = (status) => {
+    if (!status) return 'ไม่ระบุ'
+    
+    const statusLower = status.toLowerCase()
     const statusText = {
       'sale': 'ขาย',
+      'for_sale': 'ขาย',
+      'ขาย': 'ขาย',
       'rent': 'เช่า',
-      'both': 'ขาย/เช่า'
+      'for_rent': 'เช่า',
+      'เช่า': 'เช่า',
+      'both': 'ขาย/เช่า',
+      'sale_rent': 'ขาย/เช่า',
+      'ขาย/เช่า': 'ขาย/เช่า'
     }
-    return statusText[status] || status
+    return statusText[statusLower] || status
   }
 
   const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-800'
+    
+    const statusLower = status.toLowerCase()
     const colors = {
       'sale': 'bg-green-100 text-green-800',
+      'for_sale': 'bg-green-100 text-green-800',
+      'ขาย': 'bg-green-100 text-green-800',
       'rent': 'bg-blue-100 text-blue-800',
-      'both': 'bg-purple-100 text-purple-800'
+      'for_rent': 'bg-blue-100 text-blue-800',
+      'เช่า': 'bg-blue-100 text-blue-800',
+      'both': 'bg-purple-100 text-purple-800',
+      'sale_rent': 'bg-purple-100 text-purple-800',
+      'ขาย/เช่า': 'bg-purple-100 text-purple-800'
     }
-    return colors[status] || 'bg-gray-100 text-gray-800'
+    return colors[statusLower] || 'bg-gray-100 text-gray-800'
   }
 
   const getTypeIcon = (type) => {
-    switch (type) {
+    if (!type) return Building2
+    
+    const typeLower = type.toLowerCase()
+    switch (typeLower) {
       case 'condo':
+      case 'condominium':
+      case 'คอนโด':
+      case 'คอนโดมิเนียม':
         return Building2
       case 'house':
+      case 'residential':
+      case 'บ้าน':
+      case 'บ้านเดี่ยว':
         return Home
       case 'land':
+      case 'ที่ดิน':
         return Landmark
       case 'commercial':
+      case 'พาณิชย์':
+      case 'เชิงพาณิชย์':
         return Store
       default:
         return Building2
@@ -193,8 +275,8 @@ const Projects = () => {
             <div className="flex items-center text-gray-600 mb-2 text-sm">
               <Users className="h-4 w-4 mr-2 text-gray-500" />
               <span>{project.developer}</span>
-            </div>
-          )}
+              </div>
+            )}
           
           {/* Completion Date */}
           {project.completion_date && (
@@ -231,7 +313,7 @@ const Projects = () => {
     <div className="min-h-screen bg-gray-50 font-prompt">
       {/* Header */}
       <Header />
-
+      
       {/* Hero Section */}
       <div className="relative text-white py-20">
         {/* Background image */}
@@ -247,7 +329,7 @@ const Projects = () => {
             className="text-left"
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
-              โครงการของเรา
+            โครงการของเรา
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl font-prompt">
               ค้นพบโครงการคุณภาพจาก Whale Space Development ตั้งแต่คอนโดหรู บ้านเดี่ยว ไปจนถึงที่ดินเชิงพาณิชย์
@@ -390,15 +472,28 @@ const Projects = () => {
                 </span>
               )}
             </p>
-            {hasActiveFilters && (
+            <div className="flex items-center gap-2">
+              {/* Debug Button */}
               <button
-                onClick={clearFilters}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                onClick={() => {
+                  console.log('All projects:', projects)
+                  console.log('Project types found:', [...new Set(projects.map(p => p.project_type))])
+                  console.log('Project statuses found:', [...new Set(projects.map(p => p.status))])
+                }}
+                className="text-gray-500 hover:text-gray-700 text-sm font-medium px-3 py-1 border border-gray-300 rounded-lg"
               >
-                <Filter className="h-4 w-4" />
-                ล้างฟิลเตอร์ทั้งหมด
+                Debug Info
               </button>
-            )}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                >
+                  <Filter className="h-4 w-4" />
+                  ล้างฟิลเตอร์ทั้งหมด
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Loading State */}
