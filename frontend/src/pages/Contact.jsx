@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Mail, 
   Phone, 
@@ -85,12 +84,7 @@ const Contact = () => {
         {/* Hero Section */}
         <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center"
-            >
+            <div className="text-center animate-fade-in-up">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
                 ติดต่อเรา
               </h1>
@@ -98,19 +92,14 @@ const Contact = () => {
                 เราพร้อมให้คำปรึกษาและบริการเกี่ยวกับอสังหาริมทรัพย์ 
                 ติดต่อเราได้ทุกช่องทางที่สะดวก
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-8"
-            >
+            <div className="bg-white rounded-2xl shadow-xl p-8 animate-fade-in-left delay-200">
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   ส่งข้อความถึงเรา
@@ -216,16 +205,11 @@ const Contact = () => {
                     </>
                   )}
                 </button>
-              </form>
-            </motion.div>
+                              </form>
+              </div>
 
             {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="space-y-8"
-            >
+            <div className="space-y-8 animate-fade-in-right delay-400">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   ข้อมูลติดต่อ
@@ -238,12 +222,10 @@ const Contact = () => {
 
               <div className="space-y-6">
                 {contactInfo.map((item, index) => (
-                  <motion.div
+                  <div
                     key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                    className="flex items-start gap-4 p-6 bg-white rounded-xl shadow-lg"
+                    className="flex items-start gap-4 p-6 bg-white rounded-xl shadow-lg animate-fade-in-up"
+                    style={{ animationDelay: `${0.6 + index * 0.1}s` }}
                   >
                     <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                       <item.icon className="w-6 h-6 text-blue-600" />
@@ -258,18 +240,13 @@ const Contact = () => {
                       <p className="text-gray-600 text-sm">
                         {item.description}
                       </p>
+                                          </div>
                     </div>
-                  </motion.div>
-                ))}
+                  ))}
               </div>
 
               {/* Additional Info */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.0 }}
-                className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100"
-              >
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 animate-fade-in-up delay-1000">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-blue-600" />
                   เกี่ยวกับ Whale Space
@@ -278,18 +255,13 @@ const Contact = () => {
                   Whale Space เป็นบริษัทอสังหาริมทรัพย์ชั้นนำที่ให้บริการครบวงจร 
                   ตั้งแต่การซื้อขาย เช่า จัดการ และให้คำปรึกษาเกี่ยวกับอสังหาริมทรัพย์ 
                   เรามีประสบการณ์มากกว่า 10 ปี และพร้อมให้บริการลูกค้าทุกคน
-                </p>
-              </motion.div>
-            </motion.div>
+                                  </p>
+                </div>
+              </div>
           </div>
 
           {/* Map Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="mt-16"
-          >
+          <div className="mt-16 animate-fade-in-up delay-1200">
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 ตำแหน่งสำนักงาน
@@ -300,10 +272,10 @@ const Contact = () => {
                   <p className="text-lg">แผนที่ Google Maps</p>
                   <p className="text-sm">123 ถนนสุขุมวิท, กรุงเทพฯ 10110</p>
                 </div>
+                              </div>
               </div>
             </div>
-          </motion.div>
-        </div>
+          </div>
       </div>
 
       <Footer />
