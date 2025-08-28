@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Calendar, User, Eye, Clock, ArrowLeft, Share2, Bookmark, Heart, MessageCircle } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -897,12 +896,7 @@ const ArticleDetail = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-prompt">
         <Header />
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
-        >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 animate-fade-in-up">
           <div className="text-center bg-white rounded-3xl shadow-xl p-12">
             <div className="text-6xl mb-6">📰</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">ไม่พบบทความ</h1>
@@ -915,7 +909,7 @@ const ArticleDetail = () => {
               กลับไปหน้า Articles
             </Link>
           </div>
-        </motion.div>
+        </div>
         <Footer />
       </div>
     )
@@ -926,12 +920,7 @@ const ArticleDetail = () => {
       <Header />
       
       {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative h-[50vh] md:h-[60vh] overflow-hidden"
-      >
+      <div className="relative h-[50vh] md:h-[60vh] overflow-hidden animate-fade-in-up">
         <div className="absolute inset-0">
           <img 
             src={article.cover} 
@@ -943,12 +932,7 @@ const ArticleDetail = () => {
         
         <div className="relative h-full flex items-end">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12 w-full">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-4"
-            >
+            <div className="space-y-4 animate-fade-in-up delay-200">
               <Link 
                 to="/articles" 
                 className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors duration-300 text-sm"
@@ -996,18 +980,13 @@ const ArticleDetail = () => {
                   <span>{article.views?.toLocaleString()}</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Article Content */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 md:-mt-8 relative z-10"
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 md:-mt-8 relative z-10 animate-fade-in-up delay-400">
         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden">
           {/* Action Bar */}
           <div className="border-b border-gray-100 px-6 md:px-12 py-4 md:py-6">
@@ -1111,15 +1090,10 @@ const ArticleDetail = () => {
 
 
         </div>
-      </motion.div>
+      </div>
 
       {/* Related Articles */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16"
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 animate-fade-in-up delay-600">
         <h3 className="text-xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">บทความที่เกี่ยวข้อง</h3>
         <div className="text-center">
           <Link 
@@ -1130,7 +1104,7 @@ const ArticleDetail = () => {
             <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 rotate-180" />
           </Link>
         </div>
-      </motion.div>
+      </div>
 
       <Footer />
     </div>
