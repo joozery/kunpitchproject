@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon } from 'lucide-react'
-import { propertyAPI } from '../lib/api'
+import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Calendar, Users, MapPin as MapPinIcon, Star } from 'lucide-react'
+import { projectApi } from '../lib/projectApi'
 import Header from '../components/Header'
 import { useCurrency } from '../lib/CurrencyContext'
 
 const Properties = () => {
   const { convert, format } = useCurrency()
-  const [properties, setProperties] = useState([])
-  const [filteredProperties, setFilteredProperties] = useState([])
+  const [projects, setProjects] = useState([])
+  const [filteredProjects, setFilteredProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
@@ -20,51 +20,52 @@ const Properties = () => {
   const [clickCounts, setClickCounts] = useState({})
 
   // Handle card click
-  const handleCardClick = (propertyId, propertyType) => {
+  const handleCardClick = (projectId, projectType) => {
     setClickCounts(prev => ({
       ...prev,
-      [propertyId]: (prev[propertyId] || 0) + 1
+      [projectId]: (prev[projectId] || 0) + 1
     }))
     
     // Log click for analytics
-    console.log(`Properties page card clicked: ${propertyType} - ID: ${propertyId}, Clicks: ${(clickCounts[propertyId] || 0) + 1}`)
+    console.log(`Properties page card clicked: ${projectType} - ID: ${projectId}, Clicks: ${(clickCounts[projectId] || 0) + 1}`)
     
     // Here you can add API call to save click data to database
-    // saveClickData(propertyId, propertyType)
+    // saveClickData(projectId, projectType)
   }
 
-  // Fetch properties
+  // Fetch projects
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchProjects = async () => {
       try {
         setLoading(true)
-        const result = await propertyAPI.getAll()
+        const result = await projectApi.getAll()
         if (result.success) {
-          setProperties(result.data)
-          setFilteredProperties(result.data)
+          setProjects(result.data)
+          setFilteredProjects(result.data)
         }
       } catch (error) {
-        console.error('Failed to fetch properties:', error)
+        console.error('Failed to fetch projects:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProperties()
+    fetchProjects()
   }, [])
 
-  // Filter properties
+  // Filter projects
   useEffect(() => {
-    let filtered = properties.filter(property => {
-      const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           property.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           property.location?.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesType = filterType === 'all' || property.type === filterType
-      const matchesStatus = filterStatus === 'all' || property.status === filterStatus
+    let filtered = projects.filter(project => {
+      const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           project.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           project.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           project.developer?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType = filterType === 'all' || project.project_type === filterType
+      const matchesStatus = filterStatus === 'all' || project.status === filterStatus
       
       let matchesPrice = true
       if (filterPrice !== 'all') {
-        const price = property.price || 0
+        const price = project.starting_price || project.price || 0
         switch (filterPrice) {
           case '0-1000000':
             matchesPrice = price >= 0 && price <= 1000000
@@ -81,50 +82,40 @@ const Properties = () => {
       return matchesSearch && matchesType && matchesStatus && matchesPrice
     })
 
-    setFilteredProperties(filtered)
-  }, [properties, searchTerm, filterType, filterStatus, filterPrice])
+    setFilteredProjects(filtered)
+  }, [projects, searchTerm, filterType, filterStatus, filterPrice])
 
   const getTypeLabel = (type) => {
     switch (type) {
-      case 'residential':
-        return 'ที่อยู่อาศัย'
-      case 'commercial':
-        return 'เชิงพาณิชย์'
+      case 'condo':
+        return 'คอนโดมิเนียม'
+      case 'house':
+        return 'บ้านเดี่ยว/ทาวน์เฮาส์'
       case 'land':
         return 'ที่ดิน'
+      case 'commercial':
+        return 'เชิงพาณิชย์'
       default:
         return type
+      }
     }
-  }
 
   const getStatusLabel = (status) => {
-    switch (status) {
-      case 'available':
-        return 'พร้อมขาย'
-      case 'sold':
-        return 'ขายแล้ว'
-      case 'rented':
-        return 'เช่าแล้ว'
-      case 'pending':
-        return 'รอการยืนยัน'
-      default:
-        return status
+    const statusText = {
+      'sale': 'ขาย',
+      'rent': 'เช่า',
+      'both': 'ขาย/เช่า'
     }
+    return statusText[status] || status
   }
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800'
-      case 'sold':
-        return 'bg-red-100 text-red-800'
-      case 'rented':
-        return 'bg-blue-100 text-blue-800'
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+    const colors = {
+      'sale': 'bg-green-100 text-green-800',
+      'rent': 'bg-blue-100 text-blue-800',
+      'both': 'bg-purple-100 text-purple-800'
     }
+    return colors[status] || 'bg-gray-100 text-gray-800'
   }
 
   const formatPrice = (price) => {
@@ -192,9 +183,10 @@ const Properties = () => {
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">ประเภททั้งหมด</option>
-                <option value="residential">ที่อยู่อาศัย</option>
-                <option value="commercial">เชิงพาณิชย์</option>
+                <option value="condo">คอนโดมิเนียม</option>
+                <option value="house">บ้านเดี่ยว/ทาวน์เฮาส์</option>
                 <option value="land">ที่ดิน</option>
+                <option value="commercial">เชิงพาณิชย์</option>
               </select>
 
               <select
@@ -203,10 +195,9 @@ const Properties = () => {
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">สถานะทั้งหมด</option>
-                <option value="available">พร้อมขาย</option>
-                <option value="sold">ขายแล้ว</option>
-                <option value="rented">เช่าแล้ว</option>
-                <option value="pending">รอการยืนยัน</option>
+                <option value="sale">ขาย</option>
+                <option value="rent">เช่า</option>
+                <option value="both">ขาย/เช่า</option>
               </select>
 
               <select
@@ -250,7 +241,7 @@ const Properties = () => {
               {/* Results Count */}
               <div className="mb-8">
                 <p className="text-gray-600 font-prompt">
-                  Found {filteredProperties.length} Properties
+                  พบ {filteredProjects.length} โครงการ
                 </p>
               </div>
 
@@ -267,10 +258,10 @@ const Properties = () => {
               {/* Grid View */}
               {viewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property, index) => (
+                  {filteredProjects.length > 0 ? (
+                    filteredProjects.map((project, index) => (
                     <motion.div
-                      key={property.id}
+                      key={project.id}
                         initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -293,8 +284,8 @@ const Properties = () => {
                         
                       <div className="relative">
                         <img
-                          src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
-                          alt={property.title}
+                          src={project.cover_image || (project.images && project.images.length > 0 ? project.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')}
+                          alt={project.title}
                             className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
                           />
                           
@@ -303,45 +294,66 @@ const Properties = () => {
                           
                           <div className="absolute top-4 left-4">
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
-                          {getTypeLabel(property.type)}
+                          {getTypeLabel(project.project_type)}
                         </div>
                           </div>
-                          <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 ${getStatusColor(property.status)}`}>
-                          {getStatusLabel(property.status)}
+                          <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 ${getStatusColor(project.status)}`}>
+                          {getStatusLabel(project.status)}
                         </div>
                         
                       </div>
                       <div className="p-6">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300">{property.title}</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300">{project.title}</h3>
                         <p className="text-gray-600 mb-4 font-prompt flex items-center">
                             <MapPin className="h-4 w-4 mr-2 text-blue-500" />
-                          {property.location || property.address}
+                          {project.location || project.address}
                         </p>
+                        
+                        {/* Project Details */}
+                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                          {project.area && (
+                            <div className="flex items-center text-gray-500">
+                              <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                              <span>พื้นที่: {Number(project.area || 0)} ตร.ม.</span>
+                            </div>
+                          )}
+                          {project.floor && (
+                            <div className="flex items-center text-gray-500">
+                              <Building2 className="h-4 w-4 mr-2 text-purple-500" />
+                              <span>ชั้น: {project.floor}</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <div className="flex items-center space-x-1">
                                 <HomeIcon className="h-4 w-4 text-blue-500" />
-                              <span>{property.bedrooms || 0}</span>
+                              <span>{project.bedrooms || 0} ห้องนอน</span>
                             </div>
                             <div className="flex items-center space-x-1">
                                 <Building2 className="h-4 w-4 text-blue-500" />
-                              <span>{property.bathrooms || 0}</span>
+                              <span>{project.bathrooms || 0} ห้องน้ำ</span>
                             </div>
                           </div>
                           <div className="text-right">
-                             <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.price))}</div>
-                             {property.rent_price > 0 && (
-                               <div className="text-sm text-gray-500">{format(convert(property.rent_price))}/เดือน</div>
+                             <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(project.price || 0))}</div>
+                             {Number(project.rent_price || 0) > 0 && (
+                               <div className="text-sm text-gray-500">{format(convert(project.rent_price))}/เดือน</div>
                              )}
-                             {/* Click Count near Price */}
-                             <div className="flex items-center justify-end mt-2 text-sm text-gray-500">
-                               <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                               <span>{clickCounts[property.id] || 0} ครั้ง</span>
+                             {/* Developer and Views */}
+                             <div className="flex items-center justify-between mt-2 text-sm text-gray-500">
+                               {project.developer && (
+                                 <span>ผู้พัฒนา: {project.developer}</span>
+                               )}
+                               <div className="flex items-center">
+                                 <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                                 <span>{project.views || clickCounts[project.id] || 0}</span>
+                               </div>
                              </div>
                            </div>
                           </div>
                           <button className="w-full bg-gradient-to-r from-blue-600 via-gray-600 to-yellow-500 text-white py-3 rounded-xl font-bold transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group-hover:from-blue-500 group-hover:via-gray-500 group-hover:to-yellow-400 relative overflow-hidden"
-                           onClick={() => handleCardClick(property.id, property.type)}
+                           onClick={() => handleCardClick(project.id, project.project_type)}
                          >
                             <span className="relative z-10">ดูรายละเอียด</span>
                             <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
@@ -354,7 +366,7 @@ const Properties = () => {
                     ))
                   ) : (
                     <div className="col-span-full text-center py-12">
-                      <div className="text-gray-500 text-lg">No properties found matching your search</div>
+                      <div className="text-gray-500 text-lg">ไม่พบโครงการที่ตรงกับการค้นหา</div>
                     </div>
                   )}
                 </div>
@@ -363,10 +375,10 @@ const Properties = () => {
               {/* List View */}
               {viewMode === 'list' && (
                 <div className="space-y-6">
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property, index) => (
+                  {filteredProjects.length > 0 ? (
+                    filteredProjects.map((project, index) => (
                     <motion.div
-                      key={property.id}
+                      key={project.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -388,55 +400,76 @@ const Properties = () => {
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
                         
                         <div className="relative">
-                          <img
-                            src={property.images && property.images.length > 0 ? property.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
-                            alt={property.title}
-                            className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                          
-                          {/* Enhanced Gradient Overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                          
-                          <div className="absolute top-4 left-4">
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
-                            {getTypeLabel(property.type)}
+                                                  <img
+                          src={project.cover_image || (project.images && project.images.length > 0 ? project.images[0] : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')}
+                          alt={project.title}
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        
+                        {/* Enhanced Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-gray-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        
+                        <div className="absolute top-4 left-4">
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
+                            {getTypeLabel(project.project_type)}
                             </div>
                           </div>
-                          <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 ${getStatusColor(property.status)}`}>
-                            {getStatusLabel(property.status)}
+                          <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 ${getStatusColor(project.status)}`}>
+                            {getStatusLabel(project.status)}
                           </div>
                         </div>
                         <div className="p-6">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300">{property.title}</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2 font-prompt group-hover:text-blue-600 transition-colors duration-300">{project.title}</h3>
                               <p className="text-gray-600 mb-4 font-prompt flex items-center">
                             <MapPin className="h-4 w-4 mr-2 text-blue-500" />
-                                {property.location || property.address}
+                                {project.location || project.address}
                               </p>
+                              
+                              {/* Project Details */}
+                              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                                {project.area && (
+                                  <div className="flex items-center text-gray-500">
+                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                    <span>พื้นที่: {Number(project.area || 0)} ตร.ม.</span>
+                                  </div>
+                                )}
+                                {project.floor && (
+                                  <div className="flex items-center text-gray-500">
+                                    <Building2 className="h-4 w-4 mr-2 text-purple-500" />
+                                    <span>ชั้น: {project.floor}</span>
+                                  </div>
+                                )}
+                              </div>
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                                 <div className="flex items-center space-x-1">
                                 <HomeIcon className="h-4 w-4 text-blue-500" />
-                                <span>{property.bedrooms || 0}</span>
+                                <span>{project.bedrooms || 0} ห้องนอน</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
                                 <Building2 className="h-4 w-4 text-blue-500" />
-                                <span>{property.bathrooms || 0}</span>
+                                <span>{project.bathrooms || 0} ห้องน้ำ</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(property.price))}</div>
-                              {property.rent_price > 0 && (
-                                <div className="text-sm text-gray-500">{format(convert(property.rent_price))}/เดือน</div>
+                              <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">{format(convert(project.price || 0))}</div>
+                              {Number(project.rent_price || 0) > 0 && (
+                                <div className="text-sm text-gray-500">{format(convert(project.rent_price))}/เดือน</div>
                               )}
-                              {/* Click Count near Price */}
-                              <div className="flex items-center justify-end mt-2 text-sm text-gray-500">
-                                <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
-                                <span>{clickCounts[property.id] || 0} ครั้ง</span>
+                              {/* Developer and Views */}
+                              <div className="flex items-center justify-between mt-2 text-sm text-gray-500">
+                                {project.developer && (
+                                  <span>ผู้พัฒนา: {project.developer}</span>
+                                )}
+                                <div className="flex items-center">
+                                  <EyeIcon className="h-4 w-4 mr-1 text-green-500" />
+                                  <span>{project.views || clickCounts[project.id] || 0}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                           <button className="w-full bg-gradient-to-r from-blue-600 via-gray-600 to-yellow-500 text-white py-3 rounded-xl font-bold transition-all duration-500 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group-hover:from-blue-500 group-hover:via-gray-500 group-hover:to-yellow-400 relative overflow-hidden"
-                            onClick={() => handleCardClick(property.id, property.type)}
+                            onClick={() => handleCardClick(project.id, project.project_type)}
                           >
                             <span className="relative z-10">ดูรายละเอียด</span>
                             <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
@@ -449,7 +482,7 @@ const Properties = () => {
                     ))
                   ) : (
                     <div className="text-center py-12">
-                      <div className="text-gray-500 text-lg">No properties found matching your search</div>
+                      <div className="text-gray-500 text-lg">ไม่พบโครงการที่ตรงกับการค้นหา</div>
                     </div>
                   )}
                 </div>
@@ -458,16 +491,16 @@ const Properties = () => {
               )}
 
               {/* No Results */}
-              {filteredProperties.length === 0 && !loading && (
+              {filteredProjects.length === 0 && !loading && (
                 <div className="text-center py-12">
                   <div className="text-gray-400 mb-4">
                     <Search className="h-16 w-16 mx-auto" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2 font-prompt">
-                    No Properties Found
+                    ไม่พบโครงการ
                   </h3>
                   <p className="text-gray-600 font-prompt">
-                    Try adjusting your search criteria or contact us for assistance
+                    ลองปรับเกณฑ์การค้นหาหรือติดต่อเราเพื่อขอความช่วยเหลือ
                   </p>
                 </div>
           )}
