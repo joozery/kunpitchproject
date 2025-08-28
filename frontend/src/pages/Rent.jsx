@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin, Home as HomeIcon, Building2, Eye, Heart, ArrowRight, Bed, Bath, Search, Grid, List, Eye as EyeIcon, Filter, SlidersHorizontal, Star, Ruler, Car, Calendar, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import LatestStyleCard from '../components/cards/LatestStyleCard'
  
@@ -325,11 +324,8 @@ const Rent = () => {
   }
 
   const PropertyCard = ({ property }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+    <div
+      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer animate-fade-in-up"
       onClick={() => handleCardClick(property.id, property.type)}
     >
       <Link to={`/property/${property.id}`}>
@@ -448,7 +444,7 @@ const Rent = () => {
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   )
 
   if (loading) {
@@ -475,12 +471,7 @@ const Rent = () => {
           <div className="absolute inset-0" style={{ backgroundColor: '#051d40', opacity: 0.85 }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-left"
-          >
+          <div className="text-left animate-fade-in-up">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 font-prompt">
               เช่าอสังหาริมทรัพย์
             </h1>
@@ -498,7 +489,7 @@ const Rent = () => {
                 <span className="font-semibold">เช่าช่วงสั้น</span> ได้
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
