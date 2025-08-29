@@ -16,14 +16,18 @@ import {
   Users,
   Calendar,
   Heart,
-  Bath
+  Bath,
+  Train
 } from 'lucide-react'
+import { PiTrainBold } from "react-icons/pi"
+import { HiOutlineBuildingOffice2 } from "react-icons/hi2"
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { projectApi } from '../lib/projectApi'
 import { useCurrency } from '../lib/CurrencyContext'
 import { Card, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
+import { getStationLabelById } from '../lib/stations'
 
 const Projects = () => {
   const navigate = useNavigate()
@@ -232,21 +236,30 @@ const Projects = () => {
     const TypeIcon = getTypeIcon(project.project_type)
     
     return (
-      <Card key={project.id} className="overflow-hidden">
-        <div className="relative">
+      <Card 
+        key={project.id} 
+        className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white hover:bg-gray-50"
+        onClick={() => navigate(`/project/${project.id}`)}
+      >
+        {/* Cover Image */}
+        <div className="relative overflow-hidden rounded-t-lg">
           <img
-            src={project.cover_image || (project.images && project.images[0]) || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
+            src={project.coverImageUrl || project.cover_image || '/placeholder-project.jpg'}
             alt={project.title}
-            className="w-full h-48 object-cover"
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-2 left-2 flex items-center gap-2">
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)}`}>
-              {getStatusLabel(project.status)}
-            </span>
+          {/* Status Badge - Left */}
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+            <span className="text-sm font-medium text-gray-800 font-prompt">{getTypeLabel(project.project_type)}</span>
           </div>
-
+          {/* Status Badge - Right */}
+          {project.status && (
+            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+              <span className="text-sm font-medium text-gray-800 font-prompt">พร้อมอยู่</span>
+            </div>
+          )}
         </div>
-        
+
         <CardContent className="p-4">
           <div className="space-y-3">
             <div>
@@ -271,16 +284,34 @@ const Projects = () => {
                   <span>แล้วเสร็จ {project.completion_year || new Date(project.completion_date).getFullYear()}</span>
                 </div>
               )}
+              {project.selected_stations && project.selected_stations.length > 0 && (
+                <div className="flex items-center space-x-1">
+                  <PiTrainBold className="h-4 w-4" />
+                  <span>สถานีรถไฟฟ้า: {project.selected_stations.map(station => getStationLabelById(station)).join(', ')}</span>
+                </div>
+              )}
+              {project.building_type && project.building_type.length > 0 && (
+                <div className="flex items-center space-x-1">
+                  <HiOutlineBuildingOffice2 className="h-4 w-4" />
+                  <span>ประเภทอาคาร: {project.building_type.map(type => {
+                    const typeMap = {
+                      'high-rise': 'อาคารสูง',
+                      'low-rise': 'อาคารต่ำ'
+                    };
+                    return typeMap[type] || type;
+                  }).join(', ')}</span>
+                </div>
+              )}
             </div>
             
             {/* Statistics Boxes */}
             <div className="flex gap-3 mt-4">
               {/* Units Box */}
-              <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3 text-center">
-                <div className="text-lg font-bold text-gray-900">
+              <div className="flex-1 bg-blue-50 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-blue-600">
                   {project.total_units || project.bedrooms || 0}
                 </div>
-                <div className="text-xs text-gray-600">ยูนิต</div>
+                <div className="text-xs text-blue-600">ยูนิต</div>
               </div>
               
               {/* Amenities Box */}
@@ -289,19 +320,6 @@ const Projects = () => {
                   {project.facilities && project.facilities.length > 0 ? project.facilities.length : 0}
                 </div>
                 <div className="text-xs text-blue-600">สิ่งอำนวยความสะดวก</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate(`/project/${project.id}`)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  ดูรายละเอียด
-                </Button>
               </div>
             </div>
           </div>
