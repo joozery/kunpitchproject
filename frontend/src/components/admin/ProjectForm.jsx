@@ -8,6 +8,25 @@ import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { 
   FaBuilding, FaCar, FaLock, FaShuttleVan, FaBolt,
   FaVideo, FaUsers, FaDumbbell, FaSwimmingPool, FaBath,
   FaChild, FaFilm, FaPaw, FaLaptop, FaHamburger, FaCoffee,
@@ -17,7 +36,105 @@ import {
 import { MdLocalDining, MdSportsTennis } from 'react-icons/md';
 import { GiGolfTee } from 'react-icons/gi';
 
+// SortableImage Component สำหรับรูปภาพที่สามารถ drag and drop ได้
+const SortableImage = ({ image, index, isNew = false, onRemove, isExisting = false }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: isNew ? `new-${index}` : `existing-${image.id || index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const imageUrl = isNew ? URL.createObjectURL(image) : (image.url || image);
+  const imageName = isNew ? (image.name || `รูปใหม่ที่ ${index + 1}`) : `รูปเดิมที่ ${index + 1}`;
+  const imageSize = isNew ? `${(image.size / 1024 / 1024).toFixed(2)} MB` : 'รูปภาพเดิม';
+  const badgeColor = isNew ? 'bg-green-500' : 'bg-blue-500';
+  const badgeText = isNew ? 'ใหม่' : 'เดิม';
+
+  console.log(`🖼️ Rendering SortableImage:`, { 
+    id: isNew ? `new-${index}` : `existing-${image.id || index}`,
+    isNew, 
+    index, 
+    imageName,
+    isDragging 
+  });
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="relative group cursor-move"
+      {...attributes}
+      {...listeners}
+    >
+      <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
+        <div className="relative">
+          <img
+            src={imageUrl}
+            alt={imageName}
+            className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
+          />
+          <div className={`absolute top-1 left-1 ${badgeColor} text-white text-xs px-2 py-1 rounded font-medium`}>
+            {index + 1}
+          </div>
+          <div className={`absolute top-1 right-1 ${badgeColor} text-white text-xs px-1 py-0.5 rounded`}>
+            {badgeText}
+          </div>
+          {/* Drag Handle */}
+          <div className="absolute top-1 left-1/2 transform -translate-x-1/2 bg-gray-800/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+            ⋮⋮
+          </div>
+        </div>
+        <div className="text-center">
+          <p className="text-xs text-gray-600 truncate mb-1" title={imageName}>
+            {imageName}
+          </p>
+          <p className="text-xs text-gray-400">
+            {imageSize}
+          </p>
+          {/* แสดงลำดับปัจจุบัน */}
+          <p className="text-xs text-blue-600 font-medium mt-1">
+            ลำดับ: {index + 1}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log(`🗑️ Remove button clicked for ${isNew ? 'new' : 'existing'} image at index ${index}`);
+          onRemove(index);
+        }}
+        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+        title="ลบรูปภาพ"
+      >
+        ×
+      </button>
+    </div>
+  );
+};
+
 const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const [formData, setFormData] = useState({
     // ข้อมูลพื้นฐาน
     name_th: '',
@@ -634,6 +751,9 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
 
   const handleProjectImagesUpload = (e) => {
     const files = Array.from(e.target.files);
+    console.log('📁 Files selected:', files);
+    console.log('📁 Files length:', files.length);
+    
     if (files.length > 100) {
       Swal.fire({
         title: 'รูปภาพเกินจำนวนที่กำหนด',
@@ -643,13 +763,25 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       });
       return;
     }
-    setFormData(prev => ({
-      ...prev,
-      project_images: [...(prev.project_images || []), ...files]
-    }));
+    
+    setFormData(prev => {
+      const newProjectImages = [...(prev.project_images || []), ...files];
+      console.log('🔄 Previous project_images:', prev.project_images);
+      console.log('🔄 New files to add:', files);
+      console.log('🔄 Updated project_images:', newProjectImages);
+      
+      return {
+        ...prev,
+        project_images: newProjectImages
+      };
+    });
   };
 
   const removeProjectImage = (index) => {
+    console.log('🗑️ removeProjectImage called with index:', index);
+    console.log('🗑️ Current formData.project_images:', formData.project_images);
+    console.log('🗑️ Image to remove:', formData.project_images?.[index]);
+    
     Swal.fire({
       title: 'ลบรูปภาพ',
       text: `คุณต้องการลบรูปภาพที่ ${index + 1} หรือไม่?`,
@@ -661,47 +793,129 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       cancelButtonText: 'ยกเลิก'
     }).then((result) => {
       if (result.isConfirmed) {
-        setFormData(prev => ({
-          ...prev,
-          project_images: (prev.project_images || []).filter((_, i) => i !== index)
-        }));
+        console.log('🗑️ User confirmed image deletion');
+        
+        setFormData(prev => {
+          const newProjectImages = (prev.project_images || []).filter((_, i) => i !== index);
+          console.log('🗑️ New project_images after removal:', newProjectImages);
+          
+          return {
+            ...prev,
+            project_images: newProjectImages
+          };
+        });
       }
     });
   };
 
-  // เพิ่มฟังก์ชันลบรูปภาพเดิม
+  // จัดการการลบรูปภาพเดิม
   const removeExistingProjectImage = (index) => {
-    Swal.fire({
-      title: 'ลบรูปภาพเดิม',
-      text: `คุณต้องการลบรูปภาพเดิมที่ ${index + 1} หรือไม่?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'ใช่, ลบเลย!',
-      cancelButtonText: 'ยกเลิก'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // เพิ่มรูปภาพเดิมที่ถูกลบเข้าไปใน deleted_images
-        const imageToDelete = project.project_images[index];
+    if (!project || !project.project_images) return;
+    
+    const imageToDelete = project.project_images[index];
+    if (!imageToDelete) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      deleted_images: [...(prev.deleted_images || []), imageToDelete]
+    }));
+  };
+
+  // ฟังก์ชันสำหรับการจัดการ drag and drop รูปภาพใหม่
+  const handleDragEndNewImages = (event) => {
+    const { active, over } = event;
+    console.log('🔄 handleDragEndNewImages called:', { active, over });
+    
+    if (active.id !== over.id) {
+      console.log('🔄 Reordering new images');
+      
+      setFormData(prev => {
+        const oldIndex = prev.project_images.findIndex((_, index) => `new-${index}` === active.id);
+        const newIndex = prev.project_images.findIndex((_, index) => `new-${index}` === over.id);
         
-        // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
-        const isAlreadyDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
-          (deletedImg.id && deletedImg.id === imageToDelete.id) || 
-          (deletedImg.url && deletedImg.url === imageToDelete.url)
-        );
+        console.log('🔄 Indices:', { oldIndex, newIndex });
+        console.log('🔄 Previous project_images:', prev.project_images);
         
-        if (!isAlreadyDeleted) {
-          setFormData(prev => ({
-            ...prev,
-            deleted_images: [...(prev.deleted_images || []), imageToDelete]
-          }));
-          
-          console.log('ลบรูปภาพ:', imageToDelete);
-          console.log('รูปภาพที่ถูกลบแล้ว:', [...(formData.deleted_images || []), imageToDelete]);
-        }
+        const reorderedImages = arrayMove(prev.project_images, oldIndex, newIndex);
+        console.log('🔄 Reordered images:', reorderedImages);
+        
+        // แสดง SweetAlert2 เพื่อยืนยันการจัดเรียง
+        Swal.fire({
+          title: 'จัดเรียงรูปภาพสำเร็จ',
+          text: `รูปภาพใหม่ถูกจัดเรียงใหม่แล้ว (ตำแหน่ง ${oldIndex + 1} → ${newIndex + 1})`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+        return {
+          ...prev,
+          project_images: reorderedImages
+        };
+      });
+    } else {
+      console.log('🔄 No reordering needed');
+    }
+  };
+
+  // ฟังก์ชันสำหรับการจัดการ drag and drop รูปภาพเดิม
+  const handleDragEndExistingImages = (event) => {
+    const { active, over } = event;
+    console.log('🔄 handleDragEndExistingImages called:', { active, over });
+    
+    if (active.id !== over.id && project && project.project_images) {
+      console.log('🔄 Reordering existing images');
+      
+      const oldIndex = project.project_images.findIndex((image, index) => `existing-${image.id || index}` === active.id);
+      const newIndex = project.project_images.findIndex((image, index) => `existing-${image.id || index}` === over.id);
+      
+      console.log('🔄 Indices:', { oldIndex, newIndex });
+      console.log('🔄 Current project.project_images:', project.project_images);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        // ใช้ลำดับปัจจุบัน (อาจมีการจัดเรียงใหม่แล้ว)
+        const currentImages = formData.reordered_existing_images || project.project_images;
+        
+        // สร้าง array ใหม่ที่มีการจัดเรียงใหม่
+        const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
+        console.log('🔄 Reordered existing images:', reorderedImages);
+        
+        // อัปเดต formData ด้วยรูปภาพที่จัดเรียงใหม่
+        setFormData(prev => ({
+          ...prev,
+          reordered_existing_images: reorderedImages
+        }));
+        
+        console.log('🔄 Updated formData.reordered_existing_images');
+        
+        // แสดง SweetAlert2 เพื่อยืนยันการจัดเรียง
+        Swal.fire({
+          title: 'จัดเรียงรูปภาพสำเร็จ',
+          text: `รูปภาพถูกจัดเรียงใหม่แล้ว (ตำแหน่ง ${oldIndex + 1} → ${newIndex + 1})`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        console.log('🔄 Invalid indices found');
       }
-    });
+    } else {
+      console.log('🔄 No reordering needed or missing project data');
+    }
+  };
+
+  // ฟังก์ชันสำหรับการจัดการ drag and drop รูปภาพทั้งหมด (รวมกัน)
+  const handleDragEndAllImages = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      // ตรวจสอบว่ารูปภาพเป็นรูปใหม่หรือรูปเดิม
+      if (active.id.startsWith('new-')) {
+        handleDragEndNewImages(event);
+      } else if (active.id.startsWith('existing-')) {
+        handleDragEndExistingImages(event);
+      }
+    }
   };
 
   const removeCoverImage = () => {
@@ -726,6 +940,10 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
   };
 
   const removeAllProjectImages = () => {
+    console.log('🗑️ removeAllProjectImages called');
+    console.log('🗑️ Current formData.project_images:', formData.project_images);
+    console.log('🗑️ Current project.project_images:', project?.project_images);
+    
     Swal.fire({
       title: 'ลบรูปภาพทั้งหมด',
       text: 'คุณต้องการลบรูปภาพโครงการทั้งหมดหรือไม่?',
@@ -737,18 +955,26 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
       cancelButtonText: 'ยกเลิก'
     }).then((result) => {
       if (result.isConfirmed) {
+        console.log('🗑️ User confirmed deletion');
+        
         // เพิ่มรูปภาพเดิมทั้งหมดเข้าไปใน deleted_images
         if (project && project.project_images && project.project_images.length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            project_images: [],
-            deleted_images: [...(prev.deleted_images || []), ...project.project_images]
-          }));
+          setFormData(prev => {
+            console.log('🗑️ Setting deleted_images for existing images');
+            return {
+              ...prev,
+              project_images: [],
+              deleted_images: [...(prev.deleted_images || []), ...project.project_images]
+            };
+          });
         } else {
-          setFormData(prev => ({
-            ...prev,
-            project_images: []
-          }));
+          setFormData(prev => {
+            console.log('🗑️ Clearing project_images only');
+            return {
+              ...prev,
+              project_images: []
+            };
+          });
         }
       }
     });
@@ -872,9 +1098,16 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
         return !isDeleted;
       });
       
-      remainingImages.forEach((image, index) => {
+      // ใช้ลำดับใหม่ถ้ามีการจัดเรียงใหม่
+      const imagesToSend = formData.reordered_existing_images || remainingImages;
+      
+      imagesToSend.forEach((image, index) => {
         formDataToSend.append('existing_project_images', JSON.stringify(image));
+        // เพิ่มลำดับใหม่
+        formDataToSend.append('image_order', index);
       });
+      
+      console.log('🔍 Sending reordered images:', imagesToSend);
     }
     
     // เพิ่มข้อมูลรูปภาพที่ถูกลบ (ถ้ามี)
@@ -1748,16 +1981,31 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                           })()}/100 รูป
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={removeAllProjectImages}
-                        className="text-red-500 hover:text-red-700 text-sm flex items-center hover:bg-red-50 px-2 py-1 rounded transition-colors"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        ลบทั้งหมด
-                      </button>
+                      <div className="flex items-center space-x-4">
+                        {/* Debug Info */}
+                        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          Debug: project_images={formData.project_images?.length || 0}, 
+                          existing={project?.project_images?.length || 0},
+                          reordered={formData.reordered_existing_images ? 'Yes' : 'No'}
+                        </div>
+                        {/* คำแนะนำการใช้งาน Drag & Drop */}
+                        <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>ลากรูปภาพเพื่อจัดเรียงลำดับ</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeAllProjectImages}
+                          className="text-red-500 hover:text-red-700 text-sm flex items-center hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          ลบทั้งหมด
+                        </button>
+                      </div>
                     </div>
 
                     
@@ -1765,140 +2013,115 @@ const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
                     {project && project.project_images && project.project_images.length > 0 && (
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-600 mb-3">รูปภาพที่มีอยู่เดิม:</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                          {(() => {
-                            // กรองเอาเฉพาะรูปที่ยังไม่ถูกลบ
-                            const remainingImages = project.project_images.filter(image => {
-                              if (!image) return false;
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEndExistingImages}
+                        >
+                          <SortableContext
+                            items={(() => {
+                              // ใช้ลำดับใหม่ถ้ามีการจัดเรียงใหม่
+                              const imagesToShow = formData.reordered_existing_images || project.project_images;
+                              const remainingImages = imagesToShow.filter(image => {
+                                if (!image) return false;
+                                
+                                const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+                                  (deletedImg.id && image.id && deletedImg.id === image.id) || 
+                                  (deletedImg.url && image.url && deletedImg.url === image.url)
+                                );
+                                
+                                return !isDeleted;
+                              });
                               
-                              // ตรวจสอบว่ารูปภาพนี้ถูกลบไปแล้วหรือไม่
-                              const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
-                                (deletedImg.id && image.id && deletedImg.id === image.id) || 
-                                (deletedImg.url && image.url && deletedImg.url === image.url)
-                              );
-                              
-                              console.log('รูปภาพ:', image, 'ถูกลบ:', isDeleted);
-                              
-                              return !isDeleted;
-                            });
-                            
-                            console.log('รูปภาพที่เหลือ:', remainingImages);
-                            console.log('รูปภาพที่ถูกลบ:', formData.deleted_images);
-                            
-                            // ถ้าไม่มีรูปที่เหลือ ให้แสดงข้อความ
-                            if (remainingImages.length === 0) {
-                              return (
-                                <div className="col-span-full text-center py-8 text-gray-500">
-                                  <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  <p>ไม่มีรูปภาพเดิมเหลืออยู่</p>
-                                </div>
-                              );
-                            }
-                            
-                            // แสดงรูปภาพที่เหลือ
-                            return remainingImages.map((image, index) => {
-                              // Safety check สำหรับ image
-                              if (!image) {
-                                return null;
-                              }
-                              
-                              const imageUrl = image.url || image;
-                              if (!imageUrl) {
-                                return null;
-                              }
-                              
-                              return (
-                                <div key={`existing-${image.id || index}`} className="relative group">
-                                  <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
-                                    <div className="relative">
-                                      <img
-                                        src={imageUrl}
-                                        alt={`รูปเดิมที่ ${index + 1}`}
-                                        className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
-                                      />
-                                      <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
-                                        {index + 1}
-                                      </div>
-                                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
-                                        เดิม
-                                      </div>
+                              return remainingImages.map((image, index) => `existing-${image.id || index}`);
+                            })()}
+                            strategy={rectSortingStrategy}
+                          >
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                              {(() => {
+                                // ใช้ลำดับใหม่ถ้ามีการจัดเรียงใหม่
+                                const imagesToShow = formData.reordered_existing_images || project.project_images;
+                                const remainingImages = imagesToShow.filter(image => {
+                                  if (!image) return false;
+                                  
+                                  const isDeleted = formData.deleted_images && formData.deleted_images.some(deletedImg => 
+                                    (deletedImg.id && image.id && deletedImg.id === image.id) || 
+                                    (deletedImg.url && image.url && deletedImg.url === image.url)
+                                  );
+                                  
+                                  return !isDeleted;
+                                });
+                                
+                                if (remainingImages.length === 0) {
+                                  return (
+                                    <div className="col-span-full text-center py-8 text-gray-500">
+                                      <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+                                      </svg>
+                                      <p>ไม่มีรูปภาพเดิมเหลืออยู่</p>
                                     </div>
-                                    <div className="text-center">
-                                      <p className="text-xs text-gray-600 truncate mb-1">
-                                        รูปเดิมที่ {index + 1}
-                                      </p>
-                                      <p className="text-xs text-gray-400">
-                                        รูปภาพเดิม
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {/* ปุ่มลบรูปภาพเดิม */}
-                                  <button
-                                    type="button"
-                                    onClick={() => removeExistingProjectImage(project.project_images.indexOf(image))}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
-                                    title="ลบรูปภาพเดิม"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
+                                  );
+                                }
+                                
+                                return remainingImages.map((image, index) => (
+                                  <SortableImage
+                                    key={`existing-${image.id || index}`}
+                                    image={image}
+                                    index={index}
+                                    isNew={false}
+                                    onRemove={removeExistingProjectImage}
+                                    isExisting={true}
+                                  />
+                                ));
+                              })()}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     )}
                     
                     {/* แสดงรูปภาพใหม่ */}
                     {formData.project_images && formData.project_images.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-3">รูปภาพใหม่ที่เพิ่ม:</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                          {formData.project_images.map((file, index) => {
-                            // Safety check สำหรับ file
-                            if (!file || !(file instanceof File)) {
-                              return null;
-                            }
-                            
-                            return (
-                              <div key={`new-${index}`} className="relative group">
-                                <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
-                                  <div className="relative">
-                                    <img
-                                      src={URL.createObjectURL(file)}
-                                      alt={`รูปใหม่ที่ ${index + 1}`}
-                                      className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
-                                    />
-                                    <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
-                                      {index + 1}
-                                    </div>
-                                    <div className="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">
-                                      ใหม่
-                                    </div>
-                                  </div>
-                                  <div className="text-center">
-                                    <p className="text-xs text-gray-600 truncate mb-1" title={file.name}>
-                                      {file.name || `รูปใหม่ที่ ${index + 1}`}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeProjectImage(index)}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
-                                  title="ลบรูปภาพ"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            );
-                          })}
+                        <h4 className="text-sm font-medium text-gray-600 mb-3">
+                          รูปภาพใหม่ที่เพิ่ม: {formData.project_images.length} รูป
+                        </h4>
+                        {/* Debug Info */}
+                        <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                          Debug: formData.project_images = {JSON.stringify(formData.project_images.map(f => ({ name: f.name, size: f.size, type: f.type })))}
                         </div>
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEndNewImages}
+                        >
+                          <SortableContext
+                            items={formData.project_images.map((_, index) => `new-${index}`)}
+                            strategy={rectSortingStrategy}
+                          >
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                              {formData.project_images.map((file, index) => {
+                                console.log('Rendering new image:', file, 'at index:', index);
+                                
+                                if (!file || !(file instanceof File)) {
+                                  console.log('File is not valid:', file);
+                                  return null;
+                                }
+                                
+                                return (
+                                  <SortableImage
+                                    key={`new-${index}`}
+                                    image={file}
+                                    index={index}
+                                    isNew={true}
+                                    onRemove={removeProjectImage}
+                                    isExisting={false}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     )}
                   </div>
