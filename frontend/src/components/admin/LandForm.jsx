@@ -1,24 +1,52 @@
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import Swal from 'sweetalert2'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
+import { Label } from '../ui/label'
+import { landAPI, uploadAPI } from '../../lib/api'
+import { projectApi } from '../../lib/projectApi'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowLeft,
-  Landmark,
+  Building,
   MapPin,
   FileText,
-  DollarSign,
-  Calendar,
+  Search,
+  Star,
+  Camera,
+  Image,
   Upload,
   Plus,
   X,
-  Maximize,
-  Search,
-  Camera,
+  DollarSign,
+  Calendar,
   Calculator,
-  User
+  Bath,
+  Bed,
+  User,
+  Landmark
 } from 'lucide-react'
 
 
@@ -90,6 +118,134 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
   // State สำหรับการค้นหาสถานี
   const [stationSearchTerm, setStationSearchTerm] = useState('');
   const [showStationDropdown, setShowStationDropdown] = useState(false);
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // SortableImage Component สำหรับรูปภาพที่สามารถ drag and drop ได้
+  const SortableImage = ({ image, index, onRemove }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: `image-${image.id}` });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    const imageUrl = image.url || image.preview;
+    const imageName = image.fileName || `รูปที่ ${index + 1}`;
+    const imageSize = image.size ? `${(image.size / 1024 / 1024).toFixed(2)} MB` : 'รูปภาพ';
+    const badgeColor = image.url ? 'bg-green-500' : 'bg-blue-500';
+    const badgeText = image.url ? 'สำเร็จ' : 'ใหม่';
+
+    return (
+      <div 
+        ref={setNodeRef} 
+        style={style} 
+        className="relative group cursor-move"
+        {...attributes}
+        {...listeners}
+      >
+        <div className="bg-white p-2 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-105">
+          <div className="relative">
+            <img
+              src={imageUrl}
+              alt={imageName}
+              className="w-full h-24 object-cover rounded mb-2 border border-gray-100"
+              onError={(e) => {
+                console.warn(`❌ Image failed to load: ${image.id}`, { url: image.url, preview: image.preview })
+                e.target.style.display = 'none'
+              }}
+            />
+            <div className={`absolute top-1 left-1 ${badgeColor} text-white text-xs px-2 py-1 rounded font-medium`}>
+              {index + 1}
+            </div>
+            <div className={`absolute top-1 right-1 ${badgeColor} text-white text-xs px-1 py-0.5 rounded`}>
+              {badgeText}
+            </div>
+            {/* Drag Handle */}
+            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 bg-gray-800/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+              ⋮⋮
+            </div>
+            
+            {/* Upload Status Indicator */}
+            {image.uploading && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded">
+                <div className="text-center text-white">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-1"></div>
+                  <p className="text-xs">อัพโหลด...</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-600 truncate mb-1" title={imageName}>
+              {imageName}
+            </p>
+            <p className="text-xs text-gray-400">
+              {imageSize}
+            </p>
+            {/* แสดงลำดับปัจจุบัน */}
+            <p className="text-xs text-blue-600 font-medium mt-1">
+              ลำดับ: {index + 1}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(image.id);
+          }}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+          title="ลบรูปภาพ"
+        >
+          ×
+        </button>
+      </div>
+    );
+  };
+
+  // ฟังก์ชันสำหรับการจัดการ drag and drop รูปภาพ
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setImages(prev => {
+        const oldIndex = prev.findIndex(img => `image-${img.id}` === active.id);
+        const newIndex = prev.findIndex(img => `image-${img.id}` === over.id);
+        
+        const reorderedImages = arrayMove(prev, oldIndex, newIndex);
+        
+        // แสดง SweetAlert2 เพื่อยืนยันการจัดเรียง
+        Swal.fire({
+          title: 'จัดเรียงรูปภาพสำเร็จ',
+          text: `รูปภาพถูกจัดเรียงใหม่แล้ว (ตำแหน่ง ${oldIndex + 1} → ${newIndex + 1})`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+        return reorderedImages;
+      });
+    }
+  };
 
   // ข้อมูลสถานีรถไฟฟ้า
   const btsStations = [
@@ -1368,26 +1524,50 @@ const LandForm = ({ land = null, onBack, onSave, isEditing = false }) => {
               </label>
             </div>
 
-            {/* Image Preview Grid */}
+            {/* Image Preview Grid with Drag & Drop */}
             {images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={image.id} className="relative group">
-                    <img
-                      src={image.preview}
-                      alt={`Image ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(image.id, false)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    
+              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium text-gray-700">
+                      รูปภาพที่เลือก ({images.length} รูป)
+                    </p>
+                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                      {images.length}/100 รูป
+                    </span>
                   </div>
-                ))}
+                  <div className="flex items-center space-x-4">
+                    {/* คำแนะนำการใช้งาน Drag & Drop */}
+                    <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>ลากรูปภาพเพื่อจัดเรียงลำดับ</span>
+                    </div>
+                  </div>
+                </div>
+
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={images.map(img => `image-${img.id}`)}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      {images.map((image, index) => (
+                        <SortableImage
+                          key={`image-${image.id}`}
+                          image={image}
+                          index={index}
+                          onRemove={handleRemoveImage}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </div>
