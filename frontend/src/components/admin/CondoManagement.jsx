@@ -40,7 +40,7 @@ import PermissionGuard from './PermissionGuard'
 import Swal from 'sweetalert2'
 
 const CondoManagement = () => {
-  const { canDelete } = usePermissions();
+  const { canDelete, canManageProperties } = usePermissions();
   
   const [condos, setCondos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -310,7 +310,7 @@ const CondoManagement = () => {
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลคอนโดมิเนียมทั้งหมดในระบบ</p>
         </div>
         <div className="flex items-center space-x-4">
-          <PermissionGuard permission={PERMISSIONS.PROPERTY_CREATE}>
+          <PermissionGuard requiredPermission="canManageProperties">
             <Button
               onClick={handleAddCondo}
               className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
@@ -506,7 +506,7 @@ const CondoManagement = () => {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <PermissionGuard permission={PERMISSIONS.PROPERTY_UPDATE}>
+                          <PermissionGuard requiredPermission="canManageProperties">
                             <Button 
                               variant="ghost" 
                               size="sm"
