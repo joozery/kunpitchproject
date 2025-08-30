@@ -2,9 +2,14 @@ import React, { useState } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import Breadcrumb from './Breadcrumb'
+import { usePermissions } from '../../contexts/PermissionContext'
+import { getRoleDescription, getRoleBadge } from '../../lib/permissionUtils'
 
 const AdminLayout = ({ children, activePage = 'dashboard', onPageChange }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const { userRole } = usePermissions()
+  const roleDescription = getRoleDescription(userRole)
+  const roleBadge = getRoleBadge(userRole)
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed)
@@ -33,7 +38,16 @@ const AdminLayout = ({ children, activePage = 'dashboard', onPageChange }) => {
         
         {/* Breadcrumb Navigation */}
         <div className="bg-white border-b px-6 py-3">
-          <Breadcrumb />
+          <div className="flex items-center justify-between">
+            <Breadcrumb />
+            {/* Role Information */}
+            <div className="flex items-center space-x-3">
+              <span className={`px-3 py-1 rounded-full border text-sm font-medium ${roleBadge.className}`}>
+                {roleBadge.text}
+              </span>
+              <p className="text-sm text-gray-600 max-w-xs">{roleDescription}</p>
+            </div>
+          </div>
         </div>
         
         {/* Main Content with Scrollbar */}

@@ -623,27 +623,54 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       }))
 
       // จัดการรูปภาพจาก API response
+      console.log('🖼️ Processing images from initialData:', initialData.images)
+      
       const coverUrl = initialData.cover_image || null
       if (coverUrl) {
+        console.log('🖼️ Setting cover image:', coverUrl)
         setCoverImage({
           id: `cover-${Date.now()}`,
           url: coverUrl,
-          preview: coverUrl, // backward compatibility with old rendering
+          preview: coverUrl,
           uploading: false
         })
       } else {
+        console.log('🖼️ No cover image found')
         setCoverImage(null)
       }
 
-      const urls = Array.isArray(initialData.images) ? initialData.images : []
-      const filtered = coverUrl ? urls.filter(u => u !== coverUrl) : urls
-      const mappedImages = filtered.map((url, idx) => ({
-        id: `img-${Date.now()}-${idx}`,
-        url,
-        preview: url, // backward compatibility with old rendering
-        uploading: false
-      }))
-      setImages(mappedImages)
+      // Process images array - handle both object format and URL format
+      if (initialData.images && Array.isArray(initialData.images)) {
+        console.log('🖼️ Processing images array:', initialData.images.length, 'images')
+        
+        const processedImages = initialData.images.map((img, idx) => {
+          // Handle both object format {id, url, public_id} and string format (URL)
+          const imageUrl = typeof img === 'string' ? img : img.url
+          const imageId = typeof img === 'string' ? `img-${Date.now()}-${idx}` : (img.id || `img-${Date.now()}-${idx}`)
+          const publicId = typeof img === 'string' ? null : img.public_id
+          
+          return {
+            id: imageId,
+            url: imageUrl,
+            public_id: publicId,
+            preview: imageUrl,
+            uploading: false
+          }
+        })
+        
+        // Filter out cover image if it exists in the images array
+        const filteredImages = coverUrl 
+          ? processedImages.filter(img => img.url !== coverUrl)
+          : processedImages
+        
+        console.log('🖼️ Final processed images:', filteredImages.length, 'images')
+        console.log('🖼️ Image details:', filteredImages.map(img => ({ id: img.id, url: img.url })))
+        
+        setImages(filteredImages)
+      } else {
+        console.log('🖼️ No images array found in initialData')
+        setImages([])
+      }
 
       // จัดการ amenities
       setSelectedAmenities(parsedAmenities)
@@ -965,24 +992,165 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
       setUploading(true)
       setUploadProgress(0)
       
-      const totalFiles = files.length
+      const fileArray = Array.from(files)
+      const totalFiles = fileArray.length
       let uploadedCount = 0
+      let failedCount = 0
+      const failedFiles = []
       
-      for (const file of files) {
-        try {
-          await handleImageUpload(file, false)
-          uploadedCount++
-          setUploadProgress((uploadedCount / totalFiles) * 100)
-        } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error)
-          // Continue with other files
+      console.log(`🔄 เริ่มอัพโหลด ${totalFiles} ไฟล์`)
+      
+      // Validate all files first
+      const validFiles = []
+      for (const file of fileArray) {
+        if (!file.type.startsWith('image/')) {
+          console.warn(`⚠️ ข้าม ${file.name}: ไม่ใช่ไฟล์รูปภาพ`)
+          failedFiles.push(`${file.name} (ไม่ใช่รูปภาพ)`)
+          failedCount++
+          continue
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+          console.warn(`⚠️ ข้าม ${file.name}: ไฟล์ใหญ่เกินไป (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+          failedFiles.push(`${file.name} (ขนาดใหญ่เกิน 10MB)`)
+          failedCount++
+          continue
+        }
+        
+        validFiles.push(file)
+      }
+      
+      if (validFiles.length === 0) {
+        Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีไฟล์ที่สามารถอัพโหลดได้',
+        text: 'กรุณาเลือกไฟล์รูปภาพที่มีขนาดไม่เกิน 10MB',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#f39c12'
+      })
+        return
+      }
+      
+      console.log(`✅ ไฟล์ที่ผ่านการตรวจสอบ: ${validFiles.length}/${totalFiles}`)
+      
+      // Upload all valid files at once
+      try {
+        console.log(`🔄 อัพโหลดไฟล์ ${validFiles.length} ไฟล์พร้อมกัน`)
+        
+        // Create temporary previews for all files with unique IDs
+        const tempImageDataArray = validFiles.map((file, i) => ({
+          id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}`,
+          preview: URL.createObjectURL(file),
+          url: null,
+          public_id: null,
+          uploading: true,
+          fileName: file.name // Add filename for debugging
+        }))
+        
+        console.log('📸 Temporary images created:', tempImageDataArray.map(img => ({ id: img.id, fileName: img.fileName })))
+        setImages(prev => [...prev, ...tempImageDataArray])
+        
+        // Upload all files to server
+        const response = await uploadAPI.uploadMultiple(validFiles)
+        
+        if (response && response.success && response.data) {
+          console.log('📤 Server response:', response.data)
+          
+          // Process all uploaded images
+          response.data.forEach((imageData, i) => {
+            const tempImage = tempImageDataArray[i]
+            if (!tempImage) {
+              console.warn(`⚠️ No temp image found for index ${i}`)
+              return
+            }
+            
+            const finalImageData = {
+              id: `final-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}`,
+              preview: imageData.url,
+              url: imageData.url,
+              public_id: imageData.public_id,
+              uploading: false
+            }
+            
+            console.log(`🔄 Replacing temp image ${tempImage.id} with final image ${finalImageData.id}`)
+            
+            // Replace temp image with real image
+            setImages(prev => {
+              const newImages = prev.map(img => 
+                img.id === tempImage.id ? finalImageData : img
+              )
+              console.log('📸 Updated images array:', newImages.map(img => ({ id: img.id, url: img.url ? 'has-url' : 'no-url' })))
+              return newImages
+            })
+          })
+          
+          uploadedCount = response.data.length
+          console.log(`✅ อัพโหลดสำเร็จ ${uploadedCount}/${validFiles.length} ไฟล์`)
+        } else {
+          throw new Error(response?.message || 'ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์')
+        }
+        
+      } catch (error) {
+        console.error(`❌ อัพโหลดล้มเหลว:`, error)
+        failedFiles.push(`อัพโหลดล้มเหลว: ${error.message}`)
+        failedCount = validFiles.length
+        
+        // Remove all temp images on error
+        setImages(prev => prev.filter(img => !img.uploading))
+      }
+      
+      // Update progress
+      setUploadProgress(100)
+      
+      // Show summary
+      let summaryMessage = ''
+      if (uploadedCount > 0) {
+        summaryMessage += `✅ อัพโหลดสำเร็จ: ${uploadedCount} ไฟล์`
+      }
+      if (failedCount > 0) {
+        summaryMessage += `\n❌ อัพโหลดล้มเหลว: ${failedCount} ไฟล์`
+        if (failedFiles.length > 0) {
+          summaryMessage += `\n\nรายละเอียด:\n${failedFiles.join('\n')}`
         }
       }
       
-      setUploadProgress(100)
-      setTimeout(() => setUploadProgress(0), 2000) // Hide progress after 2 seconds
+      if (summaryMessage) {
+        Swal.fire({
+          icon: uploadedCount > 0 ? 'success' : 'error',
+          title: uploadedCount > 0 ? 'อัพโหลดสำเร็จ' : 'อัพโหลดล้มเหลว',
+          html: summaryMessage.replace(/\n/g, '<br>'),
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: uploadedCount > 0 ? '#3085d6' : '#d33'
+        })
+      }
+      
+      setTimeout(() => setUploadProgress(0), 3000) // Hide progress after 3 seconds
     } catch (error) {
-      console.error('Error uploading multiple images:', error)
+      console.error('❌ Error uploading multiple images:', error)
+      
+      // More detailed error messages for multiple upload
+      let errorMessage = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ'
+      let errorDetails = ''
+      
+      if (error.response && error.response.data) {
+        const responseData = error.response.data
+        errorMessage = responseData.message || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ'
+        errorDetails = responseData.details || responseData.error || ''
+      } else if (error.message.includes('Network Error')) {
+        errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+        errorDetails = 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'
+      } else {
+        errorDetails = error.message
+      }
+      
+      const fullErrorMessage = errorDetails ? `${errorMessage}\n\nรายละเอียด: ${errorDetails}` : errorMessage
+      Swal.fire({
+        icon: 'error',
+        title: 'อัปโหลดรูปภาพไม่สำเร็จ',
+        html: fullErrorMessage.replace(/\n/g, '<br>'),
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#d33'
+      })
     } finally {
       setUploading(false)
     }
@@ -992,37 +1160,127 @@ const HouseForm = ({ initialData = null, onBack, onSave, isEditing = false }) =>
     try {
       setUploading(true)
       
-      // อัพโหลดไป Cloudinary ผ่าน API
-      const result = await uploadAPI.uploadMultiple([file])
-      const uploaded = result?.data?.[0] || result?.data || result // Get first file from array
-      const imageUrl = uploaded.url
-      const publicId = uploaded.public_id
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('กรุณาเลือกไฟล์รูปภาพเท่านั้น (JPG, PNG, WebP)')
+      }
       
-      const imageData = {
-        id: Date.now().toString(),
-        url: imageUrl,
-        preview: imageUrl, // backward compatibility with old rendering
-        public_id: publicId,
-        uploading: false,
-        file
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        throw new Error('ขนาดไฟล์ต้องไม่เกิน 10MB')
+      }
+      
+      console.log('🔄 เริ่มอัพโหลดไฟล์:', file.name, 'ขนาด:', (file.size / 1024 / 1024).toFixed(2), 'MB')
+      console.log('📁 ไฟล์ข้อมูล:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified
+      })
+      
+      // Create temporary image preview while uploading
+      const tempImageData = {
+        id: `temp-${Date.now()}`,
+        preview: URL.createObjectURL(file),
+        url: null,
+        public_id: null,
+        uploading: true
       }
 
       if (isCover) {
-        setCoverImage(imageData)
+        setCoverImage(tempImageData)
       } else {
-        setImages(prev => [...prev, imageData])
+        setImages(prev => [...prev, tempImageData])
       }
       
-      console.log('อัพโหลดรูปภาพสำเร็จ:', uploaded)
+      // Call uploadAPI.uploadSingle
+      console.log('📤 เรียกใช้ uploadAPI.uploadSingle...')
+      const response = await uploadAPI.uploadSingle(file)
+      
+      console.log('✅ Upload response:', response)
+      
+      if (response && response.success && response.data) {
+        const imageData = {
+          id: Date.now().toString(),
+          preview: response.data.url,
+          url: response.data.url,
+          public_id: response.data.public_id,
+          uploading: false
+        }
+
+        if (isCover) {
+          setCoverImage(imageData)
+        } else {
+          setImages(prev => prev.map(img => 
+            img.id === tempImageData.id ? imageData : img
+          ))
+        }
+        
+        console.log('✅ รูปภาพอัพโหลดสำเร็จ:', imageData.url)
+        
+        // Show success notification
+        const successMsg = isCover ? 'อัพโหลดรูปหน้าปกสำเร็จ!' : 'อัพโหลดรูปภาพสำเร็จ!'
+        // You can replace alert with a better notification system
+        setTimeout(() => {
+          console.log('✅', successMsg)
+        }, 100)
+        
+      } else {
+        throw new Error(response?.message || 'ไม่ได้รับข้อมูลการอัปโหลดจากเซิร์ฟเวอร์')
+      }
     } catch (error) {
-      console.error('Error uploading image:', error)
+      console.error('❌ Error uploading image:', error)
+      
+      // Remove temporary image on error
+      if (isCover) {
+        setCoverImage(null)
+      } else {
+        setImages(prev => prev.filter(img => !img.uploading))
+      }
+      
+      // More detailed error messages
+      let errorMessage = 'อัปโหลดรูปภาพไม่สำเร็จ'
+      let errorDetails = ''
+      
+      // Check for specific error types from backend
+      if (error.response && error.response.data) {
+        const responseData = error.response.data
+        errorMessage = responseData.message || 'อัปโหลดรูปภาพไม่สำเร็จ'
+        errorDetails = responseData.details || responseData.error || ''
+        
+        console.log('🔍 Backend error details:', responseData)
+        console.log('🔍 Error response status:', error.response.status)
+        console.log('🔍 Error response headers:', error.response.headers)
+      } else if (error.message.includes('Network Error') || error.message.includes('ไม่สามารถเชื่อมต่อ')) {
+        errorMessage = '🌐 ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+        errorDetails = 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'
+      } else if (error.message.includes('timeout')) {
+        errorMessage = '⏱️ การอัปโหลดใช้เวลานานเกินไป'
+        errorDetails = 'กรุณาลองใหม่อีกครั้ง'
+      } else if (error.message.includes('413') || error.message.includes('ขนาดใหญ่')) {
+        errorMessage = '📏 ไฟล์มีขนาดใหญ่เกินไป'
+        errorDetails = 'กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 10MB'
+      } else if (error.message.includes('415') || error.message.includes('ประเภทไฟล์')) {
+        errorMessage = '🖼️ ประเภทไฟล์ไม่ถูกต้อง'
+        errorDetails = 'กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP)'
+      } else if (error.message.includes('Cloudinary')) {
+        errorMessage = '☁️ เกิดข้อผิดพลาดในระบบจัดเก็บรูปภาพ'
+        errorDetails = 'กรุณาลองใหม่อีกครั้ง'
+      } else {
+        errorMessage = `❌ อัปโหลดรูปภาพไม่สำเร็จ`
+        errorDetails = error.message
+      }
+      
+      // Show detailed error message
+      const fullErrorMessage = errorDetails ? `${errorMessage}\n\nรายละเอียด: ${errorDetails}` : errorMessage
       Swal.fire({
         icon: 'error',
-        title: 'อัพโหลดไม่สำเร็จ',
-        text: `อัปโหลดรูปภาพไม่สำเร็จ: ${error.message}`,
+        title: 'อัปโหลดรูปภาพไม่สำเร็จ',
+        html: fullErrorMessage.replace(/\n/g, '<br>'),
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#ef4444'
-      });
+        confirmButtonColor: '#d33'
+      })
     } finally {
       setUploading(false)
     }

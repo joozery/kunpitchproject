@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../ui/button'
+import { usePermissions } from '../../contexts/PermissionContext'
 import { 
   Home, 
   Building2,
@@ -24,6 +25,30 @@ import {
 const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { 
+    userRole,
+    permissions,
+    isLoading,
+    canManageProjects, 
+    canManageProperties, 
+    canManageUsers,
+    canAccessContact,
+    canManageBanners,
+    canManageArticles,
+    canManageYoutube
+  } = usePermissions()
+
+  // เพิ่ม debug
+  console.log('🔍 Sidebar Debug:', { 
+    userRole, 
+    permissions, 
+    isLoading,
+    canManageUsers,
+    canManageProjects, 
+    canManageProperties,
+    permissionsKeys: Object.keys(permissions || {}),
+    permissionsValues: permissions
+  });
 
   const menuItems = [
     {
@@ -31,105 +56,120 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
       title: 'หน้าหลัก',
       description: 'ภาพรวมและสถิติ',
       path: '/admin/dashboard',
-      icon: Home
+      icon: Home,
+      permission: null // แสดงได้ทุกคน
     },
     {
       id: 'users',
       title: 'ผู้ใช้',
       description: 'จัดการผู้ใช้งานและสิทธิ์',
       path: '/admin/users',
-      icon: Users
+      icon: Users,
+      permission: 'canManageUsers'
     },
     {
       id: 'properties',
       title: 'จัดการ Property',
       description: 'จัดการข้อมูลอสังหาริมทรัพย์ทั้งหมด',
       path: '/admin/properties',
-      icon: Building2
+      icon: Building2,
+      permission: 'canManageProperties'
     },
     {
       id: 'projects',
       title: 'จัดการโครงการ',
       description: 'จัดการรายละเอียดโครงการต่างๆ',
       path: '/admin/projects',
-      icon: FolderOpen
+      icon: FolderOpen,
+      permission: 'canManageProjects'
     },
     {
       id: 'condos',
       title: 'คอนโด/อพาร์ตเม้นท์',
       description: 'จัดการคอนโดมิเนียมและอพาร์ตเม้นท์',
       path: '/admin/condos',
-      icon: Building
+      icon: Building,
+      permission: 'canManageProperties'
     },
     {
       id: 'houses',
       title: 'บ้านเดี่ยว/ทาวเฮาส์',
       description: 'จัดการบ้านเดี่ยวและทาวน์เฮาส์',
       path: '/admin/houses',
-      icon: HomeIcon
+      icon: HomeIcon,
+      permission: 'canManageProperties'
     },
     {
       id: 'land',
       title: 'ที่ดิน',
       description: 'จัดการที่ดินเปล่า ไร่นา สวน',
       path: '/admin/land',
-      icon: TreePine
+      icon: TreePine,
+      permission: 'canManageProperties'
     },
     {
       id: 'commercial',
       title: 'โฮมออฟฟิศ/ตึกแถว',
       description: 'จัดการโฮมออฟฟิศ ตึกแถว พาณิชย์',
       path: '/admin/commercial',
-      icon: Briefcase
+      icon: Briefcase,
+      permission: 'canManageProperties'
     },
     {
       id: 'contact',
       title: 'การติดต่อ',
       description: 'ตั้งค่าข้อมูลการติดต่อและโซเชียลมีเดีย',
       path: '/admin/contact',
-      icon: MessageCircle
+      icon: MessageCircle,
+      permission: 'canAccessContact'
     },
     {
       id: 'banner-slides',
       title: 'จัดการ Banner Slides',
       description: 'จัดการ slides สำหรับ BannerSlide component',
       path: '/admin/banner-slides',
-      icon: Image
+      icon: Image,
+      permission: 'canManageBanners'
     },
     {
       id: 'youtube',
       title: 'จัดการ YouTube',
       description: 'จัดการ YouTube videos ในหน้า home',
       path: '/admin/youtube',
-      icon: Youtube
+      icon: Youtube,
+      permission: 'canManageYoutube'
     },
     {
       id: 'articles',
       title: 'จัดการบทความ',
       description: 'จัดการบทความและเนื้อหาบล็อก',
       path: '/admin/articles',
-      icon: FileText
+      icon: FileText,
+      permission: 'canManageArticles'
     },
     {
       id: 'settings',
       title: 'ตั้งค่า',
       description: 'ตั้งค่าระบบและโปรไฟล์',
       path: '/admin/settings',
-      icon: Settings
+      icon: Settings,
+      permission: null // แสดงได้ทุกคน
     },
     {
       id: 'help',
       title: 'ช่วยเหลือ',
       description: 'คู่มือการใช้งานและ FAQ',
       path: '/admin/help',
-      icon: HelpCircle
+      icon: HelpCircle,
+      permission: null // แสดงได้ทุกคน
     },
     {
       id: 'about',
       title: 'เกี่ยวกับ',
       description: 'ข้อมูลเกี่ยวกับระบบ',
       path: '/admin/about',
-      icon: Info
+      icon: Info,
+      permission: null // แสดงได้ทุกคน
     }
   ]
 
@@ -181,8 +221,29 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
 
       {/* Navigation Menu */}
       <div className="flex-1 overflow-y-auto sidebar-scrollbar">
-        <nav className={`space-y-2 ${collapsed ? 'p-3' : 'p-4'}`}>
+        {isLoading ? (
+          <div className="p-4 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="text-sm text-gray-500 mt-2">กำลังโหลดสิทธิ์...</p>
+          </div>
+        ) : (
+          <nav className={`space-y-2 ${collapsed ? 'p-3' : 'p-4'}`}>
           {Array.isArray(menuItems) && menuItems.map((item) => {
+            // เพิ่ม debug
+            console.log('🔍 Sidebar Menu Debug:', { 
+              item: item.title, 
+              permission: item.permission, 
+              hasPermission: permissions[item.permission],
+              permissions: permissions,
+              userRole: userRole
+            });
+            
+            // ตรวจสอบสิทธิ์การเข้าถึงเมนู
+            if (item.permission && !permissions[item.permission]) {
+              console.log('❌ Menu hidden:', item.title, 'Permission:', item.permission);
+              return null; // ไม่แสดงเมนูถ้าไม่มีสิทธิ์
+            }
+
             const Icon = item.icon
             const isActive = isActivePage(item)
             
@@ -223,9 +284,10 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
                 </div>
               </Button>
             )
-          })}
-        </nav>
-      </div>
+                      })}
+          </nav>
+        )}
+        </div>
 
       {/* Admin User Section */}
       <div className={`border-t bg-gray-50 flex-shrink-0 ${collapsed ? 'p-4' : 'p-4'}`}>
@@ -237,8 +299,22 @@ const Sidebar = ({ activePage, onPageChange, collapsed = false, onToggle }) => {
           </div>
           {!collapsed && (
             <div>
-              <div className="font-medium text-gray-900 font-prompt">ผู้ดูแลระบบ</div>
-              <div className="text-sm text-gray-500 font-prompt">Real Estate Manager</div>
+              <div className="font-medium text-gray-900 font-prompt">
+                {userRole === 'owner' ? 'เจ้าของ' : 
+                 userRole === 'admin' ? 'ผู้ดูแลระบบ' :
+                 userRole === 'project_manager' ? 'ผู้จัดการโครงการ' :
+                 userRole === 'property_manager' ? 'ผู้จัดการทรัพย์สิน' :
+                 userRole === 'editor' ? 'ผู้แก้ไข' :
+                 userRole === 'viewer' ? 'ผู้ดู' : 'ผู้ดูแลระบบ'}
+              </div>
+              <div className="text-sm text-gray-500 font-prompt">
+                {userRole === 'owner' ? 'Owner' :
+                 userRole === 'admin' ? 'Administrator' :
+                 userRole === 'project_manager' ? 'Project Manager' :
+                 userRole === 'property_manager' ? 'Property Manager' :
+                 userRole === 'editor' ? 'Editor' :
+                 userRole === 'viewer' ? 'Viewer' : 'Admin'}
+              </div>
             </div>
           )}
         </div>

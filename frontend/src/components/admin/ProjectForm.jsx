@@ -7,6 +7,8 @@ import { Textarea } from '../ui/textarea';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { usePermissions } from '../../contexts/PermissionContext';
+import PermissionGuard from './PermissionGuard';
 import { 
   DndContext, 
   closestCenter,
@@ -123,6 +125,8 @@ const SortableImage = ({ image, index, isNew = false, onRemove, isExisting = fal
 };
 
 const ProjectForm = ({ project = null, onSubmit, onCancel }) => {
+  const { canDelete } = usePermissions();
+  
   // DnD Sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {

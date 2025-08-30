@@ -18,6 +18,7 @@ import ArticleDetail from './pages/ArticleDetail'
 import Contact from './pages/Contact'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { PermissionProvider } from './contexts/PermissionContext'
 
 const RequireAuth = ({ children }) => {
   const location = useLocation()
@@ -131,9 +132,11 @@ function App() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <PermissionProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </PermissionProvider>
       </LanguageProvider>
     </ErrorBoundary>
   )

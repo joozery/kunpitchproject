@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { projectApi } from '../../lib/projectApi';
 import ProjectForm from './ProjectForm';
 import Swal from 'sweetalert2';
+import { usePermissions } from '../../contexts/PermissionContext';
+import PermissionGuard from './PermissionGuard';
 import { 
   FaBuilding, 
   FaEdit, 
@@ -23,6 +25,8 @@ import {
 } from 'react-icons/fa';
 
 const ProjectManagement = () => {
+  const { canManageProjects, canDelete } = usePermissions();
+  
   const [projects, setProjects] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -254,13 +258,15 @@ const ProjectManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 font-prompt">จัดการโครงการ</h1>
           <p className="text-gray-600 mt-1 font-prompt">จัดการข้อมูลโครงการอสังหาริมทรัพย์ทั้งหมด</p>
         </div>
-        <Button 
-          onClick={handleAddProject} 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
-        >
-          <FaPlus className="h-4 w-4 mr-2" />
-          เพิ่มโครงการใหม่
-        </Button>
+        <PermissionGuard requiredPermission="canManageProjects">
+          <Button 
+            onClick={handleAddProject} 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-prompt"
+          >
+            <FaPlus className="h-4 w-4 mr-2" />
+            เพิ่มโครงการใหม่
+          </Button>
+        </PermissionGuard>
       </div>
       {/* Statistics Cards */}
       {showStats && (
@@ -440,10 +446,12 @@ const ProjectManagement = () => {
                   : 'เริ่มต้นด้วยการเพิ่มโครงการแรกของคุณ'}
               </p>
               {!searchTerm && !filterType && !filterStatus && (
-                <Button onClick={handleAddProject} className="mt-4 font-prompt">
-                  <FaPlus className="mr-2 h-4 w-4" />
-                  เพิ่มโครงการใหม่
-                </Button>
+                <PermissionGuard requiredPermission="canManageProjects">
+                  <Button onClick={handleAddProject} className="mt-4 font-prompt">
+                    <FaPlus className="mr-2 h-4 w-4" />
+                    เพิ่มโครงการใหม่
+                  </Button>
+                </PermissionGuard>
               )}
             </div>
           ) : viewMode === 'table' ? (
@@ -512,14 +520,16 @@ const ProjectManagement = () => {
                         >
                           <FaEdit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteProject(project.id)}
-                          className="text-red-600 hover:text-red-700 font-prompt"
-                        >
-                          <FaTrash className="h-4 w-4" />
-                        </Button>
+                        <PermissionGuard requiredPermission="canDelete">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="text-red-600 hover:text-red-700 font-prompt"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -623,14 +633,16 @@ const ProjectManagement = () => {
                           <FaEdit className="mr-2 h-4 w-4" />
                           แก้ไข
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteProject(project.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 font-prompt"
-                        >
-                          <FaTrash className="h-4 w-4" />
-                        </Button>
+                        <PermissionGuard requiredPermission="canDelete">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 font-prompt"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </CardContent>
