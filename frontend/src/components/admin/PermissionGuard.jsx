@@ -189,3 +189,4 @@ export const withPermission = (WrappedComponent, requiredPermission, fallback = 
 };
 
 export default PermissionGuard;
+

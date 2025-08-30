@@ -87,6 +87,7 @@ const UserManagement = () => {
     if (!form.name.trim()) e.name = 'กรุณากรอกชื่อ'
     if (!form.email.trim()) e.email = 'กรุณากรอกอีเมล'
     if (!editing && !form.password) e.password = 'กรุณากรอกรหัสผ่าน'
+    if (form.password && form.password.length < 6) e.password = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -107,7 +108,15 @@ const UserManagement = () => {
       setForm(emptyForm)
       await load()
     } catch (e) {
-      alert(e.message || 'บันทึกไม่สำเร็จ')
+      console.error('Error saving user:', e);
+      if (e.response?.data?.errors) {
+        // Handle validation errors from backend
+        const backendErrors = e.response.data.errors;
+        const errorMessages = backendErrors.map(err => err.msg || err.message).join(', ');
+        alert(`Validation errors: ${errorMessages}`);
+      } else {
+        alert(e.message || 'บันทึกไม่สำเร็จ');
+      }
     }
   }
 

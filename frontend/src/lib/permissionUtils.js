@@ -273,3 +273,4 @@ export const getRoleBadge = (userRole) => {
   
   return badges[userRole] || badges.guest;
 };
+

@@ -465,3 +465,4 @@ console.log('Can delete:', permissions.canDelete);
 4. 🔄 อัปเดต Form components ด้วย PermissionGuard
 5. 🔄 ทดสอบการทำงานของระบบสิทธิ์
 6. 🔄 อัปเดต components อื่นๆ ตามต้องการ
+
