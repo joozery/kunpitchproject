@@ -37,8 +37,11 @@ import {
   Coffee
 } from 'lucide-react'
 import { commercialApi } from '../../lib/projectApi'
+import { usePermissions } from '../../contexts/PermissionContext'
+import PermissionGuard from './PermissionGuard'
 
 const CommercialManagement = () => {
+  const { canDelete } = usePermissions();
   const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
@@ -375,9 +378,11 @@ const CommercialManagement = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <PermissionGuard requiredPermission="canDelete">
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </PermissionGuard>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -469,9 +474,11 @@ const CommercialManagement = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <PermissionGuard requiredPermission="canDelete">
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(property.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </PermissionGuard>
                           </div>
                         </div>
                       </div>

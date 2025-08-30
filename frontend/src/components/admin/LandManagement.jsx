@@ -34,6 +34,9 @@ import {
 } from 'lucide-react'
 import LandForm from './LandForm'
 import { landAPI } from '../../lib/api'
+import { usePermissions } from '../../contexts/PermissionContext'
+import PermissionGuard from './PermissionGuard'
+import Swal from 'sweetalert2'
 
 // Helpers for land sizes
 const toRaiNganWah = (land) => {
@@ -67,6 +70,8 @@ const totalSquareWa = (land) => {
 }
 
 const LandManagement = () => {
+  const { canDelete } = usePermissions();
+  
   const [lands, setLands] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -121,6 +126,44 @@ const LandManagement = () => {
     setShowEditForm(false)
     setEditingLand(null)
     await fetchLands()
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const result = await Swal.fire({
+        title: 'ยืนยันการลบ',
+        text: 'คุณต้องการลบที่ดินนี้หรือไม่? การดำเนินการนี้ไม่สามารถยกเลิกได้',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก'
+      })
+
+      if (result.isConfirmed) {
+        const res = await landAPI.delete(id)
+        if (res.success) {
+          await Swal.fire({
+            title: 'ลบสำเร็จ!',
+            text: 'ลบที่ดินเรียบร้อยแล้ว',
+            icon: 'success',
+            confirmButtonText: 'ตกลง'
+          })
+          fetchLands()
+        } else {
+          throw new Error(res.message || 'ไม่สามารถลบที่ดินได้')
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting land:', error)
+      await Swal.fire({
+        title: 'ลบไม่สำเร็จ',
+        text: 'ไม่สามารถลบที่ดินได้: ' + (error.message || 'เกิดข้อผิดพลาด'),
+        icon: 'error',
+        confirmButtonText: 'ตกลง'
+      })
+    }
   }
 
   const getStatusColor = (status) => {
@@ -517,9 +560,11 @@ const LandManagement = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(land)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <PermissionGuard requiredPermission="canDelete">
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(land.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -639,9 +684,11 @@ const LandManagement = () => {
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(land)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <PermissionGuard requiredPermission="canDelete">
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(land.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>

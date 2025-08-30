@@ -35,10 +35,13 @@ import {
 } from 'lucide-react'
 import CondoForm from './CondoForm'
 import { condoAPI } from '../../lib/api'
-import { checkPermission, PERMISSIONS, PermissionGuard } from '../../lib/permissions'
+import { usePermissions } from '../../contexts/PermissionContext'
+import PermissionGuard from './PermissionGuard'
 import Swal from 'sweetalert2'
 
 const CondoManagement = () => {
+  const { canDelete } = usePermissions();
+  
   const [condos, setCondos] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -512,7 +515,7 @@ const CondoManagement = () => {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </PermissionGuard>
-                          <PermissionGuard permission={PERMISSIONS.PROPERTY_DELETE}>
+                          <PermissionGuard requiredPermission="canDelete">
                             <Button 
                               variant="ghost" 
                               size="sm"
@@ -610,13 +613,15 @@ const CondoManagement = () => {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeleteCondo(condo.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <PermissionGuard requiredPermission="canDelete">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteCondo(condo.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>

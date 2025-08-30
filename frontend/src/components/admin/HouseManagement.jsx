@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import Swal from 'sweetalert2'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { usePermissions } from '../../contexts/PermissionContext'
+import PermissionGuard from './PermissionGuard'
 import { 
   Table, 
   TableBody, 
@@ -38,6 +40,8 @@ import HouseForm from './HouseForm'
 import { houseAPI } from '../../lib/api'
 
 const HouseManagement = () => {
+  const { canDelete } = usePermissions();
+  
   const [houses, setHouses] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -448,9 +452,11 @@ const HouseManagement = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <PermissionGuard requiredPermission="canDelete">
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -536,9 +542,11 @@ const HouseManagement = () => {
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(house)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <PermissionGuard requiredPermission="canDelete">
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(house.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>
