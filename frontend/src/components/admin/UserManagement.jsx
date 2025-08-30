@@ -4,7 +4,8 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { usersAPI } from '../../lib/api'
-import { checkPermission, PERMISSIONS, PermissionGuard } from '../../lib/permissions'
+import { usePermissions } from '../../contexts/PermissionContext'
+import PermissionGuard from './PermissionGuard'
 import { 
   Users, 
   UserPlus, 
@@ -22,9 +23,28 @@ import {
   X
 } from 'lucide-react'
 
-const emptyForm = { name: '', email: '', password: '', role: 'editor', is_active: true }
+const emptyForm = { name: '', email: '', password: '', role: 'viewer', is_active: true }
 
 const UserManagement = () => {
+  const { canManageUsers, canDelete, userRole } = usePermissions();
+  
+  // ฟังก์ชันสำหรับตรวจสอบสิทธิ์การสร้าง role
+  const getAvailableRoles = () => {
+    const allRoles = [
+      { value: 'owner', label: 'Owner - เจ้าของ (ทำได้ทุกอย่าง)' },
+      { value: 'admin', label: 'Admin - ผู้ดูแลระบบ (ทำได้ทุกอย่าง ยกเว้นผู้ใช้งาน)' },
+      { value: 'project_manager', label: 'Project Manager - ผู้จัดการโครงการ (เฉพาะโครงการ)' },
+      { value: 'property_manager', label: 'Property Manager - ผู้จัดการทรัพย์สิน (เฉพาะทรัพย์สิน)' },
+      { value: 'editor', label: 'Editor - ผู้แก้ไข (แก้ไขได้แต่ลบไม่ได้)' },
+      { value: 'viewer', label: 'Viewer - ผู้ดู (ดูได้อย่างเดียว)' }
+    ];
+
+    // ตรวจสอบสิทธิ์การสร้าง role
+    if (userRole === 'owner') return allRoles; // Owner สร้างได้ทุก role
+    if (userRole === 'admin') return allRoles.filter(role => role.value !== 'owner'); // Admin สร้างได้ทุก role ยกเว้น Owner
+    return []; // บทบาทอื่นๆ ไม่สามารถสร้าง user ได้
+  };
+  
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -98,9 +118,12 @@ const UserManagement = () => {
 
   const getRoleIcon = (role) => {
     switch (role) {
+      case 'owner': return <Shield className="w-4 h-4 text-purple-500" />
       case 'admin': return <Shield className="w-4 h-4 text-red-500" />
-      case 'editor': return <Edit className="w-4 h-4 text-blue-500" />
-      case 'viewer': return <Eye className="w-4 h-4 text-green-500" />
+      case 'project_manager': return <Edit className="w-4 h-4 text-blue-500" />
+      case 'property_manager': return <Edit className="w-4 h-4 text-green-500" />
+      case 'editor': return <Edit className="w-4 h-4 text-yellow-500" />
+      case 'viewer': return <Eye className="w-4 h-4 text-gray-500" />
       default: return <User className="w-4 h-4 text-gray-500" />
     }
   }
@@ -108,12 +131,18 @@ const UserManagement = () => {
   const getRoleBadge = (role) => {
     const baseClasses = "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
     switch (role) {
+      case 'owner':
+        return <span className={`${baseClasses} bg-purple-100 text-purple-700`}><Shield className="w-3 h-3" />Owner</span>
       case 'admin':
         return <span className={`${baseClasses} bg-red-100 text-red-700`}><Shield className="w-3 h-3" />Admin</span>
+      case 'project_manager':
+        return <span className={`${baseClasses} bg-blue-100 text-blue-700`}><Edit className="w-3 h-3" />Project Manager</span>
+      case 'property_manager':
+        return <span className={`${baseClasses} bg-green-100 text-green-700`}><Edit className="w-3 h-3" />Property Manager</span>
       case 'editor':
-        return <span className={`${baseClasses} bg-blue-100 text-blue-700`}><Edit className="w-3 h-3" />Editor</span>
+        return <span className={`${baseClasses} bg-yellow-100 text-yellow-700`}><Edit className="w-3 h-3" />Editor</span>
       case 'viewer':
-        return <span className={`${baseClasses} bg-green-100 text-green-700`}><Eye className="w-3 h-3" />Viewer</span>
+        return <span className={`${baseClasses} bg-gray-100 text-gray-700`}><Eye className="w-3 h-3" />Viewer</span>
       default:
         return <span className={`${baseClasses} bg-gray-100 text-gray-700`}><User className="w-3 h-3" />User</span>
     }
@@ -125,6 +154,16 @@ const UserManagement = () => {
     const matchesRole = filterRole === 'all' || user.role === filterRole
     return matchesSearch && matchesRole
   })
+
+  // ตรวจสอบสิทธิ์การเข้าถึง
+  if (!canManageUsers) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <h2 className="text-2xl font-bold text-red-800 mb-4">ไม่มีสิทธิ์เข้าถึง</h2>
+        <p className="text-red-600">คุณไม่มีสิทธิ์ในการจัดการผู้ใช้งาน</p>
+      </div>
+    );
+  }
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -145,7 +184,7 @@ const UserManagement = () => {
             <p className="text-sm text-gray-600">จัดการบัญชีผู้ใช้และสิทธิ์การเข้าถึง</p>
           </div>
         </div>
-        <PermissionGuard permission={PERMISSIONS.USER_CREATE}>
+        <PermissionGuard requiredPermission="canManageUsers">
           <Button 
             onClick={startCreate}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -175,9 +214,12 @@ const UserManagement = () => {
             className="pl-10 pr-8 py-2 border border-gray-200 rounded-md bg-white focus:border-blue-500 focus:ring-blue-500 appearance-none"
           >
             <option value="all">ทุกบทบาท</option>
-            <option value="admin">Admin</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Viewer</option>
+            <option value="owner">Owner - เจ้าของ</option>
+            <option value="admin">Admin - ผู้ดูแลระบบ</option>
+            <option value="project_manager">Project Manager - ผู้จัดการโครงการ</option>
+            <option value="property_manager">Property Manager - ผู้จัดการทรัพย์สิน</option>
+            <option value="editor">Editor - ผู้แก้ไข</option>
+            <option value="viewer">Viewer - ผู้ดู</option>
           </select>
         </div>
       </div>
@@ -246,9 +288,11 @@ const UserManagement = () => {
                   value={form.role} 
                   onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                 >
-                  <option value="admin">Admin - ผู้ดูแลระบบ</option>
-                  <option value="editor">Editor - ผู้แก้ไข</option>
-                  <option value="viewer">Viewer - ผู้ดู</option>
+                  {getAvailableRoles().map(role => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -351,7 +395,7 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        <PermissionGuard permission={PERMISSIONS.USER_UPDATE}>
+                        <PermissionGuard requiredPermission="canManageUsers">
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -361,7 +405,7 @@ const UserManagement = () => {
                             <Edit className="w-4 h-4" />
                           </Button>
                         </PermissionGuard>
-                        <PermissionGuard permission={PERMISSIONS.USER_DELETE}>
+                        <PermissionGuard requiredPermission="canDelete">
                           <Button 
                             variant="ghost" 
                             size="sm" 
