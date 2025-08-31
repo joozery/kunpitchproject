@@ -17,6 +17,10 @@ export const LanguageProvider = ({ children }) => {
       setCurrentLanguage(savedLanguage);
     } else if (shortLang === 'th') {
       setCurrentLanguage('th');
+    } else if (shortLang === 'zh') {
+      setCurrentLanguage('zh');
+    } else if (shortLang === 'ja') {
+      setCurrentLanguage('ja');
     } else {
       setCurrentLanguage('en');
     }
@@ -32,7 +36,9 @@ export const LanguageProvider = ({ children }) => {
       currentLanguage, 
       changeLanguage,
       isThai: currentLanguage === 'th',
-      isEnglish: currentLanguage === 'en'
+      isEnglish: currentLanguage === 'en',
+      isChinese: currentLanguage === 'zh',
+      isJapanese: currentLanguage === 'ja'
     }}>
       {children}
     </LanguageContext.Provider>
